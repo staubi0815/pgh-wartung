@@ -1,0 +1,22 @@
+{% extends "verwaltung.html" %}{% block titel %}Rollen und Rechte{% endblock %}
+{% block bereich %}
+<div class="zeile"><h1>Rollen und Rechte</h1><a class="knopf" href="/verwaltung/rollen/neu">+ Rolle anlegen</a></div>
+<p class="leise">Ein Nutzer kann mehrere Rollen haben; er darf dann alles, was eine seiner Rollen darf.
+Administration hat immer alle Rechte und ist nicht änderbar.</p>
+<table class="matrix">
+  <tr>
+    <th>Recht</th>
+    {% for r in liste %}<th><a href="/verwaltung/rollen/{{ r.id }}" title="{{ r.beschreibung }}">{{ r.name }}</a>
+      <span class="leise">{{ r.anzahl }} Nutzer</span></th>{% endfor %}
+  </tr>
+  {% for bereich, eintraege in BEREICHE.items() %}
+  <tr class="bereich"><td colspan="{{ liste | length + 1 }}">{{ bereich }}</td></tr>
+  {% for recht, text in eintraege %}
+  <tr>
+    <td>{{ text }}</td>
+    {% for r in liste %}<td class="mitte">{% if recht in matrix[r.id] %}<span class="ja" aria-label="ja">✓</span>{% else %}<span class="leise" aria-label="nein">–</span>{% endif %}</td>{% endfor %}
+  </tr>
+  {% endfor %}
+  {% endfor %}
+</table>
+{% endblock %}

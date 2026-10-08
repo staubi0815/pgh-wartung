@@ -5,27 +5,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from wartung import auth, db
-from wartung.app import erzeuge_app
 
-PW = "Sicher-Test-2026!"
-
-
-def csrf_aus(html):
-    return re.search(r'name="csrf_token" value="([^"]+)"', html).group(1)
-
-
-@pytest.fixture
-def umgebung(tmp_path):
-    app = erzeuge_app(tmp_path)
-    con = app.state.con
-    admin = auth.nutzer_anlegen(con, "Test Admin", "admin@example.org", "admin", None)
-    auth.passwort_setzen(con, admin, PW, None)
-    return TestClient(app), con
-
-
-def anmelden(c, email="admin@example.org", pw=PW):
-    t = csrf_aus(c.get("/anmelden").text)
-    return c.post("/anmelden", data={"email": email, "passwort": pw, "csrf_token": t}, follow_redirects=False)
+from hilfen import PW, anmelden, csrf_aus, rolle_id
 
 
 def test_ohne_anmeldung_umleitung(umgebung):
@@ -69,7 +50,8 @@ def test_einladung_passwort_setzen_und_rollen(umgebung):
     anmelden(c)
     t = csrf_aus(c.get("/verwaltung/nutzer/neu").text)
     r = c.post("/verwaltung/nutzer/neu", data={"name": "Tom Techniker", "email": "tom@example.org",
-                                               "rolle": "techniker", "personalnummer": "P-1", "csrf_token": t})
+                                               "rollen": rolle_id(con, "techniker"), "personalnummer": "P-1",
+                                               "csrf_token": t})
     link = re.search(r"<code>([^<]+)</code>", r.text).group(1)
     code = link.split("code=")[1]
     t2 = csrf_aus(c.post("/abmelden", data={"csrf_token": t}).text)
@@ -89,13 +71,14 @@ def test_einladung_passwort_setzen_und_rollen(umgebung):
 def test_deaktivieren_beendet_sitzung(umgebung):
     c, con = umgebung
     anmelden(c)
-    nid = auth.nutzer_anlegen(con, "Bea Büro", "bea@example.org", "buero", None)
+    nid = auth.nutzer_anlegen(con, "Bea Büro", "bea@example.org", [rolle_id(con, "buero")], None)
     auth.passwort_setzen(con, nid, PW, None)
     c2 = TestClient(c.app)
     assert anmelden(c2, "bea@example.org").status_code == 303
     assert c2.get("/", follow_redirects=False).status_code == 200
     t = csrf_aus(c.get(f"/verwaltung/nutzer/{nid}").text)
-    c.post(f"/verwaltung/nutzer/{nid}", data={"name": "Bea Büro", "rolle": "buero", "csrf_token": t})  # ohne aktiv
+    c.post(f"/verwaltung/nutzer/{nid}", data={"name": "Bea Büro", "rollen": rolle_id(con, "buero"),
+                                              "csrf_token": t})  # ohne aktiv
     assert c2.get("/", follow_redirects=False).status_code == 303
 
 
@@ -104,8 +87,11 @@ def test_eigenes_admin_konto_geschuetzt(umgebung):
     anmelden(c)
     aid = con.execute("SELECT id FROM nutzer WHERE email='admin@example.org'").fetchone()["id"]
     t = csrf_aus(c.get(f"/verwaltung/nutzer/{aid}").text)
-    r = c.post(f"/verwaltung/nutzer/{aid}", data={"name": "X", "rolle": "techniker", "aktiv": "1", "csrf_token": t})
-    assert r.status_code == 400
+    r = c.post(f"/verwaltung/nutzer/{aid}", data={"name": "X", "rollen": rolle_id(con, "techniker"), "aktiv": "1",
+                                                  "csrf_token": t})
+    assert r.status_code == 400 and "Administration kann nicht entfernt" in r.text
+    r = c.post(f"/verwaltung/nutzer/{aid}", data={"name": "X", "rollen": rolle_id(con, "admin"), "csrf_token": t})
+    assert r.status_code == 400 and "nicht deaktiviert" in r.text
 
 
 def test_firma_aendern_wird_protokolliert(umgebung):
@@ -140,5 +126,5 @@ def test_passwort_nie_im_protokoll(umgebung):
 
 def test_migration_idempotent(tmp_path):
     con = db.verbinden(tmp_path / "x.db")
-    assert db.migrieren(con) == ["001_grundgeruest.sql"]
+    assert db.migrieren(con) == ["001_grundgeruest.sql", "002_rechte_und_rollen.sql"]
     assert db.migrieren(con) == []

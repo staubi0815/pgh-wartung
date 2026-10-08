@@ -41,5 +41,13 @@ th{color:var(--muted);font-weight:600}
 td a{color:var(--navy)}
 tr.inaktiv td{color:var(--muted)}
 .nebenbei{margin-top:24px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.verwaltung section a:not(.knopf){color:var(--navy)}
 .link-kasten{background:var(--bg-soft);padding:12px;border-radius:6px;word-break:break-all}
+fieldset.auswahl{border:1px solid var(--line);border-radius:6px;padding:8px 12px 0;margin:0 0 12px}
+fieldset.auswahl legend{color:var(--navy);font-weight:600;padding:0 4px}
+fieldset.auswahl label.haken{margin-bottom:8px}
+button:disabled{opacity:.5;cursor:not-allowed}
+table.matrix th{vertical-align:bottom}table.matrix th a{color:var(--navy)}table.matrix th .leise{display:block;font-weight:400;font-size:.8rem}
+table.matrix tr.bereich td{background:var(--bg-soft);color:var(--navy);font-weight:600}
+td.mitte{text-align:center}.ja{color:#1b5e20;font-weight:700}
 @media (max-width:700px){.verwaltung{grid-template-columns:1fr}}

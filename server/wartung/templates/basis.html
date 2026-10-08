@@ -18,7 +18,7 @@
     <a class="bald" title="kommt in Schritt 2">Anlagen</a>
     <a class="bald" title="kommt in Schritt 3">Aufträge</a>
     <a class="bald" title="kommt später">Mängel</a>
-    {% if ich.rolle == 'admin' %}<a href="/verwaltung/nutzer">Verwaltung</a>{% endif %}
+    {% if rechte | select('in', VERWALTUNG | map(attribute=0) | list) | list %}<a href="/verwaltung">Verwaltung</a>{% endif %}
   </nav>
   <div class="konto">
     <a href="/konto/passwort">{{ ich.name }}</a>

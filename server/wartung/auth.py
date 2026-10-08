@@ -6,7 +6,8 @@ from datetime import datetime, timedelta
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerifyMismatchError
 
-from .db import TZ, jetzt, neue_id, protokoll
+from . import rechte
+from .db import TZ, jetzt, neue_id, protokoll, transaktion
 
 _ph = PasswordHasher()
 MAX_FEHLVERSUCHE = 5
@@ -81,18 +82,22 @@ def einladung_pruefen(con, code):
 
 
 def passwort_setzen(con, nutzer_id, pw, von):
-    con.execute("UPDATE nutzer SET passwort_hash = ?, einladung_hash = NULL, einladung_bis = NULL, "
-                "sitzung_zaehler = sitzung_zaehler + 1, geaendert_am = ?, geaendert_von = ?, version = version + 1 "
-                "WHERE id = ?", (_ph.hash(pw), jetzt(), von, nutzer_id))
-    protokoll(con, von, "nutzer", nutzer_id, "passwort_gesetzt")
+    pw_hash = _ph.hash(pw)  # rechenintensiv, daher vor der Transaktion
+    with transaktion(con):
+        con.execute("UPDATE nutzer SET passwort_hash = ?, einladung_hash = NULL, einladung_bis = NULL, "
+                    "sitzung_zaehler = sitzung_zaehler + 1, geaendert_am = ?, geaendert_von = ?, version = version + 1 "
+                    "WHERE id = ?", (pw_hash, jetzt(), von, nutzer_id))
+        protokoll(con, von, "nutzer", nutzer_id, "passwort_gesetzt")
 
 
-def nutzer_anlegen(con, name, email, rolle, von, kuerzel="", personalnummer=None):
+def nutzer_anlegen(con, name, email, rollen_ids, von, kuerzel="", personalnummer=None):
     nid = neue_id()
-    con.execute("INSERT INTO nutzer (id, name, kuerzel, personalnummer, email, rolle, erstellt_am, erstellt_von) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                (nid, name.strip(), kuerzel.strip(), personalnummer or None, email.strip().lower(), rolle, jetzt(), von))
-    protokoll(con, von, "nutzer", nid, "anlegen", "email", None, email.strip().lower())
+    with transaktion(con):
+        con.execute("INSERT INTO nutzer (id, name, kuerzel, personalnummer, email, erstellt_am, erstellt_von) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (nid, name.strip(), kuerzel.strip(), personalnummer or None, email.strip().lower(), jetzt(), von))
+        protokoll(con, von, "nutzer", nid, "anlegen", "email", None, email.strip().lower())
+        rechte.nutzer_rollen_setzen(con, nid, rollen_ids, von)
     return nid
 
 

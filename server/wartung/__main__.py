@@ -1,12 +1,13 @@
 """Befehle für den Server:  python -m wartung <befehl>
 
   migrieren                          Datenbank anlegen/aktualisieren
-  admin-einladen <name> <email>      Admin anlegen (falls neu) und Einmal-Link zum Passwort-Setzen ausgeben
+  admin-einladen <name> <email>      Admin anlegen (vorhandenes Konto: Rolle Administration + aktiv)
+                                     und Einmal-Link zum Passwort-Setzen ausgeben
   starten [--port 8000]              Webserver starten (für systemd)
 """
 import sys
 
-from . import auth, db
+from . import auth, db, rechte
 
 
 def main(argv):
@@ -28,8 +29,14 @@ def main(argv):
         return 0
     if befehl == "admin-einladen" and len(rest) == 2:
         name, email = rest
+        admin = [rechte.admin_rolle_id(con)]
         n = con.execute("SELECT id FROM nutzer WHERE email = ?", (email.lower(),)).fetchone()
-        nid = n["id"] if n else auth.nutzer_anlegen(con, name, email, "admin", None)
+        if n:  # Notfallzugang: vorhandenes Konto bekommt (wieder) die Rolle Administration und wird aktiviert
+            nid = n["id"]
+            rechte.nutzer_rollen_setzen(con, nid, rechte.rollen_von_nutzer(con, nid) | set(admin), None)
+            db.aendern(con, "nutzer", nid, {"aktiv": 1, "geloescht": 0}, None)
+        else:
+            nid = auth.nutzer_anlegen(con, name, email, admin, None)
         code = auth.einladung_erzeugen(con, nid, None)
         print(f"Einmal-Link (48 h gültig): /einrichten?code={code}")
         return 0

@@ -18,7 +18,10 @@
    CSRF, Sicherheitsköpfe), Einmal-Links zum Passwort-Setzen, Nutzer/Rollen, Firma, Änderungsprotokoll (nur anhängen).
    12 Tests grün. Deploy: `./deploy.sh`. Admin-Einladung für Patrick in Drive `pgh-wartung-einrichten.txt` (48 h).
    Offen: feste IP (Patrick), HTTPS, Sicherung der Anwendungsdaten; nächster Baustein Kunden/Objekte/Anlagen/Wohnungen/Melder + Import.
-4. Analyse Foxtag-Rollen und -App (`docs/06`, 08.10.2026): Foxtag nutzt Einzelrechte + kombinierbare Rollen →
-   Vorschlag Migration 002 (Rechte statt Rollennamen, Rolle „Techniker ohne Web“) vor Baustein 2.
-   App-Analyse nur durch Bedienen von Foxtag 2 im Testkonto (kein Zerlegen der APK, AGB 10.3 / § 69e UrhG);
-   wartet auf Patrick (App installieren, Gerät, Variante A adb oder B Bildschirmfotos). Testkonto bis ca. 08.11.
+4. Analyse Foxtag-Rollen und -App (`docs/06`, 08.10.2026). **Einzelrechte + kombinierbare Rollen umgesetzt**
+   (Migration 002, `rechte.py`, Masken Verwaltung → Rollen und Rechte; 29 Tests grün; DB vorher gesichert unter
+   `/var/lib/pgh-wartung/sicherung/wartung-vor-002-2026-10-08.db`). Dabei behoben: eine DB-Verbindung je Thread und
+   Transaktionen mit BEGIN IMMEDIATE/SAVEPOINT (vorher teilten sich gleichzeitige Anfragen eine Verbindung).
+   App-Zerlegung: Patrick hat Erlaubnis von Foxtag telefonisch eingeholt (Mail folgt). Paket 111.0.6 geladen
+   (Flutter, SQLite); weitere Analyse von der Sicherheitsprüfung der Umgebung gestoppt → Entscheidung Patrick.
+   Testkonto bis ca. 08.11.

@@ -3,6 +3,7 @@
 <div class="karte schmal">
   <h1>Anmelden</h1>
   {% if request.query_params.get('hinweis') == 'passwort_gesetzt' %}<p class="ok">Passwort gespeichert – bitte neu anmelden.</p>{% endif %}
+  {% if request.query_params.get('hinweis') == 'nur_app' %}<p class="fehler">Dieses Konto ist nur für die App freigeschaltet, nicht für die Webseite.</p>{% endif %}
   {% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
   <form method="post" action="/anmelden">
     <input type="hidden" name="csrf_token" value="{{ csrf }}">

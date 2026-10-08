@@ -2,11 +2,11 @@
 {% block bereich %}
 <div class="zeile"><h1>Nutzer</h1><a class="knopf" href="/verwaltung/nutzer/neu">+ Nutzer anlegen</a></div>
 <table>
-  <tr><th>Name</th><th>Kürzel</th><th>Personal-Nr.</th><th>E-Mail</th><th>Rolle</th><th>Status</th></tr>
+  <tr><th>Name</th><th>Kürzel</th><th>Personal-Nr.</th><th>E-Mail</th><th>Rollen</th><th>Status</th></tr>
   {% for u in liste %}
   <tr class="{{ '' if u.aktiv else 'inaktiv' }}">
     <td><a href="/verwaltung/nutzer/{{ u.id }}">{{ u.name }}</a></td><td>{{ u.kuerzel }}</td><td>{{ u.personalnummer or '' }}</td>
-    <td>{{ u.email }}</td><td>{{ ROLLEN[u.rolle] }}</td>
+    <td>{{ u.email }}</td><td>{{ u.rollen or '–' }}</td>
     <td>{% if not u.aktiv %}deaktiviert{% elif not u.passwort_hash %}eingeladen{% else %}aktiv{% endif %}</td>
   </tr>
   {% endfor %}

@@ -3,9 +3,7 @@
 <div class="verwaltung">
   <aside>
     <h3>Verwaltung</h3>
-    <a href="/verwaltung/nutzer">Nutzer</a>
-    <a href="/verwaltung/firma">Firma</a>
-    <a href="/verwaltung/protokoll">Änderungsprotokoll</a>
+    {% for recht, pfad, titel in VERWALTUNG %}{% if recht in rechte %}<a href="{{ pfad }}">{{ titel }}</a>{% endif %}{% endfor %}
   </aside>
   <section>{% block bereich %}{% endblock %}</section>
 </div>

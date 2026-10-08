@@ -93,11 +93,21 @@ Texte) · Import (Excel: Kunden, Objekte, Anlagen, Wohnungen/Melder) · Abgleich
 
 ## 9. Berechtigungen
 
-| Rolle | darf |
+Umgesetzt 08.10.2026 (Migration 002): **Einzelrechte** (feste Liste in `server/wartung/rechte.py`, 23 Rechte in den
+Bereichen Webseite, Daten, Verwaltung, App) und **Rollen als Bündel**; ein Nutzer kann mehrere Rollen haben.
+Seiten prüfen nur Rechte. Übersicht als Matrix unter Verwaltung → Rollen und Rechte.
+
+| Standardrolle | darf |
 |---|---|
-| admin (Patrick) | alles, Nutzer/Geräte verwalten |
-| buero | Stammdaten, Aufträge, Berichte, Rechnungsentwürfe |
-| techniker | nur zugewiesene Aufträge in der App; Web nur Lesen der eigenen Aufträge |
+| Administration | alles, auch künftige Rechte; fest, nicht änderbar |
+| Büro | Stammdaten, Aufträge, Mängel, Berichte, Rechnungsentwürfe, Auswertungen, Import/Export, Katalog |
+| Techniker | App (Aufträge, Melder vor Ort, Fotos); Webseite nur eigene Aufträge |
+| Techniker nur App | wie Techniker, ohne Webseite |
+
+Schutzregeln: Rollen/Rechte nur vergeben oder entziehen, die man selbst hat; Administration nur durch
+Administratoren; Nutzer mit mehr Rechten als man selbst nicht bearbeitbar; eigenes Konto nicht deaktivierbar, eigene
+Administration nicht entfernbar; immer mindestens ein aktiver Administrator. Rechteänderungen wirken sofort.
+Notfall: `python -m wartung admin-einladen` auf dem Server. Vergleich mit Foxtag: `docs/06`.
 
 ## 10. Reihenfolge der Umsetzung
 

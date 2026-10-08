@@ -1,7 +1,9 @@
 """Datenbank (SQLite): Verbindung, Migrationen, Änderungsprotokoll."""
 import os
 import sqlite3
+import threading
 import uuid
+from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -30,6 +32,54 @@ def verbinden(pfad=None):
     con.execute("PRAGMA journal_mode = WAL")
     con.execute("PRAGMA busy_timeout = 5000")
     return con
+
+
+class ThreadVerbindung:
+    """Eine eigene SQLite-Verbindung je Thread, nach außen wie eine Verbindung benutzbar.
+
+    Der Webserver bearbeitet Anfragen parallel in mehreren Threads. Mit einer gemeinsamen Verbindung würden sich
+    Transaktionen gleichzeitiger Anfragen vermischen; so hat jede Anfrage ihre eigene, SQLite regelt das Sperren.
+    """
+
+    def __init__(self, pfad):
+        self._pfad = pfad
+        self._lokal = threading.local()
+
+    def _con(self):
+        con = getattr(self._lokal, "con", None)
+        if con is None:
+            con = self._lokal.con = verbinden(self._pfad)
+        return con
+
+    def __getattr__(self, name):
+        return getattr(self._con(), name)
+
+
+@contextmanager
+def transaktion(con):
+    """Alles oder nichts. Verschachtelbar (innen SAVEPOINT), damit Funktionen sich gegenseitig aufrufen können.
+
+    Außen BEGIN IMMEDIATE: die Schreibsperre wird gleich zu Beginn geholt, so sehen Lesen-dann-Schreiben-Abläufe
+    (z. B. alter Wert fürs Protokoll) garantiert den aktuellen Stand.
+    """
+    if not con.in_transaction:
+        con.execute("BEGIN IMMEDIATE")
+        try:
+            yield
+        except BaseException:
+            con.execute("ROLLBACK")
+            raise
+        con.execute("COMMIT")
+        return
+    name = f"sp_{uuid.uuid4().hex[:12]}"
+    con.execute(f"SAVEPOINT {name}")
+    try:
+        yield
+    except BaseException:
+        con.execute(f"ROLLBACK TO {name}")
+        con.execute(f"RELEASE {name}")
+        raise
+    con.execute(f"RELEASE {name}")
 
 
 def migrieren(con):
@@ -79,23 +129,18 @@ def protokoll(con, nutzer_id, tabelle, datensatz, aktion, feld=None, alt=None, n
 
 def aendern(con, tabelle, datensatz_id, werte, nutzer_id, schluessel="id"):
     """Ändert Felder eines Datensatzes und protokolliert jede tatsächliche Änderung. Gibt Anzahl geänderter Felder zurück."""
-    alt = con.execute(f"SELECT * FROM {tabelle} WHERE {schluessel} = ?", (datensatz_id,)).fetchone()
-    if alt is None:
-        raise KeyError(f"{tabelle} {datensatz_id} nicht gefunden")
-    geaendert = {k: v for k, v in werte.items() if alt[k] != v}
-    if not geaendert:
-        return 0
-    spalten = ", ".join(f"{k} = ?" for k in geaendert)
-    con.execute("BEGIN")
-    try:
+    with transaktion(con):
+        alt = con.execute(f"SELECT * FROM {tabelle} WHERE {schluessel} = ?", (datensatz_id,)).fetchone()
+        if alt is None:
+            raise KeyError(f"{tabelle} {datensatz_id} nicht gefunden")
+        geaendert = {k: v for k, v in werte.items() if alt[k] != v}
+        if not geaendert:
+            return 0
+        spalten = ", ".join(f"{k} = ?" for k in geaendert)
         con.execute(f"UPDATE {tabelle} SET {spalten}, geaendert_am = ?, geaendert_von = ?, version = version + 1 "
                     f"WHERE {schluessel} = ?", (*geaendert.values(), jetzt(), nutzer_id, datensatz_id))
         for k, v in geaendert.items():
             geheim = k in ("passwort_hash", "einladung_hash")
             protokoll(con, nutzer_id, tabelle, datensatz_id, "aendern", k,
                       "***" if geheim else alt[k], "***" if geheim else v)
-        con.execute("COMMIT")
-    except Exception:
-        con.execute("ROLLBACK")
-        raise
     return len(geaendert)

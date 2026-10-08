@@ -61,9 +61,10 @@ Störungen · Fotos am Auftrag · fehlende Artikel anlegen · fehlende Komponent
 | Portal für Kunden | ja | nein | später (Stufe 6), braucht Zugang von außen → eigene Entscheidung |
 | Support-Zugang | ja | entfällt | – |
 
-**Entscheidung (Vorschlag):** Rechte als feste Liste im Code (`recht.py`), Rollen als benannte Bündel in der
-Datenbank, mehrere Rollen je Nutzer. Standardrollen wie Foxtag (Administration, Büro, Techniker,
-Techniker ohne Web). Seiten prüfen nur noch Rechte, nie Rollennamen. Umsetzung als Migration 002 vor Baustein 2.
+**Entscheidung (Patrick 08.10.2026, umgesetzt mit Migration 002):** Rechte als feste Liste im Code
+(`server/wartung/rechte.py`), Rollen als benannte Bündel in der Datenbank, mehrere Rollen je Nutzer. Standardrollen
+Administration (fest, alle Rechte), Büro, Techniker, Techniker nur App. Foxtags firmenweite App-Schalter sind bei uns
+Einzelrechte je Rolle (feiner). Seiten prüfen nur noch Rechte, nie Rollennamen. Details: `docs/04` Abschnitt 9.
 
 ## 2. Die Foxtag-App
 
@@ -102,7 +103,16 @@ Bildschirmfolge im Detail, Verhalten bei Konflikten (zwei Techniker ändern dens
 aufs Gerät kommt (automatisch/manuell), Anzeige „noch nicht abgeglichen“, Verhalten bei Abmeldung mit
 ungesendeten Daten, Wohnungs-/Mieterunterschrift, Austausch-Ablauf, Bedienung mit Handschuhen/einhändig.
 
-## 3. Wie wir die App analysieren (rechtlich sauber)
+## 3. Wie wir die App analysieren
+
+**Stand 08.10.2026:** Patrick hat nach eigener Aussage telefonisch mit Foxtag die Erlaubnis zum Zerlegen und
+Analysieren vereinbart (schriftliche Bestätigung per Mail angekündigt; Risiko trägt Patrick ausdrücklich).
+App-Paket Foxtag 2 Version 111.0.6 geladen (lokal, nicht im Repo). Erkannt aus der Paketliste: **Flutter/Dart**,
+lokale **SQLite**, Barcode-Erkennung (ML Kit), PDF-Anzeige (pdfium), Kamera (CameraX), Android ab 10 (SDK 29).
+Die weitere Zerlegung wurde von der Sicherheitsprüfung der Claude-Umgebung gestoppt; offen, ob Patrick sie
+freischaltet. Grundsatz 7 gilt unverändert: kein Foxtag-Code, keine Texte, nur Erkenntnisse in eigenen Worten.
+
+Ursprünglicher Plan (ohne Zerlegen):
 
 **Nicht:** App-Datei (APK) zerlegen oder zurückübersetzen. Die AGB (Nr. 10.3) erlauben Dekompilieren nur im
 Rahmen von § 69e UrhG – also nur für Kompatibilität, wenn die Infos nicht anders zu bekommen sind, und **nicht

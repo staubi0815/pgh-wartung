@@ -9,9 +9,17 @@
   <label>E-Mail <input type="email" name="email" value="{{ u.email if u else '' }}" {% if u and u.id %}disabled{% else %}required{% endif %}></label>
   <label>Kürzel <input name="kuerzel" value="{{ u.kuerzel if u else '' }}" maxlength="5"></label>
   <label>Personalnummer <input name="personalnummer" value="{{ (u.personalnummer or '') if u else '' }}"></label>
-  <label>Rolle
-    <select name="rolle">{% for k, v in ROLLEN.items() %}<option value="{{ k }}" {% if u and u.rolle == k %}selected{% endif %}>{{ v }}</option>{% endfor %}</select>
-  </label>
+  <fieldset class="breit auswahl">
+    <legend>Rollen <a class="leise" href="/verwaltung/rollen">(was darf welche Rolle?)</a></legend>
+    {% for r in rollen %}
+    <label class="haken" title="{{ r.beschreibung }}">
+      <input type="checkbox" name="rollen" value="{{ r.id }}" {% if r.id in gewaehlt %}checked{% endif %}
+             {% if r.id not in vergebbar %}disabled{% endif %}>
+      {{ r.name }} <span class="leise">– {{ r.beschreibung }}</span>
+    </label>
+    {% if r.id in gewaehlt and r.id not in vergebbar %}<input type="hidden" name="rollen" value="{{ r.id }}">{% endif %}
+    {% endfor %}
+  </fieldset>
   {% if u and u.id %}<label class="haken"><input type="checkbox" name="aktiv" value="1" {% if u.aktiv %}checked{% endif %}> aktiv</label>{% endif %}
   <div class="breit"><button>Speichern</button></div>
 </form>
