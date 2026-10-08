@@ -5,6 +5,9 @@ Server: SQLite (später PostgreSQL möglich), Geräte: IndexedDB mit denselben F
 
 ## Allgemeine Regeln
 
+- Alles muss vollständig exportierbar sein, u. a. im Importformat von Foxtag (siehe `05-export-und-wechsel.md`);
+  Nummern von Kunde, Objekt, Anlage, Auftrag, Artikel sind Pflicht und eindeutig.
+
 - Jede Tabelle hat `id` (UUID, auf dem Gerät erzeugt), `erstellt_am`, `erstellt_von` (Nutzer), `erstellt_auf` (Gerät),
   `geaendert_am`, `geaendert_von`, `version` (Zähler für den Abgleich) und `geloescht` (nur Kennzeichen –
   **nichts wird physisch gelöscht**, Prüfnachweise bleiben nachvollziehbar).
@@ -20,7 +23,7 @@ name, anschrift, telefon, email, logo (Datei), auftragsnummer_praefix (`A-`), na
 kundennummer_praefix (`K`), anlagennummer_praefix (`ANL-`), berichtsfusszeile.
 
 ### nutzer
-name, kuerzel, email, rolle (`buero` | `techniker` | `admin`), qualifikation (Text, z. B. „Fachkraft für
+name, kuerzel, personalnummer (Foxtag: TECHNIKER.NUMMER), email, rolle (`buero` | `techniker` | `admin`), qualifikation (Text, z. B. „Fachkraft für
 Rauchwarnmelder nach DIN 14676 seit …“ – erst nach Lehrgang), qualifikation_nachweis (Datei), aktiv, unterschrift
 (Bild, optional als Vorlage), anmeldung (Passwort-Hash / Passkey, nur Server).
 
@@ -52,7 +55,8 @@ anlage_id, nummer (43), bezeichnung („1. OG links“), bewohner (Name am Kling
 bewohner_telefon (optional), zugang (`frei` | `nur_termin` | `schluessel`), notiz, link.
 
 ### komponente (= Melder bzw. Tür)
-anlage_id, gruppe_id, nummer (laufend in der Gruppe → angezeigt „43/1“), komponententyp_id, raum („Flur“,
+anlage_id, gruppe_id, nummer (laufend in der Gruppe → angezeigt „43/1“), sub_nummer (0 = Hauptkomponente,
+bei Türen 1, 2 … für Teile), komponententyp_id, raum („Flur“,
 Auswahlliste je Anlagenart + frei), raumart (`schlafraum` | `kinderzimmer` | `flur_rettungsweg` | `sonstiger`),
 seriennummer, funk_id (wM-Bus-Adresse, für Ferninspektion), barcode (eigener Aufkleber), baujahr (Jahr bzw.
 Herstellungsdatum), inbetriebnahme_am, austausch_faellig_am (berechnet, änderbar), naechste_pruefung_am (berechnet),

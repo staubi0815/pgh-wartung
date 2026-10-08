@@ -18,7 +18,8 @@ Start mit Rauchwarnmeldern (DIN 14676-1), später Brandschutztüren/Feststellanl
 6. Anlagenarten als Konfiguration (nicht fest verdrahtet), damit Türen später nur eine weitere Konfiguration sind.
 7. Funktionen von Foxtag nachbauen ist ok – **keinen Foxtag-Code, keine Texte/Logos/Gestaltung 1:1** übernehmen.
    Checklisten eigenständig aus der Norm formulieren.
-8. Änderungen an Proxmox/Containern: homelab-infra-Skill nutzen, `infra/*.md` aktualisieren und pushen.
+8. **Wechsel muss möglich bleiben:** jedes Modul bringt seinen Export mit (CSV/JSON + Foxtag-Format).
+9. Änderungen an Proxmox/Containern: homelab-infra-Skill nutzen, `infra/*.md` aktualisieren und pushen.
 
 ## Dokumente
 
@@ -28,6 +29,7 @@ Start mit Rauchwarnmeldern (DIN 14676-1), später Brandschutztüren/Feststellanl
 | `docs/02-sync-und-zugang.md` | Mehrbenutzer, Offline-Abgleich, Verbindungswege (Entscheidung: WireGuard FritzBox), Sicherheit |
 | `docs/03-datenmodell.md` | Tabellen und Felder, Anlagenart-Konfiguration, Fälligkeiten, Abgleich |
 | `docs/04-masken-web.md` | Seiten und Masken der Webseite, Rollen, Reihenfolge der Umsetzung |
+| `docs/05-export-und-wechsel.md` | Vollexport + Export im Foxtag-Importformat (Wechsel jederzeit möglich) |
 
 Analyse-Werkzeuge und Rohdaten (nicht im Repo): `~/tools/foxtag-analyse/`, `~/.local/state/pgh-brandschutz/foxtag-analyse/`.
 Foxtag-Testkonto bis ca. 08.11.2026 (Zugang `~/.config/pgh-brandschutz/foxtag.env`).
