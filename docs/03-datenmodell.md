@@ -139,9 +139,13 @@ Patricks Lehrgang (KW 42) von ihm gegenlesen.
 ## 6. Abgleich (Kurzform, Details folgen in Stufe 3)
 
 - Gerät bekommt nur die Daten seiner Aufträge (Anlage, Gruppen, Komponenten, offene Mängel, Kontakte vor Ort).
-- Push: alle lokalen Änderungen mit `version`; Server übernimmt ⊕-Datensätze immer, Stammdaten feldweise, Konflikte
-  → Tabelle `konflikt` (Büro entscheidet).
-- Pull: alles seit `letzter_checkpoint`.
+- Push: **Befehle** (Tabelle `befehl` ⊕ auf dem Server: befehl_id, geraet_id, nutzer_id, art, datensatz, auftrag_id,
+  zeitpunkt, daten, empfangen_am, ergebnis). Idempotent über befehl_id; ⊕-Vorgänge (Prüfung, Mangel, Unterschrift)
+  immer übernehmen, Stammdaten feldweise mit Vergleich gegen den mitgeschickten bisherigen Wert; Widersprüche
+  → Tabelle `konflikt` (Büro entscheidet). Siehe `docs/07` Abschnitt 4–5.
+- Pull: je Tabelle alles seit der letzten Abgleich-Nummer (Spalte `abgleich_nr`, vom Server fortlaufend vergeben).
+- Umfang je Gerät über Abo je Anlage (eigene Aufträge), Nachholen bei neuem Abo, „Gerät zurücksetzen“.
+- Komponenten-Lebenslauf: Lager → verbaut → ersetzt/entfernt; Austausch als eigener Vorgang. Scan-Nachweis speichern.
 - Nach Abschluss und Abgleich: Bewohnernamen/Unterschriften auf dem Gerät löschen.
 
 ## Geklärt (Patrick 08.10.2026)

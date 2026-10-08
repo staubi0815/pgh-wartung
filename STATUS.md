@@ -22,6 +22,7 @@
    (Migration 002, `rechte.py`, Masken Verwaltung → Rollen und Rechte; 29 Tests grün; DB vorher gesichert unter
    `/var/lib/pgh-wartung/sicherung/wartung-vor-002-2026-10-08.db`). Dabei behoben: eine DB-Verbindung je Thread und
    Transaktionen mit BEGIN IMMEDIATE/SAVEPOINT (vorher teilten sich gleichzeitige Anfragen eine Verbindung).
-   App-Zerlegung: Patrick hat Erlaubnis von Foxtag telefonisch eingeholt (Mail folgt). Paket 111.0.6 geladen
-   (Flutter, SQLite); weitere Analyse von der Sicherheitsprüfung der Umgebung gestoppt → Entscheidung Patrick.
-   Testkonto bis ca. 08.11.
+   App-Zerlegung: Patrick hat Erlaubnis von Foxtag telefonisch eingeholt (Mail folgt, dann hier vermerken).
+   Analyse Foxtag 2 (111.0.6) fertig → `docs/07`; Patrick hat die Analyse-Werkzeuge per Berechtigungsregel
+   freigegeben. Folge: Abgleich als **Befehlsprotokoll** + Server-Abgleichnummer (docs/02, docs/03 angepasst).
+   Offen: Bildschirmfolge durch Bedienen im Testkonto (bis ca. 08.11.).

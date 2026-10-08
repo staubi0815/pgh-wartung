@@ -16,11 +16,11 @@ Abgleichen gebraucht. Der Server zu Hause ist die maßgebliche Stelle („Wahrhe
 | Baustein | Lösung |
 |---|---|
 | Speicher auf dem Gerät | IndexedDB im Browser (PWA), Speicher als „dauerhaft“ anfordern (`navigator.storage.persist()`), damit der Browser nichts löscht |
-| Abgleich | Änderungsprotokoll: Gerät schickt seine Änderungen (Push), holt fremde Änderungen seit dem letzten Stand (Pull, Checkpoint). Bibliothek z. B. **RxDB** (Apache 2.0, Replikation mit eigenem HTTP-Server, eigene Konfliktregeln) |
+| Abgleich | **Befehlsprotokoll** (seit 08.10.2026, nach Analyse der Foxtag-App, `docs/07`): Gerät wendet jede Änderung sofort lokal an und legt sie als Befehl mit eindeutiger Befehls-ID in eine Ausgangs-Warteschlange (Push, in Reihenfolge, idempotent); Server führt aus und ist maßgeblich. Holen (Pull) je Tabelle alles seit der letzten **vom Server vergebenen Abgleich-Nummer**. Eigene schlanke Umsetzung statt RxDB |
 | Auslöser | sofort bei Änderung, wenn online; beim Wiederkehren des Netzes (`online`-Ereignis) und alle 30 s Wiederholung, solange die App offen ist; Android zusätzlich Background Sync |
 | Kennungen | jedes Gerät erzeugt eindeutige IDs (UUID) – keine Doppelvergabe, auch offline |
 | Prüfungen, Mängel, Fotos, Unterschriften | werden nur **angehängt**, nie überschrieben → zwei Techniker können sich nicht gegenseitig etwas zerstören; ergibt zugleich einen lückenlosen Prüfverlauf |
-| Stammdaten (Melder, Wohnung) | Zusammenführen je Feld, nicht je Datensatz (A ändert Standort, B Seriennummer → beides bleibt). Ändern zwei dasselbe Feld unterschiedlich → **Konfliktliste** im Büro statt stillem Überschreiben |
+| Stammdaten (Melder, Wohnung) | Änderungsbefehl enthält nur die geänderten Felder **mit dem bisherigen Wert**. Server übernimmt je Feld (A ändert Standort, B Seriennummer → beides bleibt); weicht der aktuelle Wert vom mitgeschickten bisherigen ab (zwei ändern dasselbe Feld) → **Konfliktliste** im Büro statt stillem Überschreiben |
 | Nummern (Melder 43/4, Auftrag A-1001) | auf dem Gerät vorläufig, endgültig vergibt der Server; Doppel (zwei legen offline 43/4 an) werden beim Abgleich erkannt und gemeldet |
 | Absprache vor Ort | Auftrag kann auf Techniker/Wohnungen aufgeteilt werden; online zeigt die App „Wohnung 43 in Arbeit bei X“ (weiche Sperre) |
 | Bericht | entsteht erst auf dem Server, wenn alle Geräte des Auftrags abgeglichen haben und der Auftrag abgeschlossen ist |

@@ -109,8 +109,8 @@ ungesendeten Daten, Wohnungs-/Mieterunterschrift, Austausch-Ablauf, Bedienung mi
 Analysieren vereinbart (schriftliche Bestätigung per Mail angekündigt; Risiko trägt Patrick ausdrücklich).
 App-Paket Foxtag 2 Version 111.0.6 geladen (lokal, nicht im Repo). Erkannt aus der Paketliste: **Flutter/Dart**,
 lokale **SQLite**, Barcode-Erkennung (ML Kit), PDF-Anzeige (pdfium), Kamera (CameraX), Android ab 10 (SDK 29).
-Die weitere Zerlegung wurde von der Sicherheitsprüfung der Claude-Umgebung gestoppt; offen, ob Patrick sie
-freischaltet. Grundsatz 7 gilt unverändert: kein Foxtag-Code, keine Texte, nur Erkenntnisse in eigenen Worten.
+Die Zerlegung wurde zunächst von der Sicherheitsprüfung der Claude-Umgebung gestoppt; Patrick hat die
+Analyse-Werkzeuge danach ausdrücklich freigegeben. Ergebnis: `docs/07-foxtag-app-aufbau.md`. Grundsatz 7 gilt unverändert: kein Foxtag-Code, keine Texte, nur Erkenntnisse in eigenen Worten.
 
 Ursprünglicher Plan (ohne Zerlegen):
 
