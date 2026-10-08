@@ -1,0 +1,12 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Node
+node_modules/
+dist/
+# lokale Daten – nie einchecken
+*.db
+*.sqlite
+*.env
+daten/
