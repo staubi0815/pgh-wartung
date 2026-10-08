@@ -126,5 +126,7 @@ def test_passwort_nie_im_protokoll(umgebung):
 
 def test_migration_idempotent(tmp_path):
     con = db.verbinden(tmp_path / "x.db")
-    assert db.migrieren(con) == ["001_grundgeruest.sql", "002_rechte_und_rollen.sql"]
+    alle = sorted(d.name for d in db.MIGRATIONEN.glob("[0-9][0-9][0-9]_*.sql"))
+    assert alle[:2] == ["001_grundgeruest.sql", "002_rechte_und_rollen.sql"]
+    assert db.migrieren(con) == alle
     assert db.migrieren(con) == []

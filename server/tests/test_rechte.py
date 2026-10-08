@@ -51,7 +51,7 @@ def test_migration_uebernimmt_alte_einzelrolle(tmp_path):
     for nid, rolle in (("n1", "admin"), ("n2", "buero"), ("n3", "techniker")):
         con.execute("INSERT INTO nutzer (id, name, email, rolle, erstellt_am) VALUES (?, ?, ?, ?, 'x')",
                     (nid, nid, f"{nid}@example.org", rolle))
-    assert db.migrieren(con) == ["002_rechte_und_rollen.sql"]
+    assert db.migrieren(con)[0] == "002_rechte_und_rollen.sql"
     zuordnung = {z["nutzer_id"]: z["kennung"] for z in con.execute(
         "SELECT nr.nutzer_id, r.kennung FROM nutzer_rolle nr JOIN rolle r ON r.id = nr.rolle_id")}
     assert zuordnung == {"n1": "admin", "n2": "buero", "n3": "techniker"}

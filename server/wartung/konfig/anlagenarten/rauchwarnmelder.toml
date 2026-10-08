@@ -22,8 +22,9 @@ vorwarnung_tage = 30
 austausch_jahre = 10
 austausch_ab = "baujahr"           # sonst "inbetriebnahme", falls Baujahr fehlt
 
-raeume = ["Flur", "Diele", "Schlafzimmer", "Elternschlafzimmer", "Kinderzimmer", "Wohnzimmer",
-          "Arbeitszimmer", "Gästezimmer", "Treppenhaus (Wohnung)", "Galerie", "Sonstiger Raum"]
+[raeume]
+liste = ["Flur", "Diele", "Schlafzimmer", "Elternschlafzimmer", "Kinderzimmer", "Wohnzimmer",
+         "Arbeitszimmer", "Gästezimmer", "Treppenhaus (Wohnung)", "Galerie", "Sonstiger Raum"]
 
 # Raumart steuert Hinweise (Pflichträume nach Landesbauordnung Bayern: Schlafräume, Kinderzimmer, Flure als Rettungsweg)
 [raumarten]
