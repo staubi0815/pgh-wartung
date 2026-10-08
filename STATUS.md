@@ -14,4 +14,7 @@
 2. Stufe 2 fertig: Datenmodell (`docs/03`), Konfig Rauchwarnmelder (Entwurf, nach Lehrgang gegenlesen), Masken Web (`docs/04`).
 3. Stufe 3: Server **LXC 192 `pgh-wartung` angelegt** (08.10.2026, Freigabe Patrick; `ssh pgh-wartung`, DHCP 192.168.178.31,
    Doku homelab-infra `infra/lxc-192-pgh-wartung.md`). Technik: Python (FastAPI) + SQLite, Oberfläche als PWA, PDF über Chromium.
-   Offen: feste IP in der FritzBox (Patrick), dann Grundgerüst Web (Reihenfolge `docs/04` Abschnitt 10).
+   **Grundgerüst Web läuft** (08.10.2026): http://192.168.178.31:8000 – Anmeldung (Argon2, Sperre nach 5 Fehlversuchen,
+   CSRF, Sicherheitsköpfe), Einmal-Links zum Passwort-Setzen, Nutzer/Rollen, Firma, Änderungsprotokoll (nur anhängen).
+   12 Tests grün. Deploy: `./deploy.sh`. Admin-Einladung für Patrick in Drive `pgh-wartung-einrichten.txt` (48 h).
+   Offen: feste IP (Patrick), HTTPS, Sicherung der Anwendungsdaten; nächster Baustein Kunden/Objekte/Anlagen/Wohnungen/Melder + Import.
