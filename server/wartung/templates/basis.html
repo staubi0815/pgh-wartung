@@ -7,6 +7,7 @@
 <title>{% block titel %}{% endblock %} · {{ firmenname }} Wartung</title>
 <link rel="icon" href="/static/favicon.svg">
 <link rel="stylesheet" href="/static/stil.css">
+<script src="/static/seite.js" defer></script>
 </head>
 <body>
 <header class="kopf">
@@ -14,10 +15,10 @@
   {% if ich %}
   <nav>
     <a href="/">Start</a>
-    <a class="bald" title="kommt in Schritt 2">Kunden</a>
-    <a class="bald" title="kommt in Schritt 2">Anlagen</a>
-    <a class="bald" title="kommt in Schritt 3">Aufträge</a>
-    <a class="bald" title="kommt später">Mängel</a>
+    {% if 'stammdaten.lesen' in rechte %}<a href="/kunden">Kunden</a>{% endif %}
+    <a class="bald" title="folgt">Anlagen</a>
+    <a class="bald" title="folgt">Aufträge</a>
+    <a class="bald" title="folgt">Mängel</a>
     {% if rechte | select('in', VERWALTUNG | map(attribute=0) | list) | list %}<a href="/verwaltung">Verwaltung</a>{% endif %}
   </nav>
   <div class="konto">

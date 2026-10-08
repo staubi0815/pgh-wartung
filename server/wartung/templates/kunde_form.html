@@ -1,0 +1,15 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}Kunde{% endblock %}
+{% block inhalt %}
+{% set neu = not k.get('id') %}
+<p class="pfad"><a href="/kunden">Kunden</a> › {% if neu %}neu{% else %}<a href="/kunden/{{ k.id }}">{{ k.get('nummer') }}</a> › bearbeiten{% endif %}</p>
+<h1>{% if neu %}Kunde anlegen{% else %}Kunde bearbeiten{% endif %}</h1>
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+<form method="post" action="{{ '/kunden/neu' if neu else '/kunden/' ~ k.id ~ '/bearbeiten' }}" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, k, fehler, {'nummer': vorschau} if neu else {}) }}
+  <div class="breit knopfzeile">
+    <button>Speichern</button>
+    <a href="{{ '/kunden' if neu else '/kunden/' ~ k.id }}">Abbrechen</a>
+  </div>
+</form>
+{% endblock %}

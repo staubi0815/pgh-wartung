@@ -1,0 +1,55 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ k.name }}{% endblock %}
+{% block inhalt %}
+{% set darf = 'stammdaten.bearbeiten' in rechte %}
+<p class="pfad"><a href="/kunden">Kunden</a> › {{ k.nummer }}</p>
+<div class="zeile">
+  <h1>{{ k.name }} <span class="leise">{{ k.nummer }}</span></h1>
+  {% if darf %}<a class="knopf" href="/kunden/{{ k.id }}/bearbeiten">Bearbeiten</a>{% endif %}
+</div>
+{% set meldungen = {'angelegt': 'Kunde angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_angelegt': 'Kontakt angelegt.',
+                    'kontakt_gespeichert': 'Kontakt gespeichert.', 'kontakt_geloescht': 'Kontakt gelöscht.'} %}
+{% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
+{% if hinweis == 'hat_objekte' %}<p class="fehler">Der Kunde hat noch Objekte und kann daher nicht gelöscht werden.</p>{% endif %}
+
+<section class="karte">
+  <h2>Daten</h2>
+  {{ form.daten(felder, k, weglassen=('nummer', 'name')) }}
+</section>
+
+<section class="karte" id="kontakte">
+  <div class="zeile">
+    <h2>Kontakte</h2>
+    {% if darf %}<a class="knopf zweitrangig" href="/kunden/{{ k.id }}/kontakte/neu">+ Kontakt anlegen</a>{% endif %}
+  </div>
+  {% if kontakte %}
+  <table>
+    <tr><th>Name</th><th>Funktion</th><th>Telefon</th><th>Mobil</th><th>E-Mail</th></tr>
+    {% for kt in kontakte %}
+    <tr>
+      <td>{% if darf %}<a href="/kontakte/{{ kt.id }}">{{ kt.name }}</a>{% else %}{{ kt.name }}{% endif %}</td>
+      <td>{{ kt.funktion }}</td><td>{{ kt.telefon }}</td><td>{{ kt.mobil }}</td><td>{{ kt.email }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="leise">Noch keine Kontakte.</p>{% endif %}
+</section>
+
+<section class="karte" id="objekte">
+  <h2>Objekte</h2>
+  {% if objekte %}
+  <table>
+    <tr><th>Nummer</th><th>Bezeichnung</th><th>Ort</th><th class="zahl">Anlagen</th></tr>
+    {% for o in objekte %}
+    <tr><td>{{ o.nummer }}</td><td>{{ o.bezeichnung }}</td><td>{{ o.plz }} {{ o.ort }}</td><td class="zahl">{{ o.anlagen }}</td></tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="leise">Noch keine Objekte. (Objekte und Anlagen anlegen folgt im nächsten Schritt.)</p>{% endif %}
+</section>
+
+{% if darf %}
+<div class="nebenbei">
+  {{ form.loeschen('/kunden/' ~ k.id ~ '/loeschen', csrf, 'Kunde ' ~ k.nummer ~ ' wirklich löschen? Er wird nur als gelöscht markiert und bleibt im Protokoll.', 'Kunde löschen') }}
+  <span class="leise">Nur möglich, solange der Kunde keine Objekte hat.</span>
+</div>
+{% endif %}
+{% endblock %}

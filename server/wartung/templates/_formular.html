@@ -1,0 +1,51 @@
+{# Gemeinsame Formular-Bausteine. felder: Liste von wartung.felder.Feld, werte: dict, fehler: {feld: Meldung} #}
+{% macro felder(liste, werte, fehler, platzhalter={}) %}
+{% for f in liste %}
+{% set wert = werte.get(f.name) if werte else none %}
+{% set id = 'f_' ~ f.name %}
+{% if f.art == 'ja_nein' %}
+<label class="haken{{ ' breit' if f.breit }}" for="{{ id }}">
+  <input type="checkbox" id="{{ id }}" name="{{ f.name }}" value="1" {% if wert in (1, '1', 'on', true) %}checked{% endif %}>
+  {{ f.titel }}{% if f.hilfe %} <span class="leise">({{ f.hilfe }})</span>{% endif %}
+</label>
+{% else %}
+<label class="{{ 'breit' if f.breit }}{{ ' mit-fehler' if fehler.get(f.name) }}" for="{{ id }}">
+  <span>{{ f.titel }}{% if f.pflicht %} <abbr title="Pflichtfeld">*</abbr>{% endif %}</span>
+  {% if f.art == 'textarea' %}
+  <textarea id="{{ id }}" name="{{ f.name }}" rows="3" maxlength="{{ f.max_laenge }}">{{ wert if wert is not none else '' }}</textarea>
+  {% elif f.art == 'auswahl' %}
+  <select id="{{ id }}" name="{{ f.name }}" {% if f.pflicht %}required{% endif %}>
+    {% if not f.pflicht %}<option value="">–</option>{% endif %}
+    {% for w, text in f.auswahl %}<option value="{{ w }}" {% if wert == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+  {% else %}
+  <input id="{{ id }}" name="{{ f.name }}"
+         type="{{ {'email': 'email', 'tel': 'tel', 'zahl': 'number', 'datum': 'date'}.get(f.art, 'text') }}"
+         value="{{ wert if wert is not none else '' }}"
+         {% if f.art == 'zahl' and f.minimum is not none %}min="{{ f.minimum }}"{% endif %}
+         {% if f.art == 'zahl' and f.maximum is not none %}max="{{ f.maximum }}"{% endif %}
+         {% if f.art not in ('zahl', 'datum') %}maxlength="{{ f.max_laenge }}"{% endif %}
+         placeholder="{{ platzhalter.get(f.name, f.platzhalter) }}" {% if f.pflicht %}required{% endif %}>
+  {% endif %}
+  {% if fehler.get(f.name) %}<span class="feldfehler">{{ fehler[f.name] }}</span>
+  {% elif f.hilfe %}<span class="leise">{{ f.hilfe }}</span>{% endif %}
+</label>
+{% endif %}
+{% endfor %}
+{% endmacro %}
+
+{# Datenblock für Detailseiten: nur gefüllte Felder #}
+{% macro daten(liste, werte, weglassen=()) %}
+<dl class="daten">
+{% for f in liste if f.name not in weglassen and werte[f.name] not in (none, '') %}
+  <dt>{{ f.titel }}</dt><dd>{{ anzeige(f, werte[f.name]) }}</dd>
+{% endfor %}
+</dl>
+{% endmacro %}
+
+{% macro loeschen(aktion, csrf, frage, text='Löschen') %}
+<form method="post" action="{{ aktion }}" class="loeschen" data-frage="{{ frage }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <button class="zweitrangig gefahr">{{ text }}</button>
+</form>
+{% endmacro %}

@@ -51,3 +51,19 @@ table.matrix th{vertical-align:bottom}table.matrix th a{color:var(--navy)}table.
 table.matrix tr.bereich td{background:var(--bg-soft);color:var(--navy);font-weight:600}
 td.mitte{text-align:center}.ja{color:#1b5e20;font-weight:700}
 @media (max-width:700px){.verwaltung{grid-template-columns:1fr}}
+h2{font-size:1.1rem;color:var(--navy);margin:0 0 12px}
+section.karte,.karte+.karte{margin-bottom:16px}
+.zeile h2{margin:0}
+.pfad{margin:0 0 8px;font-size:.9rem;color:var(--muted)}.pfad a{color:var(--navy)}
+main a:not(.knopf){color:var(--navy)}
+.filter{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.filter input[type=search]{min-width:260px}
+th.zahl,td.zahl{text-align:right}
+dl.daten{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:0}
+dl.daten dt{color:var(--muted)}dl.daten dd{margin:0;white-space:pre-line}
+label.mit-fehler input,label.mit-fehler select,label.mit-fehler textarea{border-color:var(--red)}
+.feldfehler{color:var(--red-dark);font-size:.85rem}
+.knopfzeile{display:flex;gap:16px;align-items:center;margin-top:8px}
+a.knopf.zweitrangig{background:#fff;color:var(--navy);border:1px solid var(--line)}
+button.gefahr{color:var(--red-dark);border-color:#f0c4c4}
+form.loeschen{margin:0}
+abbr{text-decoration:none;color:var(--red)}
