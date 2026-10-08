@@ -1,0 +1,185 @@
+# Anlagenart Rauchwarnmelder – ENTWURF (08.10.2026)
+# Prüfpunkte eigenständig formuliert nach den Prüfkriterien der DIN 14676-1 (Inspektion/Wartung).
+# Nach Patricks Lehrgang (KW 42/2026) gegenlesen und freigeben – bis dahin nicht im Bericht verwenden.
+
+[allgemein]
+schluessel = "rauchwarnmelder"
+name = "Rauchwarnmelder"
+gruppe = "Wohnung"
+gruppe_mehrzahl = "Wohnungen"
+komponente = "Melder"
+komponente_mehrzahl = "Melder"
+trenner = "/"                      # Anzeige 43/1
+unterschrift_je_gruppe = true      # Bewohner bestätigt je Wohnung
+einzelnachweis_je_gruppe = false   # Standard aus, je Anlage einschaltbar
+fotos = true
+freigegeben = false                # true erst nach Gegenlesen durch Patrick
+
+[intervalle]
+pruefung_monate = 12
+pruefung_gleitend = true           # ab letzter Prüfung
+vorwarnung_tage = 30
+austausch_jahre = 10
+austausch_ab = "baujahr"           # sonst "inbetriebnahme", falls Baujahr fehlt
+
+raeume = ["Flur", "Diele", "Schlafzimmer", "Elternschlafzimmer", "Kinderzimmer", "Wohnzimmer",
+          "Arbeitszimmer", "Gästezimmer", "Treppenhaus (Wohnung)", "Galerie", "Sonstiger Raum"]
+
+# Raumart steuert Hinweise (Pflichträume nach Landesbauordnung Bayern: Schlafräume, Kinderzimmer, Flure als Rettungsweg)
+[raumarten]
+schlafraum = ["Schlafzimmer", "Elternschlafzimmer", "Gästezimmer"]
+kinderzimmer = ["Kinderzimmer"]
+flur_rettungsweg = ["Flur", "Diele", "Treppenhaus (Wohnung)"]
+
+# ---------- Checkliste je Melder (Inspektion vor Ort) ----------
+# typ: ja_nein (ok/nicht ok), text, zahl, auswahl
+[[checkliste]]
+schluessel = "vorhanden"
+frage = "Melder vorhanden und am vorgesehenen Platz"
+typ = "ja_nein"
+mangel_bei_nein = "nicht_vorhanden"
+
+[[checkliste]]
+schluessel = "montageort"
+frage = "Montageort weiterhin geeignet (Deckenmitte bzw. zulässiger Abstand zu Wänden, Ecken, Leuchten)"
+typ = "ja_nein"
+mangel_bei_nein = "montageort"
+
+[[checkliste]]
+schluessel = "raumnutzung"
+frage = "Raumnutzung unverändert (z. B. kein neues Kinderzimmer/Schlafzimmer ohne Melder)"
+typ = "ja_nein"
+mangel_bei_nein = "raumnutzung_geaendert"
+
+[[checkliste]]
+schluessel = "umfeld"
+frage = "Umfeld frei – keine Hindernisse im Umkreis von 0,5 m, keine Einbauten, die Rauch fernhalten"
+typ = "ja_nein"
+mangel_bei_nein = "hindernis"
+
+[[checkliste]]
+schluessel = "eintrittsoeffnungen"
+frage = "Raucheintrittsöffnungen frei (nicht verklebt, überstrichen, verstaubt)"
+typ = "ja_nein"
+mangel_bei_nein = "eintrittsoeffnungen"
+
+[[checkliste]]
+schluessel = "beschaedigung"
+frage = "Gehäuse unbeschädigt, nicht abgedeckt oder überstrichen"
+typ = "ja_nein"
+mangel_bei_nein = "beschaedigt"
+
+[[checkliste]]
+schluessel = "funktion"
+frage = "Funktionsprüfung bestanden (Prüftaste: Alarmton ertönt)"
+typ = "ja_nein"
+mangel_bei_nein = "kein_alarm"
+
+[[checkliste]]
+schluessel = "stoermeldung"
+frage = "Keine Stör-/Batteriewarnung (kein Zirpen, keine Fehleranzeige)"
+typ = "ja_nein"
+mangel_bei_nein = "batterie_stoerung"
+
+[[checkliste]]
+schluessel = "austausch_frist"
+frage = "Austauschfrist nicht erreicht (Herstelldatum/Baujahr geprüft)"
+typ = "ja_nein"
+mangel_bei_nein = "austausch_faellig"
+
+[[checkliste]]
+schluessel = "bemerkung"
+frage = "Bemerkung"
+typ = "text"
+pflicht = false
+
+# ---------- Mängeltypen ----------
+[[mangel]]
+schluessel = "nicht_vorhanden"
+name = "Melder fehlt / nicht auffindbar"
+schweregrad = "schwer"
+austausch_vorschlagen = true
+
+[[mangel]]
+schluessel = "montageort"
+name = "Montageort ungeeignet"
+schweregrad = "normal"
+
+[[mangel]]
+schluessel = "raumnutzung_geaendert"
+name = "Raumnutzung geändert – zusätzlicher Melder nötig"
+schweregrad = "schwer"
+
+[[mangel]]
+schluessel = "hindernis"
+name = "Hindernis im Umfeld des Melders"
+schweregrad = "normal"
+
+[[mangel]]
+schluessel = "eintrittsoeffnungen"
+name = "Raucheintrittsöffnungen verschlossen/verschmutzt"
+schweregrad = "normal"
+
+[[mangel]]
+schluessel = "beschaedigt"
+name = "Melder beschädigt oder überstrichen"
+schweregrad = "schwer"
+austausch_vorschlagen = true
+
+[[mangel]]
+schluessel = "kein_alarm"
+name = "Kein Alarmton bei Funktionsprüfung"
+schweregrad = "schwer"
+austausch_vorschlagen = true
+
+[[mangel]]
+schluessel = "batterie_stoerung"
+name = "Batterie-/Störungsmeldung"
+schweregrad = "schwer"
+austausch_vorschlagen = true
+
+[[mangel]]
+schluessel = "austausch_faellig"
+name = "Austauschfrist erreicht"
+schweregrad = "normal"
+austausch_vorschlagen = true
+
+[[mangel]]
+schluessel = "demontiert"
+name = "Melder vom Bewohner abgenommen"
+schweregrad = "schwer"
+
+[[mangel]]
+schluessel = "sonstiges"
+name = "Sonstiger Mangel"
+schweregrad = "normal"
+
+# ---------- Auftragsarten und Ablauf in der App ----------
+[[auftragsart]]
+schluessel = "wartung"
+name = "Wartung / Inspektion"
+standard = true
+schritte = ["vorarbeiten", "pruefungen", "massnahmen", "material", "unterschrift_bewohner_je_wohnung",
+            "unterschrift_techniker"]
+berichtstitel = "Prüfbericht Rauchwarnmelder"
+
+[[auftragsart]]
+schluessel = "installation"
+name = "Montage / Erstausstattung"
+schritte = ["inbetriebnahmen", "material", "unterschrift_bewohner_je_wohnung", "unterschrift_techniker"]
+berichtstitel = "Montageprotokoll Rauchwarnmelder"
+
+[[auftragsart]]
+schluessel = "nachtermin"
+name = "Nachtermin (nicht angetroffen)"
+schritte = ["pruefungen", "massnahmen", "material", "unterschrift_bewohner_je_wohnung", "unterschrift_techniker"]
+berichtstitel = "Prüfbericht Rauchwarnmelder (Nachtermin)"
+
+[[auftragsart]]
+schluessel = "ferninspektion"
+name = "Ferninspektion (Funk)"
+schritte = ["funk_auslesen", "pruefungen_offen_vor_ort", "unterschrift_techniker"]
+berichtstitel = "Prüfbericht Rauchwarnmelder (Ferninspektion)"
+
+[ablauf.vorarbeiten]
+punkte = ["Termin angekündigt (Aushang/Schreiben)", "Zugang zu allen Wohnungen geklärt"]

@@ -11,6 +11,6 @@
 1. Verbindungsweg: **WireGuard über die FritzBox** (Patrick, 08.10.2026), Patrick richtet je Tablet eine Verbindung ein.
    Geräte (Patrick 08.10.): Android-Tablet zum Erfassen, Laptop (Windows, WireGuard schon eingerichtet) zum Funk-Auslesen. Nutzerzahl offen.
    „Ohne VPN über Webseite“ besprochen → bleibt bei WireGuard (Patrick bestätigt 08.10.).
-2. Stufe 2: Datenmodell-Entwurf fertig (`docs/03-datenmodell.md`, 2 Fragen an Patrick). Weiter: (Tabellen/Felder), Anlagenart-Konfiguration Rauchwarnmelder, Masken der Webseite,
+2. Stufe 2: Datenmodell (`docs/03-datenmodell.md`) + Konfig Rauchwarnmelder (`konfig/anlagenarten/rauchwarnmelder.toml`, Entwurf, nach Lehrgang gegenlesen). Weiter: (Tabellen/Felder), Anlagenart-Konfiguration Rauchwarnmelder, Masken der Webseite,
    Fälligkeitsregeln, Prüfbericht nach DIN 14676-1.
 3. Danach: Wartungsserver (eigener LXC), Grundgerüst Web, dann App.

@@ -43,7 +43,8 @@ lage (Breite/Länge, für Karte und Fahrten), zugangshinweise („Schlüssel bei
 ### anlage
 nummer (ANL-0001), objekt_id, anlagenart (`rauchwarnmelder`, später `tueren`), bezeichnung, hinweise_techniker,
 verfahren (`A` | `B` | `C` – Art der Inspektion: vor Ort / teilweise Fern / Ferninspektion), passiv (ja/nein),
-eigentum_melder (`kunde` | `miete_pgh`), labels, notiz.
+einzelnachweis_je_wohnung (ja/nein, Standard nein – z. B. bei Eigentümergemeinschaften einschaltbar), labels, notiz.
+Melder werden nur verkauft (Patrick 08.10.2026) – kein Mietmodell, Melder gehören dem Kunden.
 Verknüpfungen: anlage_kontakt (siehe oben), dateien.
 
 ### gruppe (= Wohnung bzw. bei Türen Geschoss/Bauteil)
@@ -139,7 +140,7 @@ Patricks Lehrgang (KW 42) von ihm gegenlesen.
 - Pull: alles seit `letzter_checkpoint`.
 - Nach Abschluss und Abgleich: Bewohnernamen/Unterschriften auf dem Gerät löschen.
 
-## Offene Fragen an Patrick (keine Eile)
+## Geklärt (Patrick 08.10.2026)
 
-1. Vermietest du Melder (Eigentum PGH) oder verkaufst du sie nur? (Feld `eigentum_melder`)
-2. Sollen Bewohner (Mieter) eine eigene Bestätigung pro Wohnung bekommen (Einzelnachweis als PDF/Ausdruck)?
+1. Melder werden nur verkauft, nicht vermietet.
+2. Einzelnachweis je Wohnung vorerst nicht; als Schalter je Anlage vorgesehen (z. B. Eigentümer-Objekte).
