@@ -48,7 +48,23 @@ installierter Web-Apps nach ca. 7 Tagen ohne Nutzung. Windows-Laptop mit Chrome/
 Ausgeschlossen: **C** (offener Port, Wunsch Patrick), **D** (kein Tunnel möglich; „Briefkasten“ nur mit
 selbstgebauter Verschlüsselung – zu riskant für Mieterdaten), **E** (Cloudflare liest mit).
 
-## 3. Empfehlung
+## 3. Entscheidung Patrick (08.10.2026): WireGuard in der FritzBox (Variante C)
+
+Kostenlos, ohne Fremdanbieter. Der eine UDP-Port an der FritzBox wird bewusst in Kauf genommen (WireGuard antwortet
+Unbekannten nicht, ist also von außen nicht sichtbar). Patrick richtet je Tablet eine eigene Verbindung ein
+(FritzBox: Internet → Freigaben → VPN (WireGuard) → Einzelgerät, QR-Code mit der WireGuard-App scannen).
+
+Folgen und Ausgleich:
+- Abgleich nur bei aktiver VPN-Verbindung → Empfehlung: in Android „Durchgehend aktives VPN“ für WireGuard
+  einschalten, sonst warten Änderungen auf dem Tablet, bis das VPN wieder an ist (gehen aber nicht verloren).
+- FritzBox-VPN öffnet das ganze Heimnetz (keine Regel „nur Wartungsserver“) → je Tablet eigene Verbindung, bei Verlust
+  sofort löschen; NAS/FritzBox/Proxmox nur mit starken Passwörtern; Wartungsserver selbst mit Anmeldung.
+- Dynamische IP: über die MyFRITZ-Adresse der FritzBox (aktualisiert sich selbst).
+- HTTPS für die App im Heimnetz: eigenes Zertifikat nötig (z. B. `wartung.pgh-brandschutz.de` mit Let's-Encrypt-
+  DNS-Nachweis oder eigene Zertifizierungsstelle auf den Tablets) – wird beim Aufsetzen des Servers gelöst.
+- Später jederzeit auf NetBird wechselbar, die App bleibt gleich.
+
+## 3a. Ursprüngliche Empfehlung (zurückgestellt)
 
 1. **Start: NetBird (Variante A).** Auf jedem Tablet die NetBird-App als „immer aktives VPN“. Zu Hause ein
    NetBird-Client auf dem Wartungsserver (eigener LXC). Zugriffsregel: Tablets dürfen **nur** den Wartungsserver auf
@@ -72,7 +88,7 @@ selbstgebauter Verschlüsselung – zu riskant für Mieterdaten), **E** (Cloudfl
 
 ## 5. Offene Punkte für Patrick
 
-- Verbindungsweg wählen (Empfehlung NetBird).
+- ~~Verbindungsweg wählen~~ → WireGuard FritzBox (08.10.2026).
 - Welche Geräte (Android-Tablet / iPad / Windows-Laptop) und wie viele Nutzer ungefähr?
 
 Quellen: tailscale.com/pricing, tailscale.com/kb/1153/enabling-https, netbird.io/pricing,

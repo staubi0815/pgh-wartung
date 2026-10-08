@@ -8,7 +8,8 @@
   keine offenen Ports, später Türen.
 
 ## Offen
-1. Patrick: Verbindungsweg wählen (Empfehlung NetBird), Geräte und ungefähre Nutzerzahl nennen.
+1. Verbindungsweg: **WireGuard über die FritzBox** (Patrick, 08.10.2026), Patrick richtet je Tablet eine Verbindung ein.
+   Offen: Geräte und ungefähre Nutzerzahl.
 2. Stufe 2: Datenmodell im Detail (Tabellen/Felder), Anlagenart-Konfiguration Rauchwarnmelder, Masken der Webseite,
    Fälligkeitsregeln, Prüfbericht nach DIN 14676-1.
 3. Danach: Wartungsserver (eigener LXC), Grundgerüst Web, dann App.
