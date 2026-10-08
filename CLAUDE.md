@@ -25,7 +25,8 @@ Start mit Rauchwarnmeldern (DIN 14676-1), später Brandschutztüren/Feststellanl
 | Datei | Inhalt |
 |---|---|
 | `docs/01-grobstruktur.md` | Analyse Foxtag, Datenmodell grob, Webseite/App/Bericht, Umfang Eigenbau |
-| `docs/02-sync-und-zugang.md` | Mehrbenutzer, Offline-Abgleich, Verbindungswege (VPN), Sicherheit |
+| `docs/02-sync-und-zugang.md` | Mehrbenutzer, Offline-Abgleich, Verbindungswege (Entscheidung: WireGuard FritzBox), Sicherheit |
+| `docs/03-datenmodell.md` | Tabellen und Felder, Anlagenart-Konfiguration, Fälligkeiten, Abgleich |
 
 Analyse-Werkzeuge und Rohdaten (nicht im Repo): `~/tools/foxtag-analyse/`, `~/.local/state/pgh-brandschutz/foxtag-analyse/`.
 Foxtag-Testkonto bis ca. 08.11.2026 (Zugang `~/.config/pgh-brandschutz/foxtag.env`).
