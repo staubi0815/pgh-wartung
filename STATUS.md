@@ -9,7 +9,8 @@
 
 ## Offen
 1. Verbindungsweg: **WireGuard über die FritzBox** (Patrick, 08.10.2026), Patrick richtet je Tablet eine Verbindung ein.
-   Offen: Geräte und ungefähre Nutzerzahl.
+   Geräte (Patrick 08.10.): Android-Tablet zum Erfassen, Laptop (Windows) zum Funk-Auslesen. Nutzerzahl offen.
+   Frage Patrick „ohne VPN über Webseite“: beantwortet – Briefkasten-Variante (D) möglich, aber mehr Aufwand; vorerst WireGuard.
 2. Stufe 2: Datenmodell im Detail (Tabellen/Felder), Anlagenart-Konfiguration Rauchwarnmelder, Masken der Webseite,
    Fälligkeitsregeln, Prüfbericht nach DIN 14676-1.
 3. Danach: Wartungsserver (eigener LXC), Grundgerüst Web, dann App.
