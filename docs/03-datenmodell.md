@@ -122,7 +122,7 @@ Melder → Liste „vor Ort prüfen“.
 
 ## 4. Anlagenart-Konfiguration (Datei im Repo, nicht in der Datenbank)
 
-`konfig/anlagenarten/rauchwarnmelder.toml`, später `tueren.toml`. Inhalt: Bezeichnungen (Gruppe = „Wohnung“,
+`server/wartung/konfig/anlagenarten/rauchwarnmelder.toml`, später `tueren.toml`. Inhalt: Bezeichnungen (Gruppe = „Wohnung“,
 Komponente = „Melder“, Trenner „/“), Unterschrift pro Gruppe (ja), Raumliste, Prüfintervall (12 Monate, Vorwarnung
 30 Tage), Austauschregel (10 Jahre ab Baujahr/Inbetriebnahme), Checkliste je Komponente, Mängeltypen mit
 Schweregrad und „Austausch vorschlagen“, Auftragsarten mit Ablaufschritten, Berichtstexte.

@@ -1,6 +1,6 @@
 # Stufe 2b: Webseite (Büro) – Seiten und Masken (Entwurf, Stand 08.10.2026)
 
-Grundlage: `03-datenmodell.md`, `konfig/anlagenarten/rauchwarnmelder.toml`. Ziel: so wenig Seiten wie nötig,
+Grundlage: `03-datenmodell.md`, `server/wartung/konfig/anlagenarten/rauchwarnmelder.toml`. Ziel: so wenig Seiten wie nötig,
 alles in höchstens zwei Klicks erreichbar. Gestaltung eigenständig (PGH-Farben der Website), nicht wie Foxtag.
 
 ## Menü

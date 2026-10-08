@@ -25,7 +25,7 @@ Befehle (40 Befehlsarten), Dienste, Oberfläche (~300 Dateien), Hilfsfunktionen 
 
 | Foxtag intern | Foxtag Oberfläche | pgh-wartung (docs/03) |
 |---|---|---|
-| installation_type | Wartungsanwendung | Anlagenart (`konfig/anlagenarten/*.toml`) |
+| installation_type | Wartungsanwendung | Anlagenart (`server/wartung/konfig/anlagenarten/*.toml`) |
 | installation | Anlage | anlage |
 | location | Objekt | objekt |
 | group | Gruppe (bei RWM: Wohnung) | gruppe |
