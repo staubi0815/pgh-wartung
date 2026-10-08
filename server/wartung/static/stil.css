@@ -67,3 +67,6 @@ a.knopf.zweitrangig{background:#fff;color:var(--navy);border:1px solid var(--lin
 button.gefahr{color:var(--red-dark);border-color:#f0c4c4}
 form.loeschen{margin:0}
 abbr{text-decoration:none;color:var(--red)}
+.marke-passiv{display:inline-block;font-size:.75rem;padding:1px 6px;border-radius:4px;background:var(--bg-soft);color:var(--muted);border:1px solid var(--line);vertical-align:middle}
+button.link-knopf{background:none;border:0;color:var(--red-dark);padding:0;font:inherit;font-size:.9rem;text-decoration:underline;cursor:pointer}
+form.zuordnen{margin-top:12px}

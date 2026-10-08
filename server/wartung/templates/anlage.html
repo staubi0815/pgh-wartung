@@ -1,0 +1,77 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ a.nummer }}{% endblock %}
+{% block inhalt %}
+{% set darf = 'stammdaten.bearbeiten' in rechte %}
+<p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_nummer }} {{ a.kunde_name }}</a> ›
+  <a href="/objekte/{{ a.objekt_id }}">{{ a.objekt_nummer }} {{ a.objekt_bezeichnung }}</a> › {{ a.nummer }}</p>
+<div class="zeile">
+  <h1>{{ art.name if art else a.anlagenart }} <span class="leise">{{ a.nummer }}{% if a.bezeichnung %} · {{ a.bezeichnung }}{% endif %}</span>
+    {% if a.passiv %}<span class="marke-passiv">passiv</span>{% endif %}</h1>
+  {% if darf %}<a class="knopf" href="/anlagen/{{ a.id }}/bearbeiten">Bearbeiten</a>{% endif %}
+</div>
+{% set meldungen = {'angelegt': 'Anlage angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_zugeordnet': 'Ansprechpartner zugeordnet.',
+                    'kontakt_entfernt': 'Zuordnung entfernt.'} %}
+{% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
+{% if hinweis == 'hat_wohnungen' %}<p class="fehler">Die Anlage hat noch Wohnungen und kann daher nicht gelöscht werden.</p>{% endif %}
+{% if hinweis == 'nicht_gefunden' %}<p class="fehler">Die Zuordnung wurde nicht gefunden.</p>{% endif %}
+
+<section class="karte">
+  <h2>Übersicht</h2>
+  <dl class="daten">
+    <dt>Kunde</dt><dd><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></dd>
+    <dt>Anschrift</dt><dd>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}</dd>
+    <dt>{{ art.gruppe_mehrzahl if art else 'Gruppen' }}</dt><dd>{{ a.wohnungen }}</dd>
+    <dt>{{ art.komponente_mehrzahl if art else 'Komponenten' }}</dt><dd>{{ a.komponenten }}</dd>
+    {{ form.daten_zeilen(felder, a, weglassen=('nummer', 'bezeichnung', 'passiv')) }}
+  </dl>
+</section>
+
+<section class="karte" id="kontakte">
+  <h2>Ansprechpartner</h2>
+  {% if kontakte %}
+  <table>
+    <tr><th>Rolle</th><th>Name</th><th>Funktion</th><th>Telefon / Mobil</th><th>E-Mail</th>{% if darf %}<th></th>{% endif %}</tr>
+    {% for kt in kontakte %}
+    <tr>
+      <td>{{ rollen_namen[kt.rolle] }}</td><td>{{ kt.name }}</td><td>{{ kt.funktion }}</td>
+      <td>{{ kt.telefon }}{% if kt.telefon and kt.mobil %} · {% endif %}{{ kt.mobil }}</td><td>{{ kt.email }}</td>
+      {% if darf %}<td class="zahl">
+        <form method="post" action="/anlagen/{{ a.id }}/kontakte/{{ kt.zuordnung_id }}/entfernen" class="loeschen"
+              data-frage="{{ kt.name }} als {{ rollen_namen[kt.rolle] }} entfernen?">
+          <input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="link-knopf">entfernen</button>
+        </form></td>{% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="leise">Noch keine Ansprechpartner zugeordnet.</p>{% endif %}
+  {% if darf %}
+    {% if kunden_kontakte %}
+    <form method="post" action="/anlagen/{{ a.id }}/kontakte" class="filter zuordnen">
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <select name="kontakt_id" aria-label="Kontakt" required>
+        <option value="">Kontakt wählen …</option>
+        {% for kt in kunden_kontakte %}<option value="{{ kt.id }}" {% if zuordnung.get('kontakt_id') == kt.id %}selected{% endif %}>{{ kt.name }}{% if kt.funktion %} ({{ kt.funktion }}){% endif %}</option>{% endfor %}
+      </select>
+      <select name="rolle" aria-label="Rolle" required>
+        {% for w, text in rollen %}<option value="{{ w }}" {% if zuordnung.get('rolle') == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
+      </select>
+      <button class="zweitrangig">Zuordnen</button>
+    </form>
+    {% else %}
+    <p class="leise">Der Kunde hat noch keine Kontakte. <a href="/kunden/{{ a.kunde_id }}/kontakte/neu">Kontakt anlegen</a></p>
+    {% endif %}
+  {% endif %}
+  {% for meldung in fehler.values() %}<p class="fehler">{{ meldung }}</p>{% endfor %}
+</section>
+
+<section class="karte" id="wohnungen">
+  <h2>{{ art.gruppe_mehrzahl if art else 'Gruppen' }} und {{ art.komponente_mehrzahl if art else 'Komponenten' }}</h2>
+  <p class="leise">Folgt im nächsten Schritt (Wohnungen anlegen, Melder erfassen, Fälligkeiten).</p>
+</section>
+
+{% if darf %}
+<div class="nebenbei">
+  {{ form.loeschen('/anlagen/' ~ a.id ~ '/loeschen', csrf, 'Anlage ' ~ a.nummer ~ ' wirklich löschen? Sie wird nur als gelöscht markiert.', 'Anlage löschen') }}
+  <span class="leise">Nur möglich, solange die Anlage keine Wohnungen hat.</span>
+</div>
+{% endif %}
+{% endblock %}

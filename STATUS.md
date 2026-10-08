@@ -28,5 +28,7 @@
    Offen: Bildschirmfolge durch Bedienen im Testkonto (bis ca. 08.11.).
 5. Baustein 2 Stammdaten (08.10.2026), in sechs Schritten: 1 Fundament ✓ (Migration 003, Abgleich-Nummer,
    Nummernkreise, Anlagenart-Lader, Web in Bereiche aufgeteilt), 2 Kunden + Kontakte ✓ (Liste/Suche/Filter,
-   Detail, Anlegen/Ändern/Löschen-Markierung, Rückfrage beim Löschen), 3 Objekte + Anlagen, 4 Wohnungen + Melder +
+   Detail, Anlegen/Ändern/Löschen-Markierung, Rückfrage beim Löschen), 3 Objekte + Anlagen ✓ (Anschrift eigen oder
+   „wie Kunde“, Objekt kann Kunden wechseln, Anlagenart fest, Ansprechpartner mit Rolle, Anlagenliste mit Suche),
+   4 Wohnungen + Melder +
    Typenkatalog + Fälligkeiten, 5 Excel-Import, 6 Export (Foxtag-Format + Vollexport).

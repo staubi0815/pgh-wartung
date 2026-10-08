@@ -42,3 +42,16 @@ class Web:
     def csrf(self, request, token):
         if not auth.csrf_ok(request.session, token):
             raise Weiterleitung("/?hinweis=sitzung_abgelaufen")
+
+    async def formular(self, request):
+        """Liest ein abgeschicktes Formular und prüft dabei das CSRF-Merkmal."""
+        form = await request.form()
+        self.csrf(request, form.get("csrf_token"))
+        return form
+
+    @staticmethod
+    def holen_oder_weiter(datensatz, ziel):
+        """Gibt den Datensatz zurück oder leitet um, wenn es ihn nicht (mehr) gibt."""
+        if datensatz is None:
+            raise Weiterleitung(ziel)
+        return datensatz

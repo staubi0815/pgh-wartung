@@ -3,7 +3,7 @@
 So bekommen alle Masken (Kunde, Kontakt, Objekt, …) dieselben Regeln, ohne sie mehrfach zu schreiben.
 """
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 ARTEN = ("text", "textarea", "email", "tel", "auswahl", "zahl", "ja_nein", "datum")
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -89,3 +89,25 @@ def anzeige(feld, wert):
     if feld.art == "ja_nein":
         return "ja" if wert else "nein"
     return "" if wert is None else wert
+
+
+def adresse_pruefen(werte, fehler, pflicht=False):
+    """Gemeinsame Regeln für Anschriften: Land groß (Standard DE), deutsche PLZ fünfstellig, ggf. Pflicht."""
+    werte["land"] = (werte.get("land") or "DE").upper()
+    if pflicht:
+        for name, titel in (("strasse", "Straße"), ("plz", "PLZ"), ("ort", "Ort")):
+            if not werte.get(name):
+                fehler.setdefault(name, f"{titel} ist Pflicht.")
+    plz = werte.get("plz") or ""
+    if werte["land"] == "DE" and plz and not (plz.isdigit() and len(plz) == 5):
+        fehler.setdefault("plz", "PLZ: in Deutschland fünf Ziffern.")
+
+
+def like_muster(suche):
+    """Suchtext für SQL LIKE … ESCAPE '\\': Platzhalterzeichen des Nutzers (%, _) zählen als normale Zeichen."""
+    return "%" + suche.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+def fuer_bearbeiten(felder):
+    """Beim Bearbeiten ist die Nummer Pflicht (sie wurde beim Anlegen vergeben) – ohne Hinweis „leer = automatisch“."""
+    return tuple(replace(f, pflicht=True, hilfe="") if f.name == "nummer" else f for f in felder)

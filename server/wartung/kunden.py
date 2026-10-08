@@ -4,7 +4,7 @@ Kontakte sind Ansprechpartner (Verwalter, Hausmeister); sie gehören optional zu
 Anlagen in Rollen zugeordnet (vor Ort, Berichtsempfänger, Terminankündigung).
 """
 from . import db, nummern
-from .felder import Feld, Ungueltig, einlesen
+from .felder import Feld, Ungueltig, adresse_pruefen, einlesen, fuer_bearbeiten, like_muster
 
 KUNDENARTEN = (("hausverwaltung", "Hausverwaltung"), ("eigentuemer", "Eigentümer"),
                ("weg", "Eigentümergemeinschaft (WEG)"), ("vermieter", "Vermieter"), ("privat", "Privat"),
@@ -26,6 +26,8 @@ KUNDE_FELDER = (
     Feld("notiz_intern", "Interne Notiz", "textarea", max_laenge=4000, breit=True),
 )
 
+KUNDE_FELDER_BEARBEITEN = fuer_bearbeiten(KUNDE_FELDER)
+
 KONTAKT_FELDER = (
     Feld("name", "Name", pflicht=True),
     Feld("funktion", "Funktion", platzhalter="z. B. Hausmeister, Verwalter"),
@@ -36,10 +38,6 @@ KONTAKT_FELDER = (
     Feld("email", "E-Mail", "email"),
     Feld("notiz", "Notiz", "textarea", max_laenge=2000, breit=True),
 )
-
-
-def _like(suche):
-    return "%" + suche.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
 # ---------- Kunden ----------
@@ -55,7 +53,7 @@ def liste(con, suche="", art=""):
     if suche.strip():
         sql += (" AND (k.nummer LIKE ? ESCAPE '\\' OR k.name LIKE ? ESCAPE '\\' OR k.zusatz LIKE ? ESCAPE '\\'"
                 " OR k.ort LIKE ? ESCAPE '\\')")
-        parameter += [_like(suche.strip())] * 4
+        parameter += [like_muster(suche.strip())] * 4
     if art:
         sql += " AND k.art = ?"
         parameter.append(art)
@@ -68,16 +66,12 @@ def holen(con, kunde_id):
 
 def pruefen(con, form, eigene_id=None):
     """Formular -> geprüfte Werte. Wirft Ungueltig."""
-    werte, fehler = einlesen(KUNDE_FELDER, form)
-    werte["land"] = (werte["land"] or "DE").upper()
+    werte, fehler = einlesen(KUNDE_FELDER_BEARBEITEN if eigene_id else KUNDE_FELDER, form)
+    adresse_pruefen(werte, fehler)
     if werte["nummer"]:
         fehler_nr = nummern.pruefen(con, "kunde", werte["nummer"], eigene_id)
         if fehler_nr:
             fehler["nummer"] = fehler_nr
-    elif eigene_id:
-        fehler["nummer"] = "Kundennummer ist Pflicht."
-    if werte["land"] == "DE" and werte["plz"] and not (werte["plz"].isdigit() and len(werte["plz"]) == 5):
-        fehler["plz"] = "PLZ: in Deutschland fünf Ziffern."
     if fehler:
         raise Ungueltig(fehler)
     return werte

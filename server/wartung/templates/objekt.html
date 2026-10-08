@@ -1,0 +1,46 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ o.bezeichnung }}{% endblock %}
+{% block inhalt %}
+{% set darf = 'stammdaten.bearbeiten' in rechte %}
+<p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ o.kunde_id }}">{{ o.kunde_nummer }} {{ o.kunde_name }}</a> › {{ o.nummer }}</p>
+<div class="zeile">
+  <h1>{{ o.bezeichnung }} <span class="leise">{{ o.nummer }}</span></h1>
+  {% if darf %}<a class="knopf" href="/objekte/{{ o.id }}/bearbeiten">Bearbeiten</a>{% endif %}
+</div>
+{% set meldungen = {'angelegt': 'Objekt angelegt.', 'gespeichert': 'Gespeichert.', 'anlage_geloescht': 'Anlage gelöscht.'} %}
+{% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
+{% if hinweis == 'hat_anlagen' %}<p class="fehler">Das Objekt hat noch Anlagen und kann daher nicht gelöscht werden.</p>{% endif %}
+
+<section class="karte">
+  <h2>Daten</h2>
+  <dl class="daten">
+    <dt>Anschrift</dt><dd>{{ o.adr_strasse }}, {{ o.adr_plz }} {{ o.adr_ort }}{% if o.adresse_wie_kunde %} <span class="leise">(wie Kunde)</span>{% endif %}</dd>
+    {{ form.daten_zeilen(felder, o, weglassen=('nummer', 'bezeichnung', 'adresse_wie_kunde', 'strasse', 'plz', 'ort', 'land')) }}
+  </dl>
+</section>
+
+<section class="karte" id="anlagen">
+  <div class="zeile">
+    <h2>Anlagen</h2>
+    {% if darf %}<a class="knopf zweitrangig" href="/objekte/{{ o.id }}/anlagen/neu">+ Anlage anlegen</a>{% endif %}
+  </div>
+  {% if anlagen %}
+  <table>
+    <tr><th>Nummer</th><th>Bezeichnung</th><th>Art</th><th class="zahl">Wohnungen</th><th class="zahl">Komponenten</th></tr>
+    {% for a in anlagen %}
+    <tr>
+      <td><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td><td>{{ a.bezeichnung }}</td>
+      <td>{{ ANLAGENARTEN.get(a.anlagenart, a.anlagenart) }}{% if a.passiv %} <span class="marke-passiv">passiv</span>{% endif %}</td>
+      <td class="zahl">{{ a.wohnungen }}</td><td class="zahl">{{ a.komponenten }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="leise">Noch keine Anlagen.</p>{% endif %}
+</section>
+
+{% if darf %}
+<div class="nebenbei">
+  {{ form.loeschen('/objekte/' ~ o.id ~ '/loeschen', csrf, 'Objekt ' ~ o.nummer ~ ' wirklich löschen? Es wird nur als gelöscht markiert.', 'Objekt löschen') }}
+  <span class="leise">Nur möglich, solange das Objekt keine Anlagen hat.</span>
+</div>
+{% endif %}
+{% endblock %}

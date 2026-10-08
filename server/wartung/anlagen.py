@@ -1,0 +1,153 @@
+"""Anlagen (z. B. die Rauchwarnmelder eines Objekts): Felder, Liste, Anlegen, Ändern, Löschen,
+Ansprechpartner mit Rolle zuordnen.
+
+Die Anlagenart (rauchwarnmelder, später tueren) wird beim Anlegen festgelegt und danach nicht mehr geändert, weil
+Wohnungen, Melder, Checklisten und Mängeltypen an ihr hängen.
+"""
+from . import anlagenart, db, nummern
+from .felder import Feld, Ungueltig, einlesen, fuer_bearbeiten, like_muster
+from .objekte import ADRESSE_SQL
+
+VERFAHREN = (("A", "A – Inspektion vor Ort"), ("B", "B – teilweise Ferninspektion"), ("C", "C – Ferninspektion"))
+KONTAKT_ROLLEN = (("vor_ort", "Ansprechpartner vor Ort"), ("berichtsempfaenger", "Berichtsempfänger"),
+                  ("terminankuendigung", "Terminankündigung"))
+
+
+def arten_auswahl():
+    return tuple((a.schluessel, a.name) for a in anlagenart.alle().values())
+
+
+def _gemeinsame_felder():
+    return (
+        Feld("nummer", "Anlagennummer", max_laenge=nummern.MAX_LAENGE, hilfe="leer lassen = automatisch"),
+        Feld("bezeichnung", "Bezeichnung", platzhalter="z. B. Rauchwarnmelder Haus A"),
+        Feld("verfahren", "Inspektionsverfahren", "auswahl", pflicht=True, auswahl=VERFAHREN),
+        Feld("einzelnachweis_je_wohnung", "Einzelnachweis je Wohnung", "ja_nein", breit=True,
+             hilfe="eigener Bericht je Wohnung, z. B. bei Eigentümern"),
+        Feld("passiv", "Passiv", "ja_nein", breit=True, hilfe="Anlage ruht, keine Fälligkeiten"),
+        Feld("hinweise_techniker", "Hinweise für den Techniker", "textarea", max_laenge=2000, breit=True),
+        Feld("notiz", "Notiz", "textarea", max_laenge=4000, breit=True),
+    )
+
+
+def felder_neu():
+    return (Feld("anlagenart", "Anlagenart", "auswahl", pflicht=True, auswahl=arten_auswahl()),
+            *_gemeinsame_felder())
+
+
+def felder_bearbeiten():
+    return fuer_bearbeiten(_gemeinsame_felder())
+
+
+# ---------- Lesen ----------
+
+_GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_bezeichnung, o.kunde_id, "
+              f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
+              " (SELECT COUNT(*) FROM gruppe g WHERE g.anlage_id = a.id AND g.geloescht = 0) AS wohnungen, "
+              " (SELECT COUNT(*) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
+              "    AND c.status = 'verbaut') AS komponenten "
+              "FROM anlage a JOIN objekt o ON o.id = a.objekt_id JOIN kunde k ON k.id = o.kunde_id "
+              "WHERE a.geloescht = 0 AND o.geloescht = 0 AND k.geloescht = 0")
+
+
+def holen(con, anlage_id):
+    return con.execute(_GRUND_SQL + " AND a.id = ?", (anlage_id,)).fetchone()
+
+
+def liste(con, suche="", art=""):
+    """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten."""
+    sql, parameter = _GRUND_SQL, []
+    if suche.strip():
+        felder = ("a.nummer", "a.bezeichnung", "o.nummer", "o.bezeichnung", "k.nummer", "k.name",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.strasse ELSE o.strasse END",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.ort ELSE o.ort END")
+        sql += " AND (" + " OR ".join(f"{f} LIKE ? ESCAPE '\\'" for f in felder) + ")"
+        parameter += [like_muster(suche.strip())] * len(felder)
+    if art:
+        sql += " AND a.anlagenart = ?"
+        parameter.append(art)
+    return con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",
+                       parameter).fetchall()
+
+
+def liste_fuer_objekt(con, objekt_id):
+    return con.execute(_GRUND_SQL + " AND a.objekt_id = ? ORDER BY a.nummer", (objekt_id,)).fetchall()
+
+
+# ---------- Schreiben ----------
+
+def _pruefen(con, felder, form, eigene_id=None):
+    werte, fehler = einlesen(felder, form)
+    if werte["nummer"]:
+        fehler_nr = nummern.pruefen(con, "anlage", werte["nummer"], eigene_id)
+        if fehler_nr:
+            fehler["nummer"] = fehler_nr
+    if fehler:
+        raise Ungueltig(fehler)
+    return werte
+
+
+def vorbelegung(art_schluessel="rauchwarnmelder"):
+    """Startwerte für das Formular „Anlage anlegen“ aus der Anlagenart."""
+    art = anlagenart.alle().get(art_schluessel)
+    return {"anlagenart": art_schluessel, "verfahren": "A",
+            "einzelnachweis_je_wohnung": int(bool(art and art.einzelnachweis_je_gruppe))}
+
+
+def anlegen(con, objekt_id, form, nutzer_id):
+    werte = _pruefen(con, felder_neu(), form)
+    with db.transaktion(con):
+        werte["nummer"] = werte["nummer"] or nummern.naechste(con, "anlage")
+        return db.anlegen(con, "anlage", {**werte, "objekt_id": objekt_id}, nutzer_id)
+
+
+def aendern(con, anlage_id, form, nutzer_id):
+    """Ändert die Anlage; die Anlagenart ist nicht änderbar (steht nicht in den Feldern)."""
+    return db.aendern(con, "anlage", anlage_id, _pruefen(con, felder_bearbeiten(), form, anlage_id), nutzer_id)
+
+
+def loeschen(con, anlage_id, nutzer_id):
+    """Markiert die Anlage und ihre Kontakt-Zuordnungen als gelöscht – nur ohne Wohnungen."""
+    with db.transaktion(con):
+        if con.execute("SELECT 1 FROM gruppe WHERE anlage_id = ? AND geloescht = 0", (anlage_id,)).fetchone():
+            raise Ungueltig({"": "Die Anlage hat noch Wohnungen. Bitte zuerst diese löschen."})
+        for z in con.execute("SELECT id FROM anlage_kontakt WHERE anlage_id = ? AND geloescht = 0",
+                             (anlage_id,)).fetchall():
+            db.aendern(con, "anlage_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
+        db.aendern(con, "anlage", anlage_id, {"geloescht": 1}, nutzer_id)
+
+
+# ---------- Ansprechpartner ----------
+
+def kontakte(con, anlage_id):
+    """Zugeordnete Kontakte mit Rolle, sortiert nach Rolle und Name."""
+    reihenfolge = " ".join(f"WHEN '{w}' THEN {i}" for i, (w, _) in enumerate(KONTAKT_ROLLEN))
+    return con.execute(
+        "SELECT z.id AS zuordnung_id, z.rolle, kt.* FROM anlage_kontakt z JOIN kontakt kt ON kt.id = z.kontakt_id "
+        f"WHERE z.anlage_id = ? AND z.geloescht = 0 AND kt.geloescht = 0 "
+        f"ORDER BY CASE z.rolle {reihenfolge} END, kt.name COLLATE NOCASE", (anlage_id,)).fetchall()
+
+
+def kontakt_zuordnen(con, anlage_id, kontakt_id, rolle, nutzer_id):
+    """Ordnet einen Kontakt des Kunden der Anlage in einer Rolle zu."""
+    if rolle not in dict(KONTAKT_ROLLEN):
+        raise Ungueltig({"rolle": "Bitte eine Rolle wählen."})
+    with db.transaktion(con):
+        passend = con.execute(
+            "SELECT 1 FROM kontakt kt JOIN objekt o ON o.kunde_id = kt.kunde_id JOIN anlage a ON a.objekt_id = o.id "
+            "WHERE kt.id = ? AND a.id = ? AND kt.geloescht = 0", (kontakt_id, anlage_id)).fetchone()
+        if not passend:
+            raise Ungueltig({"kontakt_id": "Bitte einen Kontakt dieses Kunden wählen."})
+        if con.execute("SELECT 1 FROM anlage_kontakt WHERE anlage_id = ? AND kontakt_id = ? AND rolle = ? "
+                       "AND geloescht = 0", (anlage_id, kontakt_id, rolle)).fetchone():
+            raise Ungueltig({"kontakt_id": "Dieser Kontakt ist in dieser Rolle schon zugeordnet."})
+        return db.anlegen(con, "anlage_kontakt", {"anlage_id": anlage_id, "kontakt_id": kontakt_id, "rolle": rolle},
+                          nutzer_id)
+
+
+def kontakt_entfernen(con, anlage_id, zuordnung_id, nutzer_id):
+    z = con.execute("SELECT id FROM anlage_kontakt WHERE id = ? AND anlage_id = ? AND geloescht = 0",
+                    (zuordnung_id, anlage_id)).fetchone()
+    if z is None:
+        raise Ungueltig({"": "Zuordnung nicht gefunden."})
+    db.aendern(con, "anlage_kontakt", zuordnung_id, {"geloescht": 1}, nutzer_id)

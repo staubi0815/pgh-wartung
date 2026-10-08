@@ -34,13 +34,15 @@
 {% endfor %}
 {% endmacro %}
 
-{# Datenblock für Detailseiten: nur gefüllte Felder #}
-{% macro daten(liste, werte, weglassen=()) %}
-<dl class="daten">
+{# Datenblock für Detailseiten: nur gefüllte Felder. daten_zeilen ohne <dl>, um eigene Zeilen davorzusetzen #}
+{% macro daten_zeilen(liste, werte, weglassen=()) %}
 {% for f in liste if f.name not in weglassen and werte[f.name] not in (none, '') %}
   <dt>{{ f.titel }}</dt><dd>{{ anzeige(f, werte[f.name]) }}</dd>
 {% endfor %}
-</dl>
+{% endmacro %}
+
+{% macro daten(liste, werte, weglassen=()) %}
+<dl class="daten">{{ daten_zeilen(liste, werte, weglassen) }}</dl>
 {% endmacro %}
 
 {% macro loeschen(aktion, csrf, frage, text='Löschen') %}

@@ -1,0 +1,22 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}Anlage{% endblock %}
+{% block inhalt %}
+{% set neu = not a.get('id') %}
+{% if neu %}
+<p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ o.kunde_id }}">{{ o.kunde_nummer }} {{ o.kunde_name }}</a> ›
+  <a href="/objekte/{{ o.id }}">{{ o.nummer }}</a> › neue Anlage</p>
+<h1>Anlage anlegen <span class="leise">in {{ o.bezeichnung }}</span></h1>
+{% else %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a> › bearbeiten</p>
+<h1>Anlage bearbeiten</h1>
+<p class="leise">Anlagenart: {{ art.name if art else a.anlagenart }} (nach dem Anlegen nicht mehr änderbar).</p>
+{% endif %}
+{% if fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+<form method="post" action="{{ '/objekte/' ~ o.id ~ '/anlagen/neu' if neu else '/anlagen/' ~ a.id ~ '/bearbeiten' }}" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, a, fehler, {'nummer': vorschau} if neu else {}) }}
+  <div class="breit knopfzeile">
+    <button>Speichern</button>
+    <a href="{{ '/objekte/' ~ o.id if neu else '/anlagen/' ~ a.id }}">Abbrechen</a>
+  </div>
+</form>
+{% endblock %}

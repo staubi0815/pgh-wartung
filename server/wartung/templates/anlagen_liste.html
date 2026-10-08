@@ -1,0 +1,33 @@
+{% extends "basis.html" %}{% block titel %}Anlagen{% endblock %}
+{% block inhalt %}
+<div class="zeile"><h1>Anlagen</h1></div>
+{% if hinweis == 'nicht_gefunden' %}<p class="fehler">Der Datensatz wurde nicht gefunden (evtl. gelöscht).</p>{% endif %}
+<p class="leise">Neue Anlagen legen Sie beim Objekt an (Kunde › Objekt › „Anlage anlegen“).</p>
+<form method="get" action="/anlagen" class="filter">
+  <input type="search" name="q" value="{{ q }}" placeholder="Suche: Nummer, Adresse, Kunde" aria-label="Suche">
+  <select name="art" aria-label="Anlagenart">
+    <option value="">alle Anlagenarten</option>
+    {% for w, text in arten %}<option value="{{ w }}" {% if art == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+  <button class="zweitrangig">Filtern</button>
+  {% if q or art %}<a href="/anlagen">zurücksetzen</a>{% endif %}
+</form>
+<div class="karte">
+{% if liste %}
+<table>
+  <tr><th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th class="zahl">Wohnungen</th><th class="zahl">Komponenten</th></tr>
+  {% for a in liste %}
+  <tr class="{{ 'inaktiv' if a.passiv }}">
+    <td><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
+    <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %}</td>
+    <td><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></td>
+    <td>{{ ANLAGENARTEN.get(a.anlagenart, a.anlagenart) }}{% if a.passiv %} <span class="marke-passiv">passiv</span>{% endif %}</td>
+    <td class="zahl">{{ a.wohnungen }}</td><td class="zahl">{{ a.komponenten }}</td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="leise">{{ liste | length }} Anlage{{ 'n' if liste | length != 1 }}</p>
+{% elif q or art %}<p>Keine Anlagen gefunden.</p>
+{% else %}<p>Noch keine Anlagen angelegt.</p>{% endif %}
+</div>
+{% endblock %}

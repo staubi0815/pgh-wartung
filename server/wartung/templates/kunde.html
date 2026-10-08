@@ -7,7 +7,8 @@
   {% if darf %}<a class="knopf" href="/kunden/{{ k.id }}/bearbeiten">Bearbeiten</a>{% endif %}
 </div>
 {% set meldungen = {'angelegt': 'Kunde angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_angelegt': 'Kontakt angelegt.',
-                    'kontakt_gespeichert': 'Kontakt gespeichert.', 'kontakt_geloescht': 'Kontakt gelöscht.'} %}
+                    'kontakt_gespeichert': 'Kontakt gespeichert.', 'kontakt_geloescht': 'Kontakt gelöscht.',
+                    'objekt_geloescht': 'Objekt gelöscht.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_objekte' %}<p class="fehler">Der Kunde hat noch Objekte und kann daher nicht gelöscht werden.</p>{% endif %}
 
@@ -35,15 +36,23 @@
 </section>
 
 <section class="karte" id="objekte">
-  <h2>Objekte</h2>
+  <div class="zeile">
+    <h2>Objekte</h2>
+    {% if darf %}<a class="knopf zweitrangig" href="/kunden/{{ k.id }}/objekte/neu">+ Objekt anlegen</a>{% endif %}
+  </div>
   {% if objekte %}
   <table>
-    <tr><th>Nummer</th><th>Bezeichnung</th><th>Ort</th><th class="zahl">Anlagen</th></tr>
+    <tr><th>Nummer</th><th>Bezeichnung</th><th>Anschrift</th><th class="zahl">Anlagen</th></tr>
     {% for o in objekte %}
-    <tr><td>{{ o.nummer }}</td><td>{{ o.bezeichnung }}</td><td>{{ o.plz }} {{ o.ort }}</td><td class="zahl">{{ o.anlagen }}</td></tr>
+    <tr>
+      <td><a href="/objekte/{{ o.id }}">{{ o.nummer }}</a></td>
+      <td><a href="/objekte/{{ o.id }}">{{ o.bezeichnung }}</a></td>
+      <td>{{ o.adr_strasse }}, {{ o.adr_plz }} {{ o.adr_ort }}</td>
+      <td class="zahl">{{ o.anlagen }}</td>
+    </tr>
     {% endfor %}
   </table>
-  {% else %}<p class="leise">Noch keine Objekte. (Objekte und Anlagen anlegen folgt im nächsten Schritt.)</p>{% endif %}
+  {% else %}<p class="leise">Noch keine Objekte.</p>{% endif %}
 </section>
 
 {% if darf %}
