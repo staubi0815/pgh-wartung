@@ -33,7 +33,9 @@ Start mit Rauchwarnmeldern (DIN 14676-1), später Brandschutztüren/Feststellanl
 | `docs/06-foxtag-rollen-und-app.md` | Foxtag-Rollen/Einzelrechte vs. unsere, Foxtag-App (öffentlich), Vorgehen App-Analyse |
 | `docs/07-foxtag-app-aufbau.md` | Aufbau Foxtag-2-App: Offline-Speicher, Befehlsprotokoll-Abgleich, Folgerungen für unsere App |
 
-Analyse-Werkzeuge und Rohdaten (nicht im Repo): `~/tools/foxtag-analyse/`, `~/.local/state/pgh-brandschutz/foxtag-analyse/`.
+Analyse-Werkzeuge und Rohdaten (nicht im Repo): `~/tools/foxtag-analyse/`, `~/.local/state/pgh-brandschutz/foxtag-analyse/`;
+App-Analyse: `~/tools/apk-analyse/` (Aufruf immer mit vollem Pfad `/home/claude/tools/apk-analyse/.venv/bin/python …`,
+dafür gilt Patricks Berechtigungsregel), Rohdaten `~/.local/state/pgh-brandschutz/foxtag-apk/`.
 Foxtag-Testkonto bis ca. 08.11.2026 (Zugang `~/.config/pgh-brandschutz/foxtag.env`).
 
 ## Stand
