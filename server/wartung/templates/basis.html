@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>{% block titel %}{% endblock %} · {{ firmenname }} Wartung</title>
+<link rel="icon" href="/static/favicon.svg">
+<link rel="stylesheet" href="/static/stil.css">
+</head>
+<body>
+<header class="kopf">
+  <a class="marke" href="/">{{ firmenname }} <span>Wartung</span></a>
+  {% if ich %}
+  <nav>
+    <a href="/">Start</a>
+    <a class="bald" title="kommt in Schritt 2">Kunden</a>
+    <a class="bald" title="kommt in Schritt 2">Anlagen</a>
+    <a class="bald" title="kommt in Schritt 3">Aufträge</a>
+    <a class="bald" title="kommt später">Mängel</a>
+    {% if ich.rolle == 'admin' %}<a href="/verwaltung/nutzer">Verwaltung</a>{% endif %}
+  </nav>
+  <div class="konto">
+    <a href="/konto/passwort">{{ ich.name }}</a>
+    <form method="post" action="/abmelden"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="link">Abmelden</button></form>
+  </div>
+  {% endif %}
+</header>
+<main>
+{% block inhalt %}{% endblock %}
+</main>
+</body>
+</html>

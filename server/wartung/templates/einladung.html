@@ -1,0 +1,8 @@
+{% extends "verwaltung.html" %}{% block titel %}Einladung{% endblock %}
+{% block bereich %}
+<h1>Link zum Passwort-Setzen</h1>
+<p>Für <strong>{{ u.name }}</strong> ({{ u.email }}). Der Link gilt 48 Stunden und nur einmal. Er wird nicht gespeichert –
+jetzt kopieren und persönlich weitergeben (nicht öffentlich posten).</p>
+<p class="link-kasten"><code>{{ link }}</code></p>
+<p><a href="/verwaltung/nutzer">Zurück zur Nutzerliste</a></p>
+{% endblock %}

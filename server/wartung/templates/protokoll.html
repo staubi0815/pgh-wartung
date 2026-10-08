@@ -1,0 +1,12 @@
+{% extends "verwaltung.html" %}{% block titel %}Änderungsprotokoll{% endblock %}
+{% block bereich %}
+<h1>Änderungsprotokoll</h1>
+<p class="leise">Die letzten 300 Einträge. Einträge können nicht geändert oder gelöscht werden.</p>
+<table>
+  <tr><th>Zeit</th><th>Wer</th><th>Tabelle</th><th>Aktion</th><th>Feld</th><th>alt</th><th>neu</th></tr>
+  {% for z in zeilen %}
+  <tr><td>{{ z.zeit[:16].replace('T', ' ') }}</td><td>{{ z.nutzer_name or 'System' }}</td><td>{{ z.tabelle }}</td>
+      <td>{{ z.aktion }}</td><td>{{ z.feld or '' }}</td><td>{{ z.alt if z.alt is not none else '' }}</td><td>{{ z.neu if z.neu is not none else '' }}</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

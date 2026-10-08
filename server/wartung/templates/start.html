@@ -1,0 +1,12 @@
+{% extends "basis.html" %}{% block titel %}Start{% endblock %}
+{% block inhalt %}
+<h1>Guten Tag, {{ ich.name }}</h1>
+{% if hinweis == 'keine_berechtigung' %}<p class="fehler">Dafür fehlt die Berechtigung.</p>{% endif %}
+{% if hinweis == 'sitzung_abgelaufen' %}<p class="fehler">Die Sitzung war abgelaufen – bitte den Vorgang wiederholen.</p>{% endif %}
+<div class="kacheln">
+  <div class="kachel"><h3>Heute / diese Woche</h3><p class="leise">Aufträge folgen in Schritt 3.</p></div>
+  <div class="kachel"><h3>Fällig</h3><p class="leise">Prüf- und Austauschfälligkeiten folgen mit den Anlagen.</p></div>
+  <div class="kachel"><h3>Offene Mängel</h3><p class="leise">folgt</p></div>
+  <div class="kachel"><h3>Abzurechnen</h3><p class="leise">folgt</p></div>
+</div>
+{% endblock %}

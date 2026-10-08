@@ -1,0 +1,12 @@
+{% extends "basis.html" %}
+{% block inhalt %}
+<div class="verwaltung">
+  <aside>
+    <h3>Verwaltung</h3>
+    <a href="/verwaltung/nutzer">Nutzer</a>
+    <a href="/verwaltung/firma">Firma</a>
+    <a href="/verwaltung/protokoll">Änderungsprotokoll</a>
+  </aside>
+  <section>{% block bereich %}{% endblock %}</section>
+</div>
+{% endblock %}

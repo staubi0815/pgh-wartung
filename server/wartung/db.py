@@ -1,0 +1,101 @@
+"""Datenbank (SQLite): Verbindung, Migrationen, Änderungsprotokoll."""
+import os
+import sqlite3
+import uuid
+from datetime import datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+TZ = ZoneInfo("Europe/Berlin")
+MIGRATIONEN = Path(__file__).parent / "migrationen"
+
+
+def jetzt():
+    return datetime.now(TZ).isoformat(timespec="seconds")
+
+
+def neue_id():
+    return str(uuid.uuid4())
+
+
+def daten_ordner():
+    return Path(os.environ.get("WARTUNG_DATEN", "/var/lib/pgh-wartung"))
+
+
+def verbinden(pfad=None):
+    pfad = pfad or daten_ordner() / "wartung.db"
+    con = sqlite3.connect(pfad, isolation_level=None, check_same_thread=False)
+    con.row_factory = sqlite3.Row
+    con.execute("PRAGMA foreign_keys = ON")
+    con.execute("PRAGMA journal_mode = WAL")
+    con.execute("PRAGMA busy_timeout = 5000")
+    return con
+
+
+def migrieren(con):
+    """Spielt fehlende Migrationen (NNN_name.sql) der Reihe nach ein. Gibt die Namen der neuen zurück."""
+    con.execute("CREATE TABLE IF NOT EXISTS schema_version (name TEXT PRIMARY KEY, am TEXT NOT NULL)")
+    vorhanden = {r["name"] for r in con.execute("SELECT name FROM schema_version")}
+    neu = []
+    for datei in sorted(MIGRATIONEN.glob("[0-9][0-9][0-9]_*.sql")):
+        if datei.name in vorhanden:
+            continue
+        con.execute("BEGIN")
+        try:
+            for befehl in _befehle(datei.read_text(encoding="utf-8")):
+                con.execute(befehl)
+            con.execute("INSERT INTO schema_version VALUES (?, ?)", (datei.name, jetzt()))
+            con.execute("COMMIT")
+        except Exception:
+            con.execute("ROLLBACK")
+            raise
+        neu.append(datei.name)
+    return neu
+
+
+def _befehle(sql):
+    """Zerlegt ein SQL-Skript in einzelne Befehle (Trigger mit BEGIN … END bleiben zusammen)."""
+    teile, puffer = [], ""
+    for zeile in sql.splitlines():
+        if zeile.strip().startswith("--"):
+            continue
+        puffer += zeile + "\n"
+        if sqlite3.complete_statement(puffer):
+            if puffer.strip():
+                teile.append(puffer.strip())
+            puffer = ""
+    if puffer.strip():
+        teile.append(puffer.strip())
+    return teile
+
+
+def protokoll(con, nutzer_id, tabelle, datensatz, aktion, feld=None, alt=None, neu=None, geraet_id=None):
+    con.execute(
+        "INSERT INTO aenderungsprotokoll (zeit, nutzer_id, geraet_id, tabelle, datensatz, aktion, feld, alt, neu) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (jetzt(), nutzer_id, geraet_id, tabelle, str(datensatz), aktion, feld,
+         None if alt is None else str(alt), None if neu is None else str(neu)))
+
+
+def aendern(con, tabelle, datensatz_id, werte, nutzer_id, schluessel="id"):
+    """Ändert Felder eines Datensatzes und protokolliert jede tatsächliche Änderung. Gibt Anzahl geänderter Felder zurück."""
+    alt = con.execute(f"SELECT * FROM {tabelle} WHERE {schluessel} = ?", (datensatz_id,)).fetchone()
+    if alt is None:
+        raise KeyError(f"{tabelle} {datensatz_id} nicht gefunden")
+    geaendert = {k: v for k, v in werte.items() if alt[k] != v}
+    if not geaendert:
+        return 0
+    spalten = ", ".join(f"{k} = ?" for k in geaendert)
+    con.execute("BEGIN")
+    try:
+        con.execute(f"UPDATE {tabelle} SET {spalten}, geaendert_am = ?, geaendert_von = ?, version = version + 1 "
+                    f"WHERE {schluessel} = ?", (*geaendert.values(), jetzt(), nutzer_id, datensatz_id))
+        for k, v in geaendert.items():
+            geheim = k in ("passwort_hash", "einladung_hash")
+            protokoll(con, nutzer_id, tabelle, datensatz_id, "aendern", k,
+                      "***" if geheim else alt[k], "***" if geheim else v)
+        con.execute("COMMIT")
+    except Exception:
+        con.execute("ROLLBACK")
+        raise
+    return len(geaendert)

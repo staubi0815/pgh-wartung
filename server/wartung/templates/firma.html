@@ -1,0 +1,23 @@
+{% extends "verwaltung.html" %}{% block titel %}Firma{% endblock %}
+{% block bereich %}
+<h1>Firma</h1>
+{% if gespeichert %}<p class="ok">Gespeichert.</p>{% endif %}
+{% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
+<form method="post" action="/verwaltung/firma" class="raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <label>Name <input name="name" value="{{ f.name }}" required></label>
+  <label>Inhaber <input name="inhaber" value="{{ f.inhaber }}"></label>
+  <label>Straße <input name="strasse" value="{{ f.strasse }}"></label>
+  <label>PLZ <input name="plz" value="{{ f.plz }}"></label>
+  <label>Ort <input name="ort" value="{{ f.ort }}"></label>
+  <label>Telefon <input name="telefon" value="{{ f.telefon }}"></label>
+  <label>E-Mail <input type="email" name="email" value="{{ f.email }}"></label>
+  <h3 class="breit">Nummernkreise (Präfix)</h3>
+  <label>Kunde <input name="praefix_kunde" value="{{ f.praefix_kunde }}"></label>
+  <label>Objekt <input name="praefix_objekt" value="{{ f.praefix_objekt }}"></label>
+  <label>Anlage <input name="praefix_anlage" value="{{ f.praefix_anlage }}"></label>
+  <label>Auftrag <input name="praefix_auftrag" value="{{ f.praefix_auftrag }}"></label>
+  <label class="breit">Fußzeile im Bericht <textarea name="berichtsfusszeile" rows="2">{{ f.berichtsfusszeile }}</textarea></label>
+  <div class="breit"><button>Speichern</button></div>
+</form>
+{% endblock %}
