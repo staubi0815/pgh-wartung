@@ -12,4 +12,6 @@
    Geräte (Patrick 08.10.): Android-Tablet zum Erfassen, Laptop (Windows, WireGuard schon eingerichtet) zum Funk-Auslesen. Nutzerzahl offen.
    „Ohne VPN über Webseite“ besprochen → bleibt bei WireGuard (Patrick bestätigt 08.10.).
 2. Stufe 2 fertig: Datenmodell (`docs/03`), Konfig Rauchwarnmelder (Entwurf, nach Lehrgang gegenlesen), Masken Web (`docs/04`).
-3. Stufe 3: Wartungsserver (eigener LXC, Ankündigung an Patrick vor Anlage), Technikwahl, Grundgerüst Web (Reihenfolge `docs/04` Abschnitt 10).
+3. Stufe 3: Server **LXC 192 `pgh-wartung` angelegt** (08.10.2026, Freigabe Patrick; `ssh pgh-wartung`, DHCP 192.168.178.31,
+   Doku homelab-infra `infra/lxc-192-pgh-wartung.md`). Technik: Python (FastAPI) + SQLite, Oberfläche als PWA, PDF über Chromium.
+   Offen: feste IP in der FritzBox (Patrick), dann Grundgerüst Web (Reihenfolge `docs/04` Abschnitt 10).
