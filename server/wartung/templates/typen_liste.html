@@ -1,0 +1,21 @@
+{% extends "verwaltung.html" %}{% block titel %}Melder-Typen{% endblock %}
+{% block bereich %}
+<div class="zeile"><h1>Melder-Typen</h1><a class="knopf" href="/verwaltung/typen/neu">+ Typ anlegen</a></div>
+{% if hinweis == 'angelegt' %}<p class="ok">Typ angelegt.</p>{% elif hinweis == 'gespeichert' %}<p class="ok">Gespeichert.</p>{% endif %}
+<p class="leise">Typen werden nicht gelöscht, sondern deaktiviert – so bleibt nachvollziehbar, welche Melder verbaut waren.</p>
+{% if liste %}
+<table>
+  <tr><th>Bezeichnung</th><th>Hersteller</th><th>Anlagenart</th><th>Funk</th><th>Batterie</th><th class="zahl">Austausch</th><th class="zahl">verbaut</th></tr>
+  {% for t in liste %}
+  <tr class="{{ '' if t.aktiv else 'inaktiv' }}">
+    <td><a href="/verwaltung/typen/{{ t.id }}">{{ t.bezeichnung }}</a>{% if not t.aktiv %} <span class="marke-passiv">inaktiv</span>{% endif %}</td>
+    <td>{{ t.hersteller }}{% if t.modell %} <span class="leise">{{ t.modell }}</span>{% endif %}</td>
+    <td>{{ ANLAGENARTEN.get(t.anlagenart, t.anlagenart) }}</td>
+    <td>{{ funk[t.funk] }}</td><td>{{ batterie[t.batterie] }}</td>
+    <td class="zahl">{% if t.austausch_jahre %}{{ t.austausch_jahre }} J.{% else %}<span class="leise">Vorgabe</span>{% endif %}</td>
+    <td class="zahl">{{ t.verbaut }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p>Noch keine Typen angelegt. Legen Sie zuerst die Melder an, die Sie verkaufen und montieren.</p>{% endif %}
+{% endblock %}

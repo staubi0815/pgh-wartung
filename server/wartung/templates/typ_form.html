@@ -1,0 +1,13 @@
+{% extends "verwaltung.html" %}{% import "_formular.html" as form %}{% block titel %}Melder-Typ{% endblock %}
+{% block bereich %}
+{% set neu = not t.get('id') %}
+<p class="pfad"><a href="/verwaltung/typen">Melder-Typen</a> › {{ 'neu' if neu else t.get('bezeichnung') }}</p>
+<h1>{{ 'Typ anlegen' if neu else 'Typ bearbeiten' }}</h1>
+{% if not neu %}<p class="leise">Anlagenart: {{ ANLAGENARTEN.get(t.anlagenart, t.anlagenart) }}</p>{% endif %}
+{% if fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+<form method="post" action="{{ '/verwaltung/typen/neu' if neu else '/verwaltung/typen/' ~ t.id }}" class="raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, t, fehler) }}
+  <div class="breit knopfzeile"><button>Speichern</button><a href="/verwaltung/typen">Abbrechen</a></div>
+</form>
+{% endblock %}

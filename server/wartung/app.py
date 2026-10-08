@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import anlagen as anlagen_logik, db, felder, rechte
-from .web import anlagen, anmeldung, kunden, objekte, verwaltung
+from .web import anlagen, anmeldung, kunden, objekte, typen, verwaltung
 from .web.basis import Web, Weiterleitung
 
 HIER = Path(__file__).parent
@@ -62,6 +62,6 @@ def erzeuge_app(daten_ordner=None, https=False):
         return RedirectResponse(exc.ziel, status_code=303)
 
     web = Web(con, vorlagen)
-    for bereich in (anmeldung, kunden, objekte, anlagen, verwaltung):
+    for bereich in (anmeldung, kunden, objekte, anlagen, typen, verwaltung):
         app.include_router(bereich.router(web))
     return app

@@ -21,6 +21,8 @@ pruefung_gleitend = true           # ab letzter Prüfung
 vorwarnung_tage = 30
 austausch_jahre = 10
 austausch_ab = "baujahr"           # sonst "inbetriebnahme", falls Baujahr fehlt
+austausch_zugabe_monate = 0        # Zugabe auf die Austauschfrist (nach Lehrgang gegen DIN 14676-1 prüfen)
+# Ist nur das Baujahr bekannt, rechnet das Programm vorsichtig ab dem 1. Januar dieses Jahres.
 
 [raeume]
 liste = ["Flur", "Diele", "Schlafzimmer", "Elternschlafzimmer", "Kinderzimmer", "Wohnzimmer",

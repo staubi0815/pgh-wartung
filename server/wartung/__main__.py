@@ -1,13 +1,13 @@
 """Befehle für den Server:  python -m wartung <befehl>
 
-  migrieren                          Datenbank anlegen/aktualisieren
+  migrieren                          Datenbank anlegen/aktualisieren, Fälligkeiten neu berechnen
   admin-einladen <name> <email>      Admin anlegen (vorhandenes Konto: Rolle Administration + aktiv)
                                      und Einmal-Link zum Passwort-Setzen ausgeben
   starten [--port 8000]              Webserver starten (für systemd)
 """
 import sys
 
-from . import auth, db, rechte
+from . import auth, db, faelligkeit, rechte
 
 
 def main(argv):
@@ -26,6 +26,9 @@ def main(argv):
     neu = db.migrieren(con)
     if befehl == "migrieren":
         print("Migrationen eingespielt:", ", ".join(neu) or "keine (aktuell)")
+        # Regeln stehen in der Anlagenart-Konfiguration; nach jedem Einspielen alle Fälligkeiten nachführen
+        with db.transaktion(con):
+            print("Fälligkeiten neu berechnet:", faelligkeit.alle_berechnen(con))
         return 0
     if befehl == "admin-einladen" and len(rest) == 2:
         name, email = rest

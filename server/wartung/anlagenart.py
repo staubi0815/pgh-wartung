@@ -17,7 +17,8 @@ ERLAUBT = {
     "": {"allgemein", "intervalle", "raeume", "raumarten", "checkliste", "mangel", "auftragsart", "ablauf"},
     "allgemein": {"schluessel", "name", "gruppe", "gruppe_mehrzahl", "komponente", "komponente_mehrzahl", "trenner",
                   "unterschrift_je_gruppe", "einzelnachweis_je_gruppe", "fotos", "freigegeben"},
-    "intervalle": {"pruefung_monate", "pruefung_gleitend", "vorwarnung_tage", "austausch_jahre", "austausch_ab"},
+    "intervalle": {"pruefung_monate", "pruefung_gleitend", "vorwarnung_tage", "austausch_jahre", "austausch_ab",
+                   "austausch_zugabe_monate"},
     "raeume": {"liste"},
 }
 
@@ -70,6 +71,7 @@ class Anlagenart:
     vorwarnung_tage: int
     austausch_jahre: int
     austausch_ab: str           # "baujahr" | "inbetriebnahme"
+    austausch_zugabe_monate: int
     raeume: tuple[str, ...]
     raumarten: dict = field(hash=False)          # raumart -> Räume
     checkliste: tuple[Checkpunkt, ...] = ()
@@ -151,7 +153,8 @@ def laden(datei):
         pruefung_monate=int(pflicht("intervalle", "pruefung_monate")),
         pruefung_gleitend=bool(iv.get("pruefung_gleitend", True)),
         vorwarnung_tage=int(iv.get("vorwarnung_tage", 30)), austausch_jahre=int(pflicht("intervalle", "austausch_jahre")),
-        austausch_ab=iv.get("austausch_ab", "baujahr"), raeume=raeume, raumarten=raumarten,
+        austausch_ab=iv.get("austausch_ab", "baujahr"),
+        austausch_zugabe_monate=int(iv.get("austausch_zugabe_monate", 0)), raeume=raeume, raumarten=raumarten,
         checkliste=checkliste, maengel=maengel, auftragsarten=auftragsarten)
 
 

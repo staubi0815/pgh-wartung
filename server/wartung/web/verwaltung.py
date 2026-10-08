@@ -10,6 +10,7 @@ FIRMA_FELDER = ["name", "inhaber", "strasse", "plz", "ort", "telefon", "email", 
 # Verwaltungsseiten in Menü-Reihenfolge: (Recht, Pfad, Titel)
 MENUE = [("verwaltung.nutzer", "/verwaltung/nutzer", "Nutzer"),
          ("verwaltung.rollen", "/verwaltung/rollen", "Rollen und Rechte"),
+         ("verwaltung.katalog", "/verwaltung/typen", "Melder-Typen"),
          ("verwaltung.firma", "/verwaltung/firma", "Firma"),
          ("verwaltung.protokoll", "/verwaltung/protokoll", "Änderungsprotokoll")]
 
