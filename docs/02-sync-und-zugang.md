@@ -45,7 +45,7 @@ installierter Web-Apps nach ca. 7 Tagen ohne Nutzung. Windows-Laptop mit Chrome/
 | Aufwand/Pflege | gering | mittel: öffentlicher Server muss gepflegt werden (Updates) – aber außerhalb des Heimnetzes | gering | hoch | gering |
 | Anbieter | NetBird: Berlin, Open Source; Tailscale: Kanada/USA | Hetzner, Deutschland | – | Hetzner | USA |
 
-Ausgeschlossen: **C** (offener Port, Wunsch Patrick), **D** (kein Tunnel möglich; „Briefkasten“ nur mit
+Ausgeschlossen: **D** (kein Tunnel möglich; „Briefkasten“ nur mit
 selbstgebauter Verschlüsselung – zu riskant für Mieterdaten), **E** (Cloudflare liest mit).
 
 ## 3. Entscheidung Patrick (08.10.2026): WireGuard in der FritzBox (Variante C)
