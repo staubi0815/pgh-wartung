@@ -70,3 +70,6 @@ abbr{text-decoration:none;color:var(--red)}
 .marke-passiv{display:inline-block;font-size:.75rem;padding:1px 6px;border-radius:4px;background:var(--bg-soft);color:var(--muted);border:1px solid var(--line);vertical-align:middle}
 button.link-knopf{background:none;border:0;color:var(--red-dark);padding:0;font:inherit;font-size:.9rem;text-decoration:underline;cursor:pointer}
 form.zuordnen{margin-top:12px}
+.gruppe{border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
+.gruppe-kopf{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 12px;background:var(--bg-soft);border-radius:8px}
+.gruppe-kopf .rechts{margin-left:auto;font-size:.9rem}

@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import anlagen, anlagenart, kunden
+from .. import anlagen, anlagenart, gruppen, kunden
 from ..felder import Ungueltig
 from .kunden import BEARBEITEN, LESEN
 
@@ -17,11 +17,12 @@ def router(web):
         return web.holen_oder_weiter(anlagen.holen(con, anlage_id), NICHT_GEFUNDEN)
 
     def detail_seite(request, n, a, hinweis="", fehler=None, status=200, zuordnung=None):
-        return web.seite(request, "anlage.html", n, a=a, art=anlagenart.alle().get(a["anlagenart"]),
+        return web.seite(request, "anlage.html", n, a=a, art=anlagenart.holen(a["anlagenart"]),
                          kontakte=anlagen.kontakte(con, a["id"]), kunden_kontakte=kunden.kontakte(con, a["kunde_id"]),
                          rollen=anlagen.KONTAKT_ROLLEN, rollen_namen=dict(anlagen.KONTAKT_ROLLEN),
                          felder=anlagen.felder_bearbeiten(), hinweis=hinweis, fehler=fehler or {},
-                         zuordnung=zuordnung or {}, status=status)
+                         zuordnung=zuordnung or {}, gruppen=gruppen.liste(con, a["id"]),
+                         zugang_namen=dict(gruppen.ZUGANG), status=status)
 
     @r.get("", response_class=HTMLResponse)
     def liste(request: Request, q: str = "", art: str = "", hinweis: str = ""):

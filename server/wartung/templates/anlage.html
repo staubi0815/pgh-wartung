@@ -9,10 +9,12 @@
   {% if darf %}<a class="knopf" href="/anlagen/{{ a.id }}/bearbeiten">Bearbeiten</a>{% endif %}
 </div>
 {% set meldungen = {'angelegt': 'Anlage angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_zugeordnet': 'Ansprechpartner zugeordnet.',
-                    'kontakt_entfernt': 'Zuordnung entfernt.'} %}
+                    'kontakt_entfernt': 'Zuordnung entfernt.', 'gruppe_angelegt': art.gruppe ~ ' angelegt.',
+                    'gruppe_gespeichert': art.gruppe ~ ' gespeichert.', 'gruppe_geloescht': art.gruppe ~ ' gelöscht.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_wohnungen' %}<p class="fehler">Die Anlage hat noch Wohnungen und kann daher nicht gelöscht werden.</p>{% endif %}
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Die Zuordnung wurde nicht gefunden.</p>{% endif %}
+{% if hinweis == 'gruppe_hat_komponenten' %}<p class="fehler">Die {{ art.gruppe }} kann nicht gelöscht werden, solange {{ art.komponente_mehrzahl }} verbaut sind.</p>{% endif %}
 
 <section class="karte">
   <h2>Übersicht</h2>
@@ -64,8 +66,24 @@
 </section>
 
 <section class="karte" id="wohnungen">
-  <h2>{{ art.gruppe_mehrzahl if art else 'Gruppen' }} und {{ art.komponente_mehrzahl if art else 'Komponenten' }}</h2>
-  <p class="leise">Folgt im nächsten Schritt (Wohnungen anlegen, Melder erfassen, Fälligkeiten).</p>
+  <div class="zeile">
+    <h2>{{ art.gruppe_mehrzahl }} und {{ art.komponente_mehrzahl }}</h2>
+    {% if darf %}<a class="knopf zweitrangig" href="/anlagen/{{ a.id }}/gruppen/neu">+ {{ art.gruppe }} anlegen</a>{% endif %}
+  </div>
+  {% for g in gruppen %}
+  <div class="gruppe" id="g-{{ g.id }}">
+    <div class="gruppe-kopf">
+      <strong>{{ art.gruppe }} {{ g.nummer }}</strong>
+      {% if g.bezeichnung %}<span>{{ g.bezeichnung }}</span>{% endif %}
+      {% if g.bewohner %}<span class="leise">{{ g.bewohner }}</span>{% endif %}
+      {% if g.zugang != 'frei' %}<span class="marke-passiv">{{ zugang_namen[g.zugang] }}</span>{% endif %}
+      <span class="leise">{{ g.komponenten }} {{ art.komponente if g.komponenten == 1 else art.komponente_mehrzahl }}</span>
+      {% if darf %}<a class="rechts" href="/gruppen/{{ g.id }}">bearbeiten</a>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="leise">Noch keine {{ art.gruppe_mehrzahl }}.</p>
+  {% endfor %}
 </section>
 
 {% if darf %}
