@@ -18,3 +18,7 @@
    CSRF, Sicherheitsköpfe), Einmal-Links zum Passwort-Setzen, Nutzer/Rollen, Firma, Änderungsprotokoll (nur anhängen).
    12 Tests grün. Deploy: `./deploy.sh`. Admin-Einladung für Patrick in Drive `pgh-wartung-einrichten.txt` (48 h).
    Offen: feste IP (Patrick), HTTPS, Sicherung der Anwendungsdaten; nächster Baustein Kunden/Objekte/Anlagen/Wohnungen/Melder + Import.
+4. Analyse Foxtag-Rollen und -App (`docs/06`, 08.10.2026): Foxtag nutzt Einzelrechte + kombinierbare Rollen →
+   Vorschlag Migration 002 (Rechte statt Rollennamen, Rolle „Techniker ohne Web“) vor Baustein 2.
+   App-Analyse nur durch Bedienen von Foxtag 2 im Testkonto (kein Zerlegen der APK, AGB 10.3 / § 69e UrhG);
+   wartet auf Patrick (App installieren, Gerät, Variante A adb oder B Bildschirmfotos). Testkonto bis ca. 08.11.
