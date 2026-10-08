@@ -1,0 +1,27 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}Mehrere {{ art.komponente_mehrzahl }}{% endblock %}
+{% block inhalt %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}#g-{{ g.id }}">{{ a.nummer }} {{ a.adr_strasse }}</a> ›
+  {{ art.gruppe }} {{ g.nummer }} › mehrere anlegen</p>
+<h1>Mehrere {{ art.komponente_mehrzahl }} anlegen <span class="leise">{{ art.gruppe }} {{ g.nummer }}{% if g.bezeichnung %} · {{ g.bezeichnung }}{% endif %}</span></h1>
+<p class="leise">Je gewähltem Raum wird ein {{ art.komponente }} mit fortlaufender Nummer angelegt. Seriennummern usw. danach je {{ art.komponente }} ergänzen.</p>
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+{% if keine_typen %}
+<p class="fehler">Es gibt noch keinen aktiven {{ art.komponente }}-Typ.
+  {% if 'verwaltung.katalog' in rechte %}<a href="/verwaltung/typen/neu">Jetzt Typ anlegen</a>{% else %}Bitte im Büro anlegen lassen.{% endif %}</p>
+{% endif %}
+<form method="post" action="/gruppen/{{ g.id }}/komponenten/mehrere" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, k, fehler) }}
+  <fieldset class="breit auswahl{{ ' mit-fehler' if fehler.get('raeume') }}">
+    <legend>Räume</legend>
+    <div class="raumwahl">
+    {% for raum in art.raeume %}
+      <label class="haken"><input type="checkbox" name="raeume" value="{{ raum }}" {% if raum in k.get('raeume', []) %}checked{% endif %}> {{ raum }}</label>
+    {% endfor %}
+    </div>
+    <label>Weitere Räume <input name="weitere_raeume" value="{{ k.get('weitere_raeume', '') }}" placeholder="durch Komma getrennt, z. B. Hobbyraum, Dachboden"></label>
+    {% if fehler.get('raeume') %}<span class="feldfehler">{{ fehler['raeume'] }}</span>{% endif %}
+  </fieldset>
+  <div class="breit knopfzeile"><button>Anlegen</button><a href="/anlagen/{{ a.id }}#g-{{ g.id }}">Abbrechen</a></div>
+</form>
+{% endblock %}

@@ -14,6 +14,7 @@ from datetime import date
 from . import anlagenart
 
 AMPEL_TEXT = {"rot": "überfällig", "gelb": "bald fällig", "gruen": "in Ordnung", "grau": "unbekannt"}
+AUSTAUSCH_VORWARNUNG_TAGE = 183   # Austausch rechtzeitig einplanen: gelb ab etwa sechs Monaten vorher (docs/04)
 
 
 def monate_addieren(tag, monate):

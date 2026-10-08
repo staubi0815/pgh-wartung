@@ -25,7 +25,9 @@
          {% if f.art == 'zahl' and f.minimum is not none %}min="{{ f.minimum }}"{% endif %}
          {% if f.art == 'zahl' and f.maximum is not none %}max="{{ f.maximum }}"{% endif %}
          {% if f.art not in ('zahl', 'datum') %}maxlength="{{ f.max_laenge }}"{% endif %}
-         placeholder="{{ platzhalter.get(f.name, f.platzhalter) }}" {% if f.pflicht %}required{% endif %}>
+         placeholder="{{ platzhalter.get(f.name, f.platzhalter) }}" {% if f.pflicht %}required{% endif %}
+         {% if f.vorschlaege %}list="{{ id }}_vorschlaege" autocomplete="off"{% endif %}>
+  {% if f.vorschlaege %}<datalist id="{{ id }}_vorschlaege">{% for v in f.vorschlaege %}<option value="{{ v }}">{% endfor %}</datalist>{% endif %}
   {% endif %}
   {% if fehler.get(f.name) %}<span class="feldfehler">{{ fehler[f.name] }}</span>
   {% elif f.hilfe %}<span class="leise">{{ f.hilfe }}</span>{% endif %}

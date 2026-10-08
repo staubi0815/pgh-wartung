@@ -73,3 +73,9 @@ form.zuordnen{margin-top:12px}
 .gruppe{border:1px solid var(--line);border-radius:8px;margin-bottom:10px}
 .gruppe-kopf{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;padding:10px 12px;background:var(--bg-soft);border-radius:8px}
 .gruppe-kopf .rechts{margin-left:auto;font-size:.9rem}
+table.komponenten{margin:4px 0 8px}table.komponenten td,table.komponenten th{padding:6px 12px}
+.ampel{white-space:nowrap}.ampel .punkt{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:6px;vertical-align:baseline}
+.ampel-rot .punkt{background:#c62828}.ampel-gelb .punkt{background:#f9a825}.ampel-gruen .punkt{background:#2e7d32}.ampel-grau .punkt{background:#b0bec5}
+.ampel-rot{color:#b71c1c;font-weight:600}
+.nur-vorlesen{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.raumwahl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 16px}

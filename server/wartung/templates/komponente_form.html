@@ -1,0 +1,29 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ art.komponente }}{% endblock %}
+{% block inhalt %}
+{% set neu = not k.get('id') %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}#g-{{ g.id }}">{{ a.nummer }} {{ a.adr_strasse }}</a> ›
+  {{ art.gruppe }} {{ g.nummer }} › {% if neu %}neu{% else %}{{ art.nummer_anzeige(g.nummer, k.get('nummer')) }}{% endif %}</p>
+<h1>{% if neu %}{{ art.komponente }} anlegen{% else %}{{ art.komponente }} {{ art.nummer_anzeige(g.nummer, k.get('nummer')) }} bearbeiten{% endif %}
+  <span class="leise">{{ art.gruppe }} {{ g.nummer }}{% if g.bezeichnung %} · {{ g.bezeichnung }}{% endif %}</span></h1>
+{% if request.query_params.get('hinweis') == 'angelegt' %}<p class="ok">{{ art.komponente }} angelegt. Nächsten eingeben:</p>{% endif %}
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+{% if keine_typen %}
+<p class="fehler">Es gibt noch keinen aktiven {{ art.komponente }}-Typ.
+  {% if 'verwaltung.katalog' in rechte %}<a href="/verwaltung/typen/neu">Jetzt Typ anlegen</a>{% else %}Bitte im Büro anlegen lassen.{% endif %}</p>
+{% endif %}
+<form method="post" action="{{ '/gruppen/' ~ g.id ~ '/komponenten/neu' if neu else '/komponenten/' ~ k.id }}" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, k, fehler, {'nummer': vorschau} if neu else {}) }}
+  <div class="breit knopfzeile">
+    <button>Speichern</button>
+    {% if neu %}<button name="weiter" value="1" class="zweitrangig">Speichern und nächsten anlegen</button>{% endif %}
+    <a href="/anlagen/{{ a.id }}#g-{{ g.id }}">Abbrechen</a>
+  </div>
+</form>
+{% if not neu %}
+<div class="nebenbei">
+  {{ form.loeschen('/komponenten/' ~ k.id ~ '/loeschen', csrf, art.komponente ~ ' ' ~ art.nummer_anzeige(g.nummer, k.nummer) ~ ' als Fehleingabe löschen? (Für einen echten Ausbau bitte „Ausbauen“ verwenden.)', 'Als Fehleingabe löschen') }}
+  <span class="leise">Nur für versehentlich angelegte Einträge.</span>
+</div>
+{% endif %}
+{% endblock %}

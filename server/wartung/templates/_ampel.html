@@ -1,0 +1,4 @@
+{# Ampel mit Datum (TT.MM.JJJJ). farbe: rot | gelb | gruen | grau #}
+{% macro ampel(farbe, datum) %}
+<span class="ampel ampel-{{ farbe }}" title="{{ AMPEL_TEXT[farbe] }}"><span class="punkt" aria-hidden="true"></span>{% if datum %}{{ datum[8:10] }}.{{ datum[5:7] }}.{{ datum[:4] }}{% else %}unbekannt{% endif %}<span class="nur-vorlesen"> ({{ AMPEL_TEXT[farbe] }})</span></span>
+{% endmacro %}

@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ a.nummer }}{% endblock %}
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% from "_ampel.html" import ampel %}{% block titel %}{{ a.nummer }}{% endblock %}
 {% block inhalt %}
 {% set darf = 'stammdaten.bearbeiten' in rechte %}
 <p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_nummer }} {{ a.kunde_name }}</a> ›
@@ -10,7 +10,9 @@
 </div>
 {% set meldungen = {'angelegt': 'Anlage angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_zugeordnet': 'Ansprechpartner zugeordnet.',
                     'kontakt_entfernt': 'Zuordnung entfernt.', 'gruppe_angelegt': art.gruppe ~ ' angelegt.',
-                    'gruppe_gespeichert': art.gruppe ~ ' gespeichert.', 'gruppe_geloescht': art.gruppe ~ ' gelöscht.'} %}
+                    'gruppe_gespeichert': art.gruppe ~ ' gespeichert.', 'gruppe_geloescht': art.gruppe ~ ' gelöscht.',
+                    'komponente_angelegt': art.komponente ~ ' angelegt.', 'komponenten_angelegt': art.komponente_mehrzahl ~ ' angelegt.',
+                    'komponente_gespeichert': art.komponente ~ ' gespeichert.', 'komponente_geloescht': art.komponente ~ ' gelöscht.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_wohnungen' %}<p class="fehler">Die Anlage hat noch Wohnungen und kann daher nicht gelöscht werden.</p>{% endif %}
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Die Zuordnung wurde nicht gefunden.</p>{% endif %}
@@ -78,8 +80,29 @@
       {% if g.bewohner %}<span class="leise">{{ g.bewohner }}</span>{% endif %}
       {% if g.zugang != 'frei' %}<span class="marke-passiv">{{ zugang_namen[g.zugang] }}</span>{% endif %}
       <span class="leise">{{ g.komponenten }} {{ art.komponente if g.komponenten == 1 else art.komponente_mehrzahl }}</span>
-      {% if darf %}<a class="rechts" href="/gruppen/{{ g.id }}">bearbeiten</a>{% endif %}
+      {% if darf %}<span class="rechts">
+        <a href="/gruppen/{{ g.id }}/komponenten/neu">+ {{ art.komponente }}</a> ·
+        <a href="/gruppen/{{ g.id }}/komponenten/mehrere">+ mehrere</a> ·
+        <a href="/gruppen/{{ g.id }}">{{ art.gruppe }} bearbeiten</a></span>{% endif %}
     </div>
+    {% set liste = komponenten.get(g.id, []) %}
+    {% if liste %}
+    <table class="komponenten">
+      <tr><th>Nr.</th><th>Raum</th><th>Typ</th><th>Seriennr.</th><th>Funk-ID</th><th class="zahl">Baujahr</th>
+          <th>Nächste Prüfung</th><th>Austausch</th></tr>
+      {% for c in liste %}
+      <tr>
+        <td>{% if darf %}<a href="/komponenten/{{ c.id }}">{{ c.anzeige_nummer }}</a>{% else %}{{ c.anzeige_nummer }}{% endif %}</td>
+        <td>{{ c.raum }}</td>
+        <td>{{ c.typ_bezeichnung }}</td>
+        <td>{{ c.seriennummer }}</td><td>{{ c.funk_id or '' }}</td>
+        <td class="zahl">{{ c.baujahr or '' }}</td>
+        <td>{{ ampel(c.pruefung_ampel, c.naechste_pruefung_am) }}</td>
+        <td>{{ ampel(c.austausch_ampel, c.austausch_faellig_am) }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
   </div>
   {% else %}
   <p class="leise">Noch keine {{ art.gruppe_mehrzahl }}.</p>

@@ -32,6 +32,7 @@ class Feld:
     platzhalter: str = ""
     minimum: int | None = None    # für art="zahl"
     maximum: int | None = None
+    vorschlaege: tuple = ()       # Vorschläge zum Antippen, freie Eingabe bleibt möglich (art="text")
 
     def __post_init__(self):
         if self.art not in ARTEN:
