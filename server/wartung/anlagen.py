@@ -44,8 +44,8 @@ def felder_bearbeiten():
 # ---------- Lesen ----------
 
 # frühester offener (geplant/in Arbeit) Auftrag der Anlage
-_NAECHSTER_AUFTRAG = ("FROM auftrag u WHERE u.anlage_id = a.id AND u.geloescht = 0 AND u.status IN ('geplant', 'aktiv') "
-                      "ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
+_NAECHSTER_AUFTRAG = ("FROM auftrag u WHERE u.anlage_id = a.id AND u.geloescht = 0 "
+                      "AND u.status IN ('geplant', 'aktiv') ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
 _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_bezeichnung, o.kunde_id, "
               f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
               " (SELECT COUNT(*) FROM gruppe g WHERE g.anlage_id = a.id AND g.geloescht = 0) AS wohnungen, "
@@ -120,7 +120,10 @@ def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False):
 def faellig_zaehlen(con, heute=None):
     """Anzahl Anlagen je Fälligkeitsfilter, z. B. für die Startseite."""
     alle = liste(con, heute=heute)
-    return {schluessel: sum(1 for d in alle if passt(d, schluessel)) for schluessel, _ in FAELLIG_FILTER}
+    zahlen = {schluessel: sum(1 for d in alle if passt(d, schluessel)) for schluessel, _ in FAELLIG_FILTER}
+    zahlen["pruefung_bald_ohne_auftrag"] = sum(1 for d in alle if passt(d, "pruefung_bald")
+                                               and not d["naechster_auftrag_id"])
+    return zahlen
 
 
 def liste_fuer_objekt(con, objekt_id):

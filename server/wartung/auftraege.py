@@ -199,6 +199,23 @@ def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", 
     return con.execute(sql, parameter).fetchall()
 
 
+def cockpit(con, eingeschraenkt=None, heute=None):
+    """Zahlen und Termine für die Startseite: heutige Termine, Rest der Woche, überfällige offene Aufträge
+    (Termin vorbei, nicht abgeschlossen), abzurechnende."""
+    heute = heute or date.today()
+    gestern = (heute - timedelta(days=1)).isoformat()
+    sonntag = (montag(heute) + timedelta(days=6)).isoformat()
+    morgen = (heute + timedelta(days=1)).isoformat()
+    return {
+        "heute": liste(con, "offen", heute.isoformat(), heute.isoformat(), eingeschraenkt=eingeschraenkt),
+        "rest_woche": len(liste(con, "offen", morgen, sonntag, eingeschraenkt=eingeschraenkt)) if morgen <= sonntag
+        else 0,
+        "ueberfaellig": len(liste(con, "offen", bis=gestern, eingeschraenkt=eingeschraenkt)),
+        "abzurechnen": len(liste(con, "abzurechnen", eingeschraenkt=eingeschraenkt)),
+        "gestern": gestern,
+    }
+
+
 def montag(tag):
     """Montag der Woche, in der tag (date oder JJJJ-MM-TT) liegt; ungültig = diese Woche."""
     if isinstance(tag, str):

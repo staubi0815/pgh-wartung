@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import anlagen, auth, rechte
+from .. import anlagen, anlagenart, auftraege, auth, rechte
 
 
 def router(web):
@@ -54,7 +54,11 @@ def router(web):
     def start(request: Request, hinweis: str = ""):
         n = web.nutzer(request)
         faellig = anlagen.faellig_zaehlen(con) if "stammdaten.lesen" in request.state.rechte else None
-        return web.seite(request, "start.html", n, hinweis=hinweis, faellig=faellig)
+        eingeschraenkt = auftraege.sicht(request.state.rechte, n["id"])
+        return web.seite(request, "start.html", n, hinweis=hinweis, faellig=faellig,
+                         cockpit=auftraege.cockpit(con, eingeschraenkt), eingeschraenkt=eingeschraenkt,
+                         arten_text={x.schluessel: x.name for a in anlagenart.alle().values()
+                                     for x in a.auftragsarten})
 
     @r.get("/konto/passwort", response_class=HTMLResponse)
     def passwort_form(request: Request):

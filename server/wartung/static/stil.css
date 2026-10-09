@@ -110,3 +110,8 @@ label.inline{display:inline-flex;flex-direction:row;gap:6px;align-items:center;m
 .woche .status-rand-abgeschlossen,.woche .status-rand-abgerechnet,.woche .status-rand-kostenlos{border-left-color:#2e7d32}
 .woche .status-rand-storniert{border-left-color:var(--muted);opacity:.6;text-decoration:line-through}
 .wochenkopf{margin-top:8px}
+.kachel-breit{grid-column:span 2}
+@media (max-width:700px){.kachel-breit{grid-column:auto}}
+ul.termine{list-style:none;padding:0;margin:0 0 8px}
+ul.termine li{padding:6px 0;border-bottom:1px solid var(--line)}
+ul.termine li a{display:block}

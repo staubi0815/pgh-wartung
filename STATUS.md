@@ -50,7 +50,8 @@
    Techniker/Pool/Art/Suche; Büro und Planende sehen alle, Techniker eigene + Pool, nur Webzugang nur eigene;
    interne Notiz nur fürs Büro; im Browser geprüft), 4 Sammelplanung ✓ (Anlagen in der Liste ankreuzen →
    gemeinsame Auftragsart/Techniker/Datum, je Anlage abweichender Termin, alles oder nichts; Spalte und Übersicht
-   „Nächster Auftrag“, Filter „nur ohne offenen Auftrag“), 5 Start-Cockpit, 6 Export/Import Foxtag-Format.
+   „Nächster Auftrag“, Filter „nur ohne offenen Auftrag“), 5 Start-Cockpit ✓ (heutige Termine, Rest der Woche,
+   überfällige Aufträge, fällige Anlagen „davon ohne Auftrag“, abzurechnen; Techniker nur eigene + Pool), 6 Export/Import Foxtag-Format.
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,
    Fotos, Auftrag beenden, **Offline-Test** (Methode steht in `docs/08`, Termin mit Patrick), zwei Geräte.

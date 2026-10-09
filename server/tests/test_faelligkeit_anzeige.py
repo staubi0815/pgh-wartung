@@ -1,9 +1,9 @@
 """Fälligkeiten in Anlagenliste, Anlagenseite und Startseite (Ampel, Filter, passive Anlagen)."""
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 
-from wartung import anlagen, anlagenart, db, gruppen, komponenten, kunden, objekte, typen
+from wartung import anlagen, anlagenart, auftraege, db, gruppen, komponenten, kunden, objekte, typen
 
 from hilfen import anmelden
 
@@ -51,7 +51,12 @@ def test_filter_und_startseite(drei_anlagen):
     assert nummern("pruefung_bald") == ["ANL-0001", "ANL-0002"]
     assert nummern("austausch_bald") == ["ANL-0003"]
     assert len(anlagen.liste(con, faellig="unsinn")) == 3  # unbekannter Filter = alle
-    assert anlagen.faellig_zaehlen(con) == {"pruefung_ueberfaellig": 1, "pruefung_bald": 2, "austausch_bald": 1}
+    assert anlagen.faellig_zaehlen(con) == {"pruefung_ueberfaellig": 1, "pruefung_bald": 2, "austausch_bald": 1,
+                                            "pruefung_bald_ohne_auftrag": 2}
+    # sobald eine fällige Anlage einen offenen Auftrag hat, zählt sie nicht mehr als „ohne Auftrag“
+    auftraege.anlegen(con, anlagen.holen(con, a1), {"auftragsart": "wartung",
+                                                    "datum": (date.today() + timedelta(days=3)).isoformat()}, None)
+    assert anlagen.faellig_zaehlen(con)["pruefung_bald_ohne_auftrag"] == 1
     seite = c.get("/anlagen?faellig=pruefung_ueberfaellig").text
     assert "ANL-0001" in seite and "ANL-0002" not in seite and "ampel-rot" in seite
     start = c.get("/").text
