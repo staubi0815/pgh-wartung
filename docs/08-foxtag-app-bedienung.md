@@ -4,7 +4,7 @@ Stand: 09.10.2026. Quelle: Foxtag 2, Version 111.0.6, Pixel-Handy, **normales Be
 (erfundene Demo-Daten, ein Testauftrag). Bildschirmfotos liegen nur lokal (nicht im Repo, Grundsatz 7). Hier
 steht der **Ablauf in eigenen Worten** als Vorlage für unsere PWA – Gestaltung und Texte machen wir selbst.
 
-Ergänzt `docs/07` (technischer Aufbau). Noch offen: Scan, Ergebnis-Buchung, Tauschen, Unterschriften, Bericht,
+Ergänzt `docs/07` (technischer Aufbau). Noch offen: Scan, Fotos, Auftrag beenden,
 Flugmodus, zwei Geräte (siehe unten „Noch zu prüfen“).
 
 ## 1. Navigation
@@ -61,6 +61,30 @@ docs/07) in den Prüfschritt statt einer einzigen Kundenunterschrift am Ende.
   hinzufügen · Foxtag-ID (Funketikett) hinzufügen · Störungen anzeigen.
 - Formulare fragen beim Verlassen **„Änderungen speichern? – Nein, verwerfen / Ja, speichern“**.
 
+## 4a. Weitere Beobachtungen (Stand 09.10.2026, Testauftrag)
+
+- **Ergebnis OK** bucht mit **einem Tipp sofort**: keine Rückfrage, auch ohne ausgefüllte Prüfdaten. Der Melder wandert
+  in den Reiter „Erledigt“ (Zeitstempel mit Sekunden, Ergebnis, Knopf **Rückgängig**, Sortierknopf). Rückgängig
+  wirkt ebenfalls sofort ohne Rückfrage; der Melder steht wieder unter „Offen“.
+- **Tauschen** (Melder-Menü): Hinweis „tauscht aus und schließt alle offenen Störungen“. Zwei Abschnitte:
+  Außerbetriebnahme (Grund, optional) und Inbetriebnahme des neuen Melders (Typ*, Seriennummer mit Scan,
+  Funketikett-ID mit Scan, Baujahr, Zulassungsnummer). Knöpfe „Tauschen“ / „Abbrechen“.
+- **Nacharbeiten** ist ein Abschlussformular: Prüfbescheinigung (zwei Haken: Überprüfung nach DIN 14676 /
+  durch ausgebildete Fachkraft nach DIN 14676), „Mängel wurden vor Ort behoben“ (Ja / Nein / n. v.),
+  Freitext „Weitere Arbeiten“. Zurück ohne Speichern kam ohne Rückfrage.
+- **Material und Leistungen**: Artikelkatalog aus dem Web (Nummer, Kategorie wie Anfahrt/Arbeitszeit, Ersatzteile,
+  Verbrauchsmaterial, Einheit), Filter, Mehrfachauswahl, neuer Artikel direkt anlegbar.
+- **Unterschriften** (Techniker, Kunde): Zeichenfläche mit „Löschen“, Datum, Name vorbefüllt (Techniker = Nutzer,
+  Kunde = Ansprechpartner), Haken zum Übernehmen. Eine Unterschrift je Auftrag.
+- **Berichtsvorschau**: PDF „Wartungsbericht <Anlagenart>“ mit Berichtsdatum, Auftrags- und Kundennummer, Kasten
+  Kunde / Standort / Durchgeführt von, Wasserzeichen „Vorschau“, Teilen-Knopf.
+- Fotos: Kamerafläche je Auftrag (nicht ausprobiert).
+
+Folgerungen für uns: (1) Prüfergebnis „OK“ mit einem Tipp **und** Rückgängig sind für die Praxis gut, wir buchen
+aber trotzdem die Pflicht-Checkpunkte der Anlagenart mit (nicht optional wie hier). (2) Die Haken „Fachkraft nach
+DIN 14676“ setzen wir erst nach dem Lehrgang (KW 42) frei. (3) Mieter-Unterschrift je Wohnung bleibt unser
+Mehrwert gegenüber Foxtag (eine Unterschrift je Auftrag).
+
 ## 5. Was wir übernehmen / anders machen
 
 - Übernehmen: Schrittfolge mit Zählern; Prüfliste je Wohnung; Ergebnis mit **einem** Tipp (OK) und Ausnahmen über
@@ -70,6 +94,5 @@ docs/07) in den Prüfschritt statt einer einzigen Kundenunterschrift am Ende.
 
 ## 6. Noch zu prüfen (nächste Schritte)
 
-Ergebnis OK buchen (was ändert sich, Rückgängig?) · Scan · Tauschen-Dialog · Nacharbeiten · Fotos · Unterschriften ·
-Bericht · **Flugmodus** (Verhalten offline, Anzeige wartender Daten) · **zwei Geräte** am selben Auftrag
+Scan · Fotos · Auftrag beenden (und Bericht danach) · **Flugmodus** (Verhalten offline, Anzeige wartender Daten) · **zwei Geräte** am selben Auftrag
 (Handy + Browser/Tablet) · Konflikte.
