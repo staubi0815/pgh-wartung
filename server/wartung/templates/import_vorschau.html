@@ -1,0 +1,39 @@
+{% extends "verwaltung.html" %}{% block titel %}Excel-Import{% endblock %}
+{% block bereich %}
+<p class="pfad"><a href="/verwaltung/import">Excel-Import</a> › {{ importart.titel }}</p>
+<h1>{% if ergebnis.gespeichert %}Import abgeschlossen{% else %}Vorschau: {{ importart.titel }}{% endif %}
+  <span class="leise">{{ dateiname }}</span></h1>
+{% if anlage %}<p>Anlage: <a href="/anlagen/{{ anlage.id }}">{{ anlage.nummer }} – {{ anlage.adr_strasse }}, {{ anlage.adr_ort }}</a></p>{% endif %}
+<div class="kennzahlen-zeile">
+  <span><strong>{{ ergebnis.anzahl('neu') }}</strong> neu</span>
+  <span><strong>{{ ergebnis.anzahl('vorhanden') }}</strong> schon vorhanden (bleibt unverändert)</span>
+  <span class="{{ 'rot' if ergebnis.anzahl('fehler') }}"><strong>{{ ergebnis.anzahl('fehler') }}</strong> mit Fehler</span>
+</div>
+{% for h in ergebnis.hinweise %}<p class="leise">{{ h }}</p>{% endfor %}
+{% if ergebnis.gespeichert %}
+<p class="ok">Gespeichert: {{ ergebnis.anzahl('neu') }} neue Einträge.</p>
+{% elif not ergebnis.ok %}
+<p class="fehler">Es wurde nichts gespeichert. Bitte die markierten Zeilen in der Excel-Datei korrigieren und die Datei erneut hochladen.</p>
+{% elif ergebnis.anzahl('neu') %}
+<form method="post" action="/verwaltung/import/uebernehmen" class="knopfzeile">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}"><input type="hidden" name="merkmal" value="{{ merkmal }}">
+  <button>{{ ergebnis.anzahl('neu') }} Einträge übernehmen</button><a href="/verwaltung/import">Abbrechen</a>
+</form>
+{% else %}
+<p class="ok">Nichts zu tun – alle Einträge sind schon vorhanden.</p>
+{% endif %}
+{% if ergebnis.zeilen %}
+<table class="import">
+  <tr><th class="zahl">Zeile</th><th>Ergebnis</th><th>Eintrag</th><th>Meldungen</th></tr>
+  {% for z in ergebnis.zeilen %}
+  <tr class="status-{{ z.status }}">
+    <td class="zahl">{{ z.nr }}</td>
+    <td>{{ {'neu': 'neu', 'vorhanden': 'vorhanden', 'fehler': 'Fehler'}[z.status] }}</td>
+    <td>{{ z.text }}</td>
+    <td>{% for m in z.meldungen %}{{ m }}{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endif %}
+<p><a href="/verwaltung/import">Weitere Datei importieren</a></p>
+{% endblock %}

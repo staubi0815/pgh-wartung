@@ -76,7 +76,10 @@
 <section class="karte" id="wohnungen">
   <div class="zeile">
     <h2>{{ art.gruppe_mehrzahl }} und {{ art.komponente_mehrzahl }}</h2>
-    {% if darf %}<a class="knopf zweitrangig" href="/anlagen/{{ a.id }}/gruppen/neu">+ {{ art.gruppe }} anlegen</a>{% endif %}
+    <span class="knopfzeile">
+      {% if 'import' in rechte %}<a href="/verwaltung/import?art=komponenten&amp;anlage={{ a.id }}">aus Excel importieren</a>{% endif %}
+      {% if darf %}<a class="knopf zweitrangig" href="/anlagen/{{ a.id }}/gruppen/neu">+ {{ art.gruppe }} anlegen</a>{% endif %}
+    </span>
   </div>
   {% for g in gruppen %}
   <div class="gruppe" id="g-{{ g.id }}">

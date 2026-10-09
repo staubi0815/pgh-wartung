@@ -84,3 +84,6 @@ ul.kennzahlen a{text-decoration:none;color:var(--text)}ul.kennzahlen strong{disp
 ul.kennzahlen strong.rot{color:#b71c1c}
 .nowrap{white-space:nowrap}
 .kachel .leise{margin:0 0 6px}
+.kennzahlen-zeile{display:flex;gap:24px;flex-wrap:wrap;margin:8px 0 12px}.kennzahlen-zeile .rot{color:#b71c1c}
+table.import tr.status-fehler td{background:#fdecea}table.import tr.status-vorhanden td{color:var(--muted)}
+ul.vorlagen{display:flex;flex-wrap:wrap;gap:8px 20px;padding-left:18px}

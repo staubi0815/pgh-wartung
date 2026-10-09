@@ -1,0 +1,38 @@
+{% extends "verwaltung.html" %}{% block titel %}Excel-Import{% endblock %}
+{% block bereich %}
+<h1>Excel-Import</h1>
+{% if request.query_params.get('hinweis') == 'abgelaufen' %}<p class="fehler">Die Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.</p>{% endif %}
+{% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
+<p class="leise">Dateien im Format der Foxtag-Importvorlagen. Reihenfolge: erst Kunden, dann Kontakte, Objekte, Anlagen, Typen
+  und zuletzt die Melder je Anlage. Nach dem Hochladen sehen Sie eine Vorschau; gespeichert wird erst mit „Übernehmen“ –
+  und nur, wenn keine Zeile einen Fehler hat. Vorhandene Einträge (gleiche Nummer) werden nicht überschrieben.</p>
+<form method="post" action="/verwaltung/import/pruefen" enctype="multipart/form-data" class="raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <label class="breit">Datenart
+    <select name="art" id="importart">
+      {% for a in arten %}<option value="{{ a.schluessel }}" {% if werte.get('art') == a.schluessel %}selected{% endif %}>{{ loop.index }}. {{ a.titel }}</option>{% endfor %}
+    </select>
+  </label>
+  <label>Art neuer Kunden <span class="leise">(nur beim Kunden-Import)</span>
+    <select name="kundenart">{% for w, t in kundenarten %}<option value="{{ w }}" {% if werte.get('kundenart') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+  </label>
+  <label>Anlagenart <span class="leise">(nur beim Typen-Import)</span>
+    <select name="anlagenart">{% for w, t in anlagenarten %}<option value="{{ w }}" {% if werte.get('anlagenart') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+  </label>
+  <label class="breit">Anlage <span class="leise">(nur beim Melder-Import: in welche Anlage)</span>
+    <select name="anlage_id">
+      <option value="">– wählen –</option>
+      {% for w, t in anlagen_auswahl %}<option value="{{ w }}" {% if werte.get('anlage_id') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}
+    </select>
+  </label>
+  <label class="breit">Excel-Datei (.xlsx, höchstens 5 MB)
+    <input type="file" name="datei" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" required>
+  </label>
+  <div class="breit knopfzeile"><button>Hochladen und prüfen</button></div>
+</form>
+<h2>Leere Vorlagen</h2>
+<p class="leise">Spalten wie in den Foxtag-Vorlagen, Pflichtspalten mit *.</p>
+<ul class="vorlagen">
+  {% for a in arten %}<li><a href="/verwaltung/import/vorlage/{{ a.schluessel }}.xlsx">{{ a.titel }}</a></li>{% endfor %}
+</ul>
+{% endblock %}

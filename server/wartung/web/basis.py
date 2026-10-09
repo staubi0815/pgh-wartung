@@ -12,9 +12,10 @@ class Weiterleitung(Exception):
 class Web:
     """Wird einmal je Anwendung erzeugt und an alle Seitenbereiche (Router) übergeben."""
 
-    def __init__(self, con, vorlagen):
+    def __init__(self, con, vorlagen, daten_ordner):
         self.con = con
         self.vorlagen = vorlagen
+        self.daten_ordner = daten_ordner    # geschützter Datenordner (z. B. für hochgeladene Importdateien)
 
     def nutzer(self, request, recht=None):
         """Angemeldeter Nutzer mit Webzugang (und ggf. dem verlangten Recht), sonst Weiterleitung."""

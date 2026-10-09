@@ -11,6 +11,7 @@ FIRMA_FELDER = ["name", "inhaber", "strasse", "plz", "ort", "telefon", "email", 
 MENUE = [("verwaltung.nutzer", "/verwaltung/nutzer", "Nutzer"),
          ("verwaltung.rollen", "/verwaltung/rollen", "Rollen und Rechte"),
          ("verwaltung.katalog", "/verwaltung/typen", "Melder-Typen"),
+         ("import", "/verwaltung/import", "Excel-Import"),
          ("verwaltung.firma", "/verwaltung/firma", "Firma"),
          ("verwaltung.protokoll", "/verwaltung/protokoll", "Änderungsprotokoll")]
 

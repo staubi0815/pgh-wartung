@@ -14,7 +14,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
 from . import anlagen as anlagen_logik, anlagenart, db, faelligkeit, felder, rechte
-from .web import anlagen, anmeldung, gruppen, komponenten, kunden, objekte, typen, verwaltung
+from .web import anlagen, anmeldung, gruppen, importe, komponenten, kunden, objekte, typen, verwaltung
 from .web.basis import Web, Weiterleitung
 
 HIER = Path(__file__).parent
@@ -39,6 +39,7 @@ def erzeuge_app(daten_ordner=None, https=False):
 
     app = FastAPI(title="PGH-Wartung", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.con = con
+    app.state.daten_ordner = daten
     app.add_middleware(SessionMiddleware, secret_key=_geheimnis(daten), session_cookie="pgh_sitzung",
                        max_age=12 * 3600, same_site="strict", https_only=https)
     app.mount("/static", StaticFiles(directory=HIER / "static"), name="static")
@@ -62,7 +63,7 @@ def erzeuge_app(daten_ordner=None, https=False):
     async def weiterleiten(request, exc):
         return RedirectResponse(exc.ziel, status_code=303)
 
-    web = Web(con, vorlagen)
-    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, typen, verwaltung):
+    web = Web(con, vorlagen, daten)
+    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, typen, importe, verwaltung):
         app.include_router(bereich.router(web))
     return app

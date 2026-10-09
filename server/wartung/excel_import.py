@@ -138,14 +138,10 @@ def lesen(inhalt):
 class Importart:
     schluessel: str
     titel: str
-    pflicht: tuple          # Spalten, die vorhanden sein müssen
-    optional: tuple         # weitere bekannte Spalten
+    spalten: tuple          # alle Spalten in der Reihenfolge der Foxtag-Vorlage
+    pflicht: tuple          # davon Pflicht (müssen in der Datei vorhanden sein)
     ignoriert: tuple = ()   # bekannte Foxtag-Spalten, die (noch) nicht übernommen werden
     braucht_anlage: bool = False
-
-    @property
-    def spalten(self):
-        return self.pflicht + self.optional
 
 
 def _kunde_nach_nummer(con, nummer):
@@ -294,21 +290,26 @@ def _komponente(con, w, nutzer_id, optionen):
 
 
 ARTEN = {
-    "kunden": (Importart("kunden", "Kunden", ("KUNDEN.NUMMER", "KUNDE.NAME"),
-                         ("ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ", "ORT", "LAND", "NOTIZ")), _kunde),
-    "kontakte": (Importart("kontakte", "Kontakte", ("NAME", "KUNDE"),
-                           ("FIRMA", "EMAIL", "TELEFON", "MOBIL", "FAX", "NOTIZ")), _kontakt),
-    "objekte": (Importart("objekte", "Objekte", ("KUNDE.NUMMER", "OBJEKT.NAME"),
-                          ("OBJEKT.NUMMER", "ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ", "ORT", "LAND")), _objekt),
-    "anlagen": (Importart("anlagen", "Anlagen", ("OBJEKT.NUMMER", "WARTUNGSANWENDUNG.NUMMER", "ANLAGE.NUMMER"),
-                          ("ANLAGE.NAME", "TECHNIKER.NUMMER")), _anlage),
-    "typen": (Importart("typen", "Melder-Typen", ("TYP.NAME", "TYP.KATEGORIE"),
-                        ("TYP.HERSTELLER", "TYP.MODELL", "TYP.LINK")), _typ),
-    "komponenten": (Importart("komponenten", "Melder einer Anlage", ("NUMMER", "TYP.NAME"),
-                              ("GRUPPE.NUMMER", "GRUPPE.NAME", "SUB-NUMMER", "TYP.HERSTELLER", "TYP.MODELL",
-                               "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LETZTE PRÜFUNG",
-                               "INBETRIEBNAHME AM"), ("LABEL", "LABEL2", "ZULASSUNGSNUMMER"),
-                              braucht_anlage=True), _komponente),
+    "kunden": (Importart("kunden", "Kunden", ("KUNDEN.NUMMER", "KUNDE.NAME", "ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ",
+                                              "ORT", "LAND", "NOTIZ"),
+                         ("KUNDEN.NUMMER", "KUNDE.NAME")), _kunde),
+    "kontakte": (Importart("kontakte", "Kontakte", ("NAME", "FIRMA", "EMAIL", "TELEFON", "MOBIL", "FAX", "NOTIZ", "KUNDE"),
+                           ("NAME", "KUNDE")), _kontakt),
+    "objekte": (Importart("objekte", "Objekte", ("KUNDE.NUMMER", "OBJEKT.NAME", "OBJEKT.NUMMER", "ADRESSZEILE 1",
+                                                 "ADRESSZEILE 2", "PLZ", "ORT", "LAND"),
+                          ("KUNDE.NUMMER", "OBJEKT.NAME")), _objekt),
+    "anlagen": (Importart("anlagen", "Anlagen", ("OBJEKT.NUMMER", "WARTUNGSANWENDUNG.NUMMER", "ANLAGE.NUMMER",
+                                                 "ANLAGE.NAME", "TECHNIKER.NUMMER"),
+                          ("OBJEKT.NUMMER", "WARTUNGSANWENDUNG.NUMMER", "ANLAGE.NUMMER")), _anlage),
+    "typen": (Importart("typen", "Melder-Typen", ("TYP.NAME", "TYP.HERSTELLER", "TYP.MODELL", "TYP.KATEGORIE",
+                                                  "TYP.LINK"),
+                        ("TYP.NAME", "TYP.KATEGORIE")), _typ),
+    "komponenten": (Importart("komponenten", "Melder einer Anlage",
+                              ("GRUPPE.NUMMER", "GRUPPE.NAME", "NUMMER", "SUB-NUMMER", "TYP.NAME", "TYP.HERSTELLER",
+                               "TYP.MODELL", "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LABEL", "LABEL2",
+                               "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"),
+                              ("NUMMER", "TYP.NAME"), ignoriert=("ZULASSUNGSNUMMER",), braucht_anlage=True),
+                    _komponente),
 }
 REIHENFOLGE = ("kunden", "kontakte", "objekte", "anlagen", "typen", "komponenten")
 
