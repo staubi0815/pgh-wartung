@@ -90,3 +90,22 @@ def aendern(con, typ_id, form, nutzer_id):
         if werte["austausch_jahre"] != typ["austausch_jahre"]:
             faelligkeit.typ_berechnen(con, typ_id)
     return anzahl
+
+
+def finden(con, art_schluessel, name, hersteller="", modell=""):
+    """Sucht einen vorhandenen Typ für Angaben aus einer Importdatei (Foxtag: TYP.NAME, TYP.HERSTELLER, TYP.MODELL).
+
+    Reihenfolge: Hersteller + Modell gleich; sonst Bezeichnung = Modell bzw. Name bei gleichem Hersteller.
+    Groß-/Kleinschreibung zählt nicht. Gibt die Zeile oder None zurück.
+    """
+    kandidaten = con.execute("SELECT * FROM komponententyp WHERE anlagenart = ? AND geloescht = 0 "
+                             "ORDER BY aktiv DESC, erstellt_am", (art_schluessel,)).fetchall()
+    h, m, n = (hersteller or "").strip().lower(), (modell or "").strip().lower(), (name or "").strip().lower()
+    if m:
+        for t in kandidaten:
+            if t["hersteller"].lower() == h and t["modell"].lower() == m:
+                return t
+    for t in kandidaten:
+        if t["hersteller"].lower() == h and t["bezeichnung"].lower() in {x for x in (m, n) if x}:
+            return t
+    return None

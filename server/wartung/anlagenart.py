@@ -16,7 +16,7 @@ CHECK_TYPEN = ("ja_nein", "text", "zahl", "auswahl")
 ERLAUBT = {
     "": {"allgemein", "intervalle", "raeume", "raumarten", "checkliste", "mangel", "auftragsart", "ablauf"},
     "allgemein": {"schluessel", "name", "gruppe", "gruppe_mehrzahl", "komponente", "komponente_mehrzahl", "trenner",
-                  "unterschrift_je_gruppe", "einzelnachweis_je_gruppe", "fotos", "freigegeben"},
+                  "unterschrift_je_gruppe", "einzelnachweis_je_gruppe", "fotos", "freigegeben", "import_namen"},
     "intervalle": {"pruefung_monate", "pruefung_gleitend", "vorwarnung_tage", "austausch_jahre", "austausch_ab",
                    "austausch_zugabe_monate"},
     "raeume": {"liste"},
@@ -74,6 +74,7 @@ class Anlagenart:
     austausch_zugabe_monate: int
     raeume: tuple[str, ...]
     raumarten: dict = field(hash=False)          # raumart -> Räume
+    import_namen: tuple[str, ...] = ()              # zulässige Namen in Importdateien
     checkliste: tuple[Checkpunkt, ...] = ()
     maengel: tuple[Mangeltyp, ...] = ()
     auftragsarten: tuple[Auftragsart, ...] = ()
@@ -155,13 +156,23 @@ def laden(datei):
         vorwarnung_tage=int(iv.get("vorwarnung_tage", 30)), austausch_jahre=int(pflicht("intervalle", "austausch_jahre")),
         austausch_ab=iv.get("austausch_ab", "baujahr"),
         austausch_zugabe_monate=int(iv.get("austausch_zugabe_monate", 0)), raeume=raeume, raumarten=raumarten,
-        checkliste=checkliste, maengel=maengel, auftragsarten=auftragsarten)
+        checkliste=checkliste, maengel=maengel, auftragsarten=auftragsarten,
+        import_namen=tuple(a.get("import_namen", ())))
 
 
 @cache
 def alle():
     """Alle Anlagenarten, Schlüssel -> Anlagenart (einmal geladen)."""
     return {d.stem: laden(d) for d in sorted(ORDNER.glob("*.toml"))}
+
+
+def zum_importnamen(name):
+    """Anlagenart zu einem Namen aus einer Importdatei (Schlüssel, Name oder import_namen; Groß/klein egal)."""
+    name = (name or "").strip().lower()
+    for art in alle().values():
+        if name in {art.schluessel, art.name.lower(), *(n.lower() for n in art.import_namen)}:
+            return art
+    return None
 
 
 def holen(schluessel):

@@ -14,6 +14,7 @@ unterschrift_je_gruppe = true      # Bewohner bestätigt je Wohnung
 einzelnachweis_je_gruppe = false   # Standard aus, je Anlage einschaltbar
 fotos = true
 freigegeben = false                # true erst nach Gegenlesen durch Patrick
+import_namen = ["RWM", "Rauchwarnmelder"]   # so darf die Anlagenart in Importdateien heißen (Foxtag: WARTUNGSANWENDUNG.NUMMER)
 
 [intervalle]
 pruefung_monate = 12
