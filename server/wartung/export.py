@@ -223,7 +223,7 @@ def foxtag(con):
             if zeilen:
                 dazu(f"06_{dateiname_sicher(art.komponente_mehrzahl)}_{dateiname_sicher(a['nummer'])}.xlsx",
                      ARTEN["komponenten"][0], zeilen, art.name)
-    liste = "\n".join(f"  {name}  ({n} Zeilen)" for name, n in anzahl.items())
+    liste = "\n".join(f"  {name}  ({n} {'Zeile' if n == 1 else 'Zeilen'})" for name, n in anzahl.items())
     rwm = wartungsanwendung(anlagenart.holen("rauchwarnmelder"))
     text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm)
     return _zip([("LIESMICH.txt", text.encode("utf-8"))] + dateien), anzahl

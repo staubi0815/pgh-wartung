@@ -83,6 +83,7 @@ def test_foxtag_dateien_und_kopf(bestand):
         "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LABEL", "LABEL2", "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"]
     liesmich = dateien["LIESMICH.txt"].decode("utf-8")
     assert "„RWM“" in liesmich and "06_Melder_ANL_1.xlsx  (2 Zeilen)" in liesmich and "Mieterdaten" in liesmich
+    assert "01_Kunden.xlsx  (1 Zeile)" in liesmich
 
 
 def test_foxtag_werte(bestand):
