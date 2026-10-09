@@ -45,7 +45,7 @@ def router(web):
     # ---------- Liste / Woche ----------
     @r.get("/auftraege", response_class=HTMLResponse)
     def liste(request: Request, ansicht: str = "liste", status: str = "", von: str = "", bis: str = "",
-              techniker: str = "", art: str = "", q: str = "", woche: str = "", hinweis: str = ""):
+              techniker: str = "", art: str = "", q: str = "", woche: str = "", hinweis: str = "", anzahl: int = 0):
         n = web.nutzer(request)
         eingeschraenkt = auftraege.sicht(request.state.rechte, n["id"])
         filter_ = {"techniker_id": techniker if eingeschraenkt is None else "", "auftragsart": art, "suche": q,
@@ -55,7 +55,8 @@ def router(web):
         gemeinsam = dict(werte=werte, eingeschraenkt=eingeschraenkt, status_auswahl=auftraege.LISTE_STATUS,
                          auftragsarten=alle_auftragsarten(), arten_text=dict(alle_auftragsarten()),
                          techniker_auswahl=auftraege.techniker_auswahl(con) if eingeschraenkt is None else (),
-                         hinweis=hinweis, max_liste=auftraege.MAX_LISTE, heute=date.today().isoformat())
+                         hinweis=hinweis, anzahl=anzahl, max_liste=auftraege.MAX_LISTE,
+                         heute=date.today().isoformat())
         if werte["ansicht"] == "woche":
             montag, tage = auftraege.woche(con, woche, status or "alle", **filter_)
             return web.seite(request, "auftraege_liste.html", n, tage=tage, montag=montag,
@@ -105,6 +106,48 @@ def router(web):
         except Ungueltig as e:
             return formular_seite(request, n, a, None, _formularwerte(form), e.fehler, 400)
         return RedirectResponse(f"/auftraege/{aid}?hinweis=angelegt", status_code=303)
+
+    # ---------- mehrere Anlagen auf einmal planen (vor /auftraege/{id} registrieren!) ----------
+    def mehrere_laden(ids):
+        liste = [a for a in (anlagen.holen(con, i) for i in dict.fromkeys(ids)) if a is not None]
+        return [anlagen.bewerten(a) for a in liste]
+
+    def mehrere_seite(request, n, liste, werte, fehler=None, status=200):
+        arten = {a["anlagenart"] for a in liste}
+        art = anlagenart.holen(next(iter(arten))) if len(arten) == 1 else None
+        if art is None and liste:
+            fehler = {"": "Bitte nur Anlagen derselben Anlagenart gemeinsam planen.", **(fehler or {})}
+        return web.seite(request, "auftraege_mehrere.html", n, liste=liste, art=art, werte=werte,
+                         fehler=fehler or {}, techniker_auswahl=auftraege.techniker_auswahl(con),
+                         max_mehrere=auftraege.MAX_MEHRERE, status=status)
+
+    @r.get("/auftraege/mehrere", response_class=HTMLResponse)
+    def mehrere_form(request: Request):
+        n = web.nutzer(request, PLANEN)
+        liste = mehrere_laden(request.query_params.getlist("anlage"))
+        if not liste:
+            return RedirectResponse("/anlagen?hinweis=keine_auswahl", status_code=303)
+        art = anlagenart.holen(liste[0]["anlagenart"])
+        return mehrere_seite(request, n, liste, {"auftragsart": auftraege.standard_auftragsart(art), "techniker": []})
+
+    @r.post("/auftraege/mehrere")
+    async def mehrere(request: Request):
+        n = web.nutzer(request, PLANEN)
+        form = await web.formular(request)
+        liste = mehrere_laden(form.getlist("anlage"))
+        werte = _formularwerte(form)
+        if len({a["anlagenart"] for a in liste}) > 1:
+            return mehrere_seite(request, n, liste, werte, status=400)
+        gemeinsam = {k: form.get(k, "") for k in ("auftragsart", "hinweise", "notiz_intern")}
+        gemeinsam["techniker"] = form.getlist("techniker")
+        termine = {a["id"]: (form.get(f"datum_{a['id']}") or form.get("datum_alle", ""),
+                             form.get(f"uhrzeit_{a['id']}") or form.get("uhrzeit_alle", "")) for a in liste}
+        try:
+            ids = auftraege.mehrere_anlegen(con, liste, gemeinsam, termine, n["id"])
+        except Ungueltig as e:
+            return mehrere_seite(request, n, liste, werte, e.fehler, 400)
+        return RedirectResponse(f"/auftraege?status=offen&hinweis=mehrere_angelegt&anzahl={len(ids)}",
+                                status_code=303)
 
     # ---------- ansehen ----------
     @r.get("/auftraege/{auftrag_id}", response_class=HTMLResponse)

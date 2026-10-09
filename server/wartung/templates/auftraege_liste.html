@@ -8,6 +8,7 @@
     <a class="knopf{{ ' zweitrangig' if not woche_ansicht }}" href="/auftraege?ansicht=woche">Woche</a>
   </div>
 </div>
+{% if hinweis == 'mehrere_angelegt' %}<p class="ok">{{ anzahl }} Auftr{{ 'äge' if anzahl != 1 else 'ag' }} geplant.</p>{% endif %}
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Der Auftrag wurde nicht gefunden.</p>{% endif %}
 {% if 'auftraege.planen' in rechte %}<p class="leise">Neue Aufträge planen Sie bei der Anlage („Auftrag planen“).</p>{% endif %}
 

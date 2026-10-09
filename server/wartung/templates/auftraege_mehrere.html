@@ -1,0 +1,49 @@
+{% extends "basis.html" %}{% from "_ampel.html" import ampel %}{% block titel %}Aufträge planen{% endblock %}
+{% block inhalt %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › Aufträge für {{ liste | length }} Anlage{{ 'n' if liste | length != 1 }} planen</p>
+<h1>Aufträge planen <span class="leise">{{ liste | length }} Anlage{{ 'n' if liste | length != 1 }}{% if art %} · {{ art.name }}{% endif %}</span></h1>
+<p class="leise">Je Anlage entsteht ein Auftrag für die ganze Anlage. Gespeichert wird nur, wenn alle Zeilen in Ordnung
+  sind. Ein Datum in einer Zeile ersetzt das gemeinsame Datum.</p>
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Nichts gespeichert – bitte die markierten Zeilen prüfen.</p>{% endif %}
+{% if liste | length > max_mehrere %}<p class="fehler">Höchstens {{ max_mehrere }} Anlagen auf einmal.</p>{% endif %}
+{% if art %}
+<form method="post" action="/auftraege/mehrere" class="karte">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <div class="raster">
+    <label><span>Auftragsart <abbr title="Pflichtfeld">*</abbr></span>
+      <select name="auftragsart" required>
+        {% for x in art.auftragsarten %}<option value="{{ x.schluessel }}" {% if werte.get('auftragsart') == x.schluessel %}selected{% endif %}>{{ x.name }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Datum für alle <input type="date" name="datum_alle" value="{{ werte.get('datum_alle', '') }}"></label>
+    <label>Uhrzeit für alle <input type="time" name="uhrzeit_alle" value="{{ werte.get('uhrzeit_alle', '') }}">
+      <span class="leise">leer = ganztägig</span></label>
+    <label class="breit">Hinweise für den Techniker <textarea name="hinweise" rows="2" maxlength="2000">{{ werte.get('hinweise', '') }}</textarea></label>
+    <fieldset class="breit auswahl">
+      <legend>Techniker</legend>
+      <div class="raumwahl">
+      {% for tid, name in techniker_auswahl %}
+        <label class="haken"><input type="checkbox" name="techniker" value="{{ tid }}" {% if tid in werte.get('techniker', []) %}checked{% endif %}> {{ name }}</label>
+      {% endfor %}
+      </div>
+      <span class="leise">Niemand gewählt = Pool.</span>
+    </fieldset>
+  </div>
+  <table>
+    <tr><th>Anlage</th><th>Anschrift</th><th>Nächste Prüfung</th><th>Offener Auftrag</th><th>Datum</th><th>Uhrzeit</th></tr>
+    {% for a in liste %}
+    <tr class="{{ 'mit-fehler' if fehler.get(a.id) }}">
+      <td class="nowrap"><input type="hidden" name="anlage" value="{{ a.id }}"><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
+      <td>{{ a.adr_strasse }}, {{ a.adr_ort }}<br><span class="leise">{{ a.kunde_name }}</span>
+        {% if fehler.get(a.id) %}<br><span class="feldfehler">{{ fehler[a.id] }}</span>{% endif %}</td>
+      <td class="nowrap">{% if a.komponenten %}{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}{% endif %}</td>
+      <td class="nowrap">{% if a.naechster_auftrag_id %}<a href="/auftraege/{{ a.naechster_auftrag_id }}">{{ a.naechster_auftrag_nummer }}</a> ({{ a.naechster_auftrag_datum | de }}){% else %}–{% endif %}</td>
+      <td><input type="date" name="datum_{{ a.id }}" value="{{ werte.get('datum_' ~ a.id, '') }}" aria-label="Datum für {{ a.nummer }}"></td>
+      <td><input type="time" name="uhrzeit_{{ a.id }}" value="{{ werte.get('uhrzeit_' ~ a.id, '') }}" aria-label="Uhrzeit für {{ a.nummer }}"></td>
+    </tr>
+    {% endfor %}
+  </table>
+  <div class="knopfzeile"><button>{{ liste | length }} Auftr{{ 'äge' if liste | length != 1 else 'ag' }} planen</button><a href="/anlagen">Abbrechen</a></div>
+</form>
+{% endif %}
+{% endblock %}

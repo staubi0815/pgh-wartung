@@ -43,6 +43,9 @@ def felder_bearbeiten():
 
 # ---------- Lesen ----------
 
+# frühester offener (geplant/in Arbeit) Auftrag der Anlage
+_NAECHSTER_AUFTRAG = ("FROM auftrag u WHERE u.anlage_id = a.id AND u.geloescht = 0 AND u.status IN ('geplant', 'aktiv') "
+                      "ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
 _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_bezeichnung, o.kunde_id, "
               f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
               " (SELECT COUNT(*) FROM gruppe g WHERE g.anlage_id = a.id AND g.geloescht = 0) AS wohnungen, "
@@ -51,7 +54,10 @@ _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_b
               " (SELECT MIN(c.naechste_pruefung_am) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
               "    AND c.status = 'verbaut') AS naechste_pruefung_am, "
               " (SELECT MIN(c.austausch_faellig_am) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
-              "    AND c.status = 'verbaut') AS naechster_austausch_am "
+              "    AND c.status = 'verbaut') AS naechster_austausch_am, "
+              f" (SELECT u.id {_NAECHSTER_AUFTRAG}) AS naechster_auftrag_id, "
+              f" (SELECT u.nummer {_NAECHSTER_AUFTRAG}) AS naechster_auftrag_nummer, "
+              f" (SELECT u.datum {_NAECHSTER_AUFTRAG}) AS naechster_auftrag_datum "
               "FROM anlage a JOIN objekt o ON o.id = a.objekt_id JOIN kunde k ON k.id = o.kunde_id "
               "WHERE a.geloescht = 0 AND o.geloescht = 0 AND k.geloescht = 0")
 
@@ -90,9 +96,9 @@ def passt(d, faellig):
             "austausch_bald": d["austausch_ampel"] in ("rot", "gelb")}[faellig]
 
 
-def liste(con, suche="", art="", faellig="", heute=None):
-    """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten und Ampeln;
-    optional gefiltert nach Fälligkeit (FAELLIG_FILTER)."""
+def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False):
+    """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten, Ampeln und nächstem
+    offenen Auftrag; optional gefiltert nach Fälligkeit (FAELLIG_FILTER) und „ohne offenen Auftrag“."""
     sql, parameter = _GRUND_SQL, []
     if suche.strip():
         felder = ("a.nummer", "a.bezeichnung", "o.nummer", "o.bezeichnung", "k.nummer", "k.name",
@@ -107,7 +113,8 @@ def liste(con, suche="", art="", faellig="", heute=None):
         faellig = ""
     zeilen = con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",
                          parameter).fetchall()
-    return [d for d in (bewerten(z, heute) for z in zeilen) if passt(d, faellig)]
+    return [d for d in (bewerten(z, heute) for z in zeilen)
+            if passt(d, faellig) and not (ohne_auftrag and d["naechster_auftrag_id"])]
 
 
 def faellig_zaehlen(con, heute=None):

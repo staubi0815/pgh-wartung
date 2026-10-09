@@ -1,8 +1,11 @@
 {% extends "basis.html" %}{% from "_ampel.html" import ampel %}{% block titel %}Anlagen{% endblock %}
 {% block inhalt %}
+{% set planen = 'auftraege.planen' in rechte %}
 <div class="zeile"><h1>Anlagen</h1></div>
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Der Datensatz wurde nicht gefunden (evtl. gelöscht).</p>{% endif %}
-<p class="leise">Neue Anlagen legen Sie beim Objekt an (Kunde › Objekt › „Anlage anlegen“).</p>
+{% if hinweis == 'keine_auswahl' %}<p class="fehler">Bitte mindestens eine Anlage ankreuzen.</p>{% endif %}
+<p class="leise">Neue Anlagen legen Sie beim Objekt an (Kunde › Objekt › „Anlage anlegen“).{% if planen %}
+  Für mehrere Anlagen auf einmal: Anlagen ankreuzen und „Aufträge planen“.{% endif %}</p>
 <form method="get" action="/anlagen" class="filter">
   <input type="search" name="q" value="{{ q }}" placeholder="Suche: Nummer, Adresse, Kunde" aria-label="Suche">
   <select name="art" aria-label="Anlagenart">
@@ -13,16 +16,19 @@
     <option value="">alle Fälligkeiten</option>
     {% for w, text in faellig_filter %}<option value="{{ w }}" {% if faellig == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
   </select>
+  <label class="haken inline"><input type="checkbox" name="ohne_auftrag" value="1" {% if ohne_auftrag %}checked{% endif %}> nur ohne offenen Auftrag</label>
   <button class="zweitrangig">Filtern</button>
-  {% if q or art or faellig %}<a href="/anlagen">zurücksetzen</a>{% endif %}
+  {% if q or art or faellig or ohne_auftrag %}<a href="/anlagen">zurücksetzen</a>{% endif %}
 </form>
 <div class="karte">
 {% if liste %}
+<form method="get" action="/auftraege/mehrere">
 <table>
-  <tr><th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Umfang</th>
-      <th>Nächste Prüfung</th><th>Nächster Austausch</th></tr>
+  <tr>{% if planen %}<th><span class="nur-vorlesen">Auswahl</span></th>{% endif %}<th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Umfang</th>
+      <th>Nächste Prüfung</th><th>Nächster Austausch</th><th>Nächster Auftrag</th></tr>
   {% for a in liste %}
   <tr class="{{ 'inaktiv' if a.passiv }}">
+    {% if planen %}<td>{% if not a.passiv %}<input type="checkbox" name="anlage" value="{{ a.id }}" aria-label="{{ a.nummer }} auswählen">{% endif %}</td>{% endif %}
     <td class="nowrap"><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
     <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %}</td>
     <td><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></td>
@@ -32,11 +38,14 @@
       {{ a.komponenten }} {{ art.komponente if a.komponenten == 1 else art.komponente_mehrzahl }}</td>
     <td class="nowrap">{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}{% endif %}</td>
     <td class="nowrap">{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.austausch_ampel, a.naechster_austausch_am) }}{% endif %}</td>
+    <td class="nowrap">{% if a.naechster_auftrag_id %}<a href="/auftraege/{{ a.naechster_auftrag_id }}">{{ a.naechster_auftrag_datum | de }}</a>{% else %}<span class="leise">–</span>{% endif %}</td>
   </tr>
   {% endfor %}
 </table>
 <p class="leise">{{ liste | length }} Anlage{{ 'n' if liste | length != 1 }}</p>
-{% elif q or art or faellig %}<p>Keine Anlagen gefunden.</p>
+{% if planen %}<div class="knopfzeile"><button class="zweitrangig">Aufträge für ausgewählte Anlagen planen</button></div>{% endif %}
+</form>
+{% elif q or art or faellig or ohne_auftrag %}<p>Keine Anlagen gefunden.</p>
 {% else %}<p>Noch keine Anlagen angelegt.</p>{% endif %}
 </div>
 {% endblock %}

@@ -28,11 +28,13 @@ def router(web):
                          status=status)
 
     @r.get("", response_class=HTMLResponse)
-    def liste(request: Request, q: str = "", art: str = "", faellig: str = "", hinweis: str = ""):
+    def liste(request: Request, q: str = "", art: str = "", faellig: str = "", ohne_auftrag: str = "",
+              hinweis: str = ""):
         n = web.nutzer(request, LESEN)
-        return web.seite(request, "anlagen_liste.html", n, liste=anlagen.liste(con, q, art, faellig), q=q, art=art,
-                         faellig=faellig, faellig_filter=anlagen.FAELLIG_FILTER, arten=anlagen.arten_auswahl(),
-                         hinweis=hinweis)
+        return web.seite(request, "anlagen_liste.html", n,
+                         liste=anlagen.liste(con, q, art, faellig, ohne_auftrag=bool(ohne_auftrag)), q=q, art=art,
+                         faellig=faellig, ohne_auftrag=bool(ohne_auftrag), faellig_filter=anlagen.FAELLIG_FILTER,
+                         arten=anlagen.arten_auswahl(), hinweis=hinweis)
 
     @r.get("/{anlage_id}", response_class=HTMLResponse)
     def detail(request: Request, anlage_id: str, hinweis: str = ""):

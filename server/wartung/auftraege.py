@@ -308,6 +308,52 @@ def anlegen(con, anlage, form, nutzer_id):
     return aid
 
 
+MAX_MEHRERE = 50
+
+
+def mehrere_anlegen(con, anlagen_liste, gemeinsam, termine, nutzer_id):
+    """Plant für mehrere Anlagen je einen Auftrag (Umfang: ganze Anlage) – alles oder nichts.
+
+    gemeinsam: Formularwerte für alle (auftragsart, techniker, hinweise, notiz_intern);
+    termine: {anlage_id: (datum, uhrzeit)}. Bei einem Fehler wird nichts gespeichert (auch keine Nummer verbraucht);
+    Ungueltig.fehler ist dann {anlage_id: Meldung}. Gibt die neuen Auftrags-ids in Reihenfolge der Anlagen zurück.
+    """
+    if not anlagen_liste:
+        raise Ungueltig({"": "Bitte mindestens eine Anlage wählen."})
+    if len(anlagen_liste) > MAX_MEHRERE:
+        raise Ungueltig({"": f"Höchstens {MAX_MEHRERE} Anlagen auf einmal."})
+    fehler, ids = {}, []
+
+    class _Zurueck(Exception):
+        pass
+    try:
+        with db.transaktion(con):
+            for a in anlagen_liste:
+                datum, uhrzeit = termine.get(a["id"], ("", ""))
+                form = _MehrfachFormular({**gemeinsam, "datum": datum, "uhrzeit": uhrzeit, "umfang": "ganze_anlage"},
+                                         gemeinsam.get("techniker", []))
+                try:
+                    ids.append(anlegen(con, a, form, nutzer_id))
+                except Ungueltig as e:
+                    fehler[a["id"]] = " ".join(e.fehler.values())
+            if fehler:
+                raise _Zurueck
+    except _Zurueck:
+        raise Ungueltig(fehler) from None
+    return ids
+
+
+class _MehrfachFormular(dict):
+    """dict mit getlist wie ein Formular (für die Technikerliste)."""
+
+    def __init__(self, werte, techniker):
+        super().__init__(werte)
+        self._techniker = list(techniker)
+
+    def getlist(self, name):
+        return list(self._techniker) if name == "techniker" else []
+
+
 def aendern(con, auftrag_id, form, nutzer_id):
     """Ändert Termin, Art, Techniker, Umfang und Hinweise. Ein neuer Termin wird als „verschoben“ mit dem Grund aus
     dem Formularfeld „grund“ im Verlauf vermerkt. Gibt True zurück, wenn sich etwas geändert hat."""

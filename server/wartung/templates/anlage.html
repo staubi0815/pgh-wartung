@@ -33,6 +33,7 @@
     <dt>Nächste Prüfung</dt><dd>{% if a.passiv %}ruht (passiv){% else %}{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}{% endif %}</dd>
     <dt>Nächster Austausch</dt><dd>{% if a.passiv %}ruht (passiv){% else %}{{ ampel(a.austausch_ampel, a.naechster_austausch_am) }}{% endif %}</dd>
     {% endif %}
+    <dt>Nächster Auftrag</dt><dd>{% if a.naechster_auftrag_id %}<a href="/auftraege/{{ a.naechster_auftrag_id }}">{{ a.naechster_auftrag_nummer }}</a> am {{ a.naechster_auftrag_datum | de(true) }}{% else %}keiner geplant{% endif %}</dd>
     {{ form.daten_zeilen(felder, a, weglassen=('nummer', 'bezeichnung', 'passiv')) }}
   </dl>
 </section>
