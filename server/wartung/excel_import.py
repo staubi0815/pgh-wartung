@@ -150,11 +150,13 @@ class Importart:
     pflicht: tuple          # davon Pflicht (müssen in der Datei vorhanden sein)
     ignoriert: tuple = ()   # bekannte Foxtag-Spalten, die (noch) nicht übernommen werden
     braucht_anlage: bool = False
-    foxtag_pflicht: tuple = ()  # zusätzlich in Foxtag Pflicht (bei uns nicht), z. B. Techniker beim Auftrag
+    foxtag_pflicht: tuple = ()  # in Foxtag Pflicht, bei uns nicht (z. B. Techniker beim Auftrag)
+    foxtag_optional: tuple = ()  # bei uns Pflicht, in Foxtag nicht (z. B. Kunde beim Kontakt)
 
     def kopfzeile(self):
-        """Spaltennamen wie in der Foxtag-Vorlage: Pflichtspalten (bei uns oder in Foxtag) mit *."""
-        return [f"{s}*" if s in self.pflicht or s in self.foxtag_pflicht else s for s in self.spalten]
+        """Spaltennamen genau wie in der Foxtag-Vorlage: dort markierte Pflichtspalten mit *."""
+        return [f"{s}*" if (s in self.pflicht and s not in self.foxtag_optional) or s in self.foxtag_pflicht else s
+                for s in self.spalten]
 
 
 def _kunde_nach_nummer(con, nummer):
@@ -346,10 +348,10 @@ ARTEN = {
                                               "ORT", "LAND", "NOTIZ"),
                          ("KUNDEN.NUMMER", "KUNDE.NAME")), _kunde),
     "kontakte": (Importart("kontakte", "Kontakte", ("NAME", "FIRMA", "EMAIL", "TELEFON", "MOBIL", "FAX", "NOTIZ", "KUNDE"),
-                           ("NAME", "KUNDE")), _kontakt),
+                           ("NAME", "KUNDE"), foxtag_optional=("KUNDE",)), _kontakt),
     "objekte": (Importart("objekte", "Objekte", ("KUNDE.NUMMER", "OBJEKT.NAME", "OBJEKT.NUMMER", "ADRESSZEILE 1",
                                                  "ADRESSZEILE 2", "PLZ", "ORT", "LAND"),
-                          ("KUNDE.NUMMER", "OBJEKT.NAME")), _objekt),
+                          ("KUNDE.NUMMER", "OBJEKT.NAME"), foxtag_optional=("KUNDE.NUMMER", "OBJEKT.NAME")), _objekt),
     "anlagen": (Importart("anlagen", "Anlagen", ("OBJEKT.NUMMER", "WARTUNGSANWENDUNG.NUMMER", "ANLAGE.NUMMER",
                                                  "ANLAGE.NAME", "TECHNIKER.NUMMER"),
                           ("OBJEKT.NUMMER", "WARTUNGSANWENDUNG.NUMMER", "ANLAGE.NUMMER")), _anlage),

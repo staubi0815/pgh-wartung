@@ -93,5 +93,12 @@ Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/exp
   **Import** (Verwaltung → Excel-Import → Aufträge): gleiche Spalten; Auftragstyp als Nummer oder Name; leerer
   Techniker = Pool; Datum in der Vergangenheit erlaubt (Hinweis), damit offene Aufträge aus Foxtag übernommen
   werden können; Hilfespalte der Foxtag-Vorlage wird übergangen. Rundweg Export → Import getestet.
+- **Korrektur 09.10.2026:** Kontakte (`KUNDE`) und Objekte (`KUNDE.NUMMER`, `OBJEKT.NAME`) hatten Sternchen, die
+  die Foxtag-Vorlage nicht hat (unser Import verlangt die Spalten, Foxtag nicht). Jetzt trennt `Importart` „Pflicht
+  bei uns“ von „Pflicht laut Foxtag“; ein Test vergleicht alle Kopfzeilen mit den Vorlagen.
+- **Probe-Import:** `server/werkzeuge/foxtag_probe.py` legt erfundene Daten (Präfix „PT-“) in einer leeren Datenbank
+  an und schreibt den Export. Im Testkonto vorher Nummern vergeben: Wartungsanwendung Rauchwarnmelder „RWM“,
+  Auftragstypen Wartungstermin „WARTUNG“, Installationstermin „INSTALLATION“, eigener Nutzer Personalnummer
+  „PT-TECH-1“ (Stand 09.10.: dort alle ohne Nummer).
 - **Offen:** Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11.2026, nur erfundene Daten); Dateien
   (Fotos, Unterschriften, Berichte) und Aufträge/Artikel kommen mit den jeweiligen Modulen.

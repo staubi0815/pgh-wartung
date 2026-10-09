@@ -61,7 +61,9 @@ def test_export_auftraege(quelle):
          "Schlüssel beim Hausmeister"],
     ]  # abgeschlossener Auftrag A-1004 fehlt; ganztägige vor solchen mit Uhrzeit
     assert ws["C4"].number_format == export.DATUM_ZEIT_FORMAT and ws["C2"].number_format == export.DATUMSFORMAT
-    assert "FERNINSPEKTION, INSTALLATION, NACHTERMIN, WARTUNG" in liesmich
+    assert ("    INSTALLATION  (bei uns: Montage / Erstausstattung)\n"
+            "    WARTUNG  (bei uns: Wartung / Inspektion)") in liesmich
+    assert "NACHTERMIN" not in liesmich  # nur verwendete Auftragstypen
     assert "1 Auftrag/Aufträge ohne Techniker (Pool)" in liesmich
     assert "bei 1 Auftrag/Aufträgen fehlt einem Techniker die Personalnummer" in liesmich
 

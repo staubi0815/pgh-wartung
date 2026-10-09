@@ -177,9 +177,12 @@ def _komponenten(con, anlage_id):
 
 def _auftraege(con):
     """Offene Aufträge (geplant, in Arbeit); Foxtag-Vorlage: höchstens drei Techniker je Auftrag.
-    Rückgabe: (Zeilen, Anzahl ohne Techniker/Pool, Anzahl ohne Personalnummer, Anzahl mit mehr als drei Technikern)."""
-    zeilen, pool, ohne_nummer, zu_viele = [], 0, 0, 0
-    for u in auftraege.liste(con, "offen"):
+    Rückgabe: (Zeilen, Anzahl ohne Techniker/Pool, Anzahl ohne Personalnummer, Anzahl mit mehr als drei Technikern,
+    verwendete Auftragstypen {Foxtag-Nummer: unser Name})."""
+    zeilen, pool, ohne_nummer, zu_viele, typen = [], 0, 0, 0, {}
+    for u in auftraege.liste(con, "offen", begrenzt=False):
+        typen[auftraege.foxtag_auftragstyp(u["auftragsart"])] = auftraege.auftragsart_name(u["anlagenart"],
+                                                                                            u["auftragsart"])
         techniker = auftraege.techniker(con, u["id"])
         nummern = [t["personalnummer"] or "" for t in techniker]
         pool += not techniker
@@ -191,7 +194,7 @@ def _auftraege(con):
                        "AUFTRAGSTYP.NUMMER": auftraege.foxtag_auftragstyp(u["auftragsart"]),
                        "TECHNIKER.NUMMER": nummern[0], "TECHNIKER.NUMMER2": nummern[1],
                        "TECHNIKER.NUMMER3": nummern[2], "AUFTRAG.HINWEISE": u["hinweise"]})
-    return zeilen, pool, ohne_nummer, zu_viele
+    return zeilen, pool, ohne_nummer, zu_viele, typen
 
 
 FOXTAG_LIESMICH = """Export im Foxtag-Importformat (PGH-Wartung), erstellt am {zeit}
@@ -203,8 +206,10 @@ Vor dem Import in Foxtag:
 - Die Wartungsanwendung für Rauchwarnmelder muss in Foxtag die Nummer „{rwm}“ haben (Spalte
   WARTUNGSANWENDUNG.NUMMER in der Anlagen-Datei), sonst die Spalte vorher anpassen.
 - Melder je Anlage über die Anlage in Foxtag importieren (Datei 06_..._<Anlagennummer>.xlsx).
-- Aufträge (07_Auftraege.xlsx, nur offene): die Auftragstypen müssen in Foxtag die Nummern {auftragstypen} haben,
-  die Techniker ihre Personalnummer (bei uns: Verwaltung -> Nutzer). Foxtag verlangt mindestens einen Techniker.
+- Aufträge (07_Auftraege.xlsx, nur offene): die verwendeten Auftragstypen brauchen in Foxtag diese Nummern:
+{auftragstypen}
+  Die Techniker brauchen in Foxtag dieselbe Personalnummer wie bei uns (Verwaltung -> Nutzer).
+  Foxtag verlangt je Auftrag mindestens einen Techniker.
 {auftrag_hinweise}
 Was nicht oder anders übertragen wird:
 - Nur der gültige Bestand: als gelöscht markierte Datensätze fehlen, Melder nur, wenn sie verbaut sind.
@@ -249,19 +254,19 @@ def foxtag(con):
             if zeilen:
                 dazu(f"06_{dateiname_sicher(art.komponente_mehrzahl)}_{dateiname_sicher(a['nummer'])}.xlsx",
                      ARTEN["komponenten"][0], zeilen, art.name)
-        zeilen, pool, ohne_nummer, zu_viele = _auftraege(con)
+        zeilen, pool, ohne_nummer, zu_viele, typen = _auftraege(con)
         dazu("07_Auftraege.xlsx", ARTEN["auftraege"][0], zeilen, "Aufträge")
     liste = "\n".join(f"  {name}  ({n} {'Zeile' if n == 1 else 'Zeilen'})" for name, n in anzahl.items())
     rwm = wartungsanwendung(anlagenart.holen("rauchwarnmelder"))
-    typen = sorted({auftraege.foxtag_auftragstyp(x.schluessel) for a in anlagenart.alle().values()
-                    for x in a.auftragsarten})
     warnungen = [f"  ACHTUNG: {pool} Auftrag/Aufträge ohne Techniker (Pool) – vor dem Import einen eintragen."
                  if pool else "",
                  f"  ACHTUNG: bei {ohne_nummer} Auftrag/Aufträgen fehlt einem Techniker die Personalnummer."
                  if ohne_nummer else "",
                  f"  ACHTUNG: {zu_viele} Auftrag/Aufträge mit mehr als drei Technikern – "
                  "nur die ersten drei stehen drin." if zu_viele else ""]
-    text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm, auftragstypen=", ".join(typen),
+    typen_text = "\n".join(f"    {nummer}  (bei uns: {name})" for nummer, name in sorted(typen.items())) \
+        or "    (keine offenen Aufträge)"
+    text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm, auftragstypen=typen_text,
                                   auftrag_hinweise="".join(w + "\n" for w in warnungen if w))
     return _zip([("LIESMICH.txt", text.encode("utf-8"))] + dateien), anzahl
 

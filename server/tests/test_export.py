@@ -87,6 +87,32 @@ def test_foxtag_dateien_und_kopf(bestand):
     assert "01_Kunden.xlsx  (1 Zeile)" in liesmich
 
 
+# Kopfzeilen der Foxtag-Importvorlagen (Stand Testkonto 10/2026, ohne Hinweis-/Hilfespalten)
+FOXTAG_KOEPFE = {
+    "01_Kunden.xlsx": ["KUNDEN.NUMMER*", "KUNDE.NAME*", "ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ", "ORT", "LAND",
+                       "NOTIZ"],
+    "02_Kontakte.xlsx": ["NAME*", "FIRMA", "EMAIL", "TELEFON", "MOBIL", "FAX", "NOTIZ", "KUNDE"],
+    "03_Objekte.xlsx": ["KUNDE.NUMMER", "OBJEKT.NAME", "OBJEKT.NUMMER", "ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ", "ORT",
+                        "LAND"],
+    "04_Anlagen.xlsx": ["OBJEKT.NUMMER*", "WARTUNGSANWENDUNG.NUMMER*", "ANLAGE.NUMMER*", "ANLAGE.NAME",
+                        "TECHNIKER.NUMMER"],
+    "05_Typen_Rauchwarnmelder.xlsx": ["TYP.NAME*", "TYP.HERSTELLER", "TYP.MODELL", "TYP.KATEGORIE*", "TYP.LINK"],
+    "06_Melder_ANL_1.xlsx": ["GRUPPE.NUMMER", "GRUPPE.NAME", "NUMMER*", "SUB-NUMMER", "TYP.NAME*", "TYP.HERSTELLER",
+                             "TYP.MODELL", "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LABEL", "LABEL2",
+                             "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"],
+    "07_Auftraege.xlsx": ["AUFTRAG.NUMMER", "ANLAGE.NUMMER*", "DATUM*", "AUFTRAGSTYP.NUMMER*", "TECHNIKER.NUMMER*",
+                          "TECHNIKER.NUMMER2", "TECHNIKER.NUMMER3", "AUFTRAG.HINWEISE"],
+}
+
+
+def test_alle_koepfe_wie_foxtag_vorlagen(bestand):
+    """Jede Datei hat genau die Kopfzeile der Foxtag-Vorlage – auch die Sternchen (Foxtag liest die Namen wörtlich)."""
+    dateien = entpacken(export.foxtag(bestand)[0])
+    assert {n for n in dateien if n.endswith(".xlsx")} == set(FOXTAG_KOEPFE)
+    for name, kopf in FOXTAG_KOEPFE.items():
+        assert blatt(dateien[name])[0] == kopf, name
+
+
 def test_foxtag_werte(bestand):
     dateien = entpacken(export.foxtag(bestand)[0])
     _, kunden_zeilen = blatt(dateien["01_Kunden.xlsx"])
