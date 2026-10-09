@@ -17,7 +17,7 @@ def router(web):
         return web.holen_oder_weiter(anlagen.holen(con, anlage_id), NICHT_GEFUNDEN)
 
     def detail_seite(request, n, a, hinweis="", fehler=None, status=200, zuordnung=None):
-        return web.seite(request, "anlage.html", n, a=a, art=anlagenart.holen(a["anlagenart"]),
+        return web.seite(request, "anlage.html", n, a=anlagen.bewerten(a), art=anlagenart.holen(a["anlagenart"]),
                          kontakte=anlagen.kontakte(con, a["id"]), kunden_kontakte=kunden.kontakte(con, a["kunde_id"]),
                          rollen=anlagen.KONTAKT_ROLLEN, rollen_namen=dict(anlagen.KONTAKT_ROLLEN),
                          felder=anlagen.felder_bearbeiten(), hinweis=hinweis, fehler=fehler or {},
@@ -26,10 +26,11 @@ def router(web):
                          zugang_namen=dict(gruppen.ZUGANG), status=status)
 
     @r.get("", response_class=HTMLResponse)
-    def liste(request: Request, q: str = "", art: str = "", hinweis: str = ""):
+    def liste(request: Request, q: str = "", art: str = "", faellig: str = "", hinweis: str = ""):
         n = web.nutzer(request, LESEN)
-        return web.seite(request, "anlagen_liste.html", n, liste=anlagen.liste(con, q, art), q=q, art=art,
-                         arten=anlagen.arten_auswahl(), hinweis=hinweis)
+        return web.seite(request, "anlagen_liste.html", n, liste=anlagen.liste(con, q, art, faellig), q=q, art=art,
+                         faellig=faellig, faellig_filter=anlagen.FAELLIG_FILTER, arten=anlagen.arten_auswahl(),
+                         hinweis=hinweis)
 
     @r.get("/{anlage_id}", response_class=HTMLResponse)
     def detail(request: Request, anlage_id: str, hinweis: str = ""):

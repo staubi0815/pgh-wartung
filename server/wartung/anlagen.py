@@ -4,7 +4,9 @@ Ansprechpartner mit Rolle zuordnen.
 Die Anlagenart (rauchwarnmelder, später tueren) wird beim Anlegen festgelegt und danach nicht mehr geändert, weil
 Wohnungen, Melder, Checklisten und Mängeltypen an ihr hängen.
 """
-from . import anlagenart, db, nummern
+from datetime import date
+
+from . import anlagenart, db, faelligkeit, nummern
 from .felder import Feld, Ungueltig, einlesen, fuer_bearbeiten, like_muster
 from .objekte import ADRESSE_SQL
 
@@ -45,7 +47,11 @@ _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_b
               f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
               " (SELECT COUNT(*) FROM gruppe g WHERE g.anlage_id = a.id AND g.geloescht = 0) AS wohnungen, "
               " (SELECT COUNT(*) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
-              "    AND c.status = 'verbaut') AS komponenten "
+              "    AND c.status = 'verbaut') AS komponenten, "
+              " (SELECT MIN(c.naechste_pruefung_am) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
+              "    AND c.status = 'verbaut') AS naechste_pruefung_am, "
+              " (SELECT MIN(c.austausch_faellig_am) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
+              "    AND c.status = 'verbaut') AS naechster_austausch_am "
               "FROM anlage a JOIN objekt o ON o.id = a.objekt_id JOIN kunde k ON k.id = o.kunde_id "
               "WHERE a.geloescht = 0 AND o.geloescht = 0 AND k.geloescht = 0")
 
@@ -54,8 +60,39 @@ def holen(con, anlage_id):
     return con.execute(_GRUND_SQL + " AND a.id = ?", (anlage_id,)).fetchone()
 
 
-def liste(con, suche="", art=""):
-    """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten."""
+FAELLIG_FILTER = (("pruefung_ueberfaellig", "Prüfung überfällig"), ("pruefung_bald", "Prüfung überfällig oder bald"),
+                  ("austausch_bald", "Austausch überfällig oder bald"))
+
+
+def bewerten(zeile, heute=None):
+    """Anlage als dict mit Ampeln: früheste Prüfung und frühester Austausch ihrer verbauten Komponenten.
+    Passive Anlagen ruhen (keine Ampel)."""
+    heute = heute or date.today()
+    d = dict(zeile)
+    art = anlagenart.holen(d["anlagenart"])
+    if d["passiv"]:
+        d["pruefung_ampel"] = d["austausch_ampel"] = "grau"
+    else:
+        d["pruefung_ampel"] = faelligkeit.ampel(d["naechste_pruefung_am"], heute, art.vorwarnung_tage)
+        d["austausch_ampel"] = faelligkeit.ampel(d["naechster_austausch_am"], heute,
+                                                 faelligkeit.AUSTAUSCH_VORWARNUNG_TAGE)
+    return d
+
+
+def passt(d, faellig):
+    """Erfüllt eine bewertete Anlage den Fälligkeitsfilter?"""
+    if not faellig:
+        return True
+    if d["passiv"]:
+        return False
+    return {"pruefung_ueberfaellig": d["pruefung_ampel"] == "rot",
+            "pruefung_bald": d["pruefung_ampel"] in ("rot", "gelb"),
+            "austausch_bald": d["austausch_ampel"] in ("rot", "gelb")}[faellig]
+
+
+def liste(con, suche="", art="", faellig="", heute=None):
+    """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten und Ampeln;
+    optional gefiltert nach Fälligkeit (FAELLIG_FILTER)."""
     sql, parameter = _GRUND_SQL, []
     if suche.strip():
         felder = ("a.nummer", "a.bezeichnung", "o.nummer", "o.bezeichnung", "k.nummer", "k.name",
@@ -66,8 +103,17 @@ def liste(con, suche="", art=""):
     if art:
         sql += " AND a.anlagenart = ?"
         parameter.append(art)
-    return con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",
-                       parameter).fetchall()
+    if faellig and faellig not in dict(FAELLIG_FILTER):
+        faellig = ""
+    zeilen = con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",
+                         parameter).fetchall()
+    return [d for d in (bewerten(z, heute) for z in zeilen) if passt(d, faellig)]
+
+
+def faellig_zaehlen(con, heute=None):
+    """Anzahl Anlagen je Fälligkeitsfilter, z. B. für die Startseite."""
+    alle = liste(con, heute=heute)
+    return {schluessel: sum(1 for d in alle if passt(d, schluessel)) for schluessel, _ in FAELLIG_FILTER}
 
 
 def liste_fuer_objekt(con, objekt_id):

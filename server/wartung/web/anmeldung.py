@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import auth, rechte
+from .. import anlagen, auth, rechte
 
 
 def router(web):
@@ -53,7 +53,8 @@ def router(web):
     @r.get("/", response_class=HTMLResponse)
     def start(request: Request, hinweis: str = ""):
         n = web.nutzer(request)
-        return web.seite(request, "start.html", n, hinweis=hinweis)
+        faellig = anlagen.faellig_zaehlen(con) if "stammdaten.lesen" in request.state.rechte else None
+        return web.seite(request, "start.html", n, hinweis=hinweis, faellig=faellig)
 
     @r.get("/konto/passwort", response_class=HTMLResponse)
     def passwort_form(request: Request):

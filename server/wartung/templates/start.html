@@ -5,7 +5,15 @@
 {% if hinweis == 'sitzung_abgelaufen' %}<p class="fehler">Die Sitzung war abgelaufen – bitte den Vorgang wiederholen.</p>{% endif %}
 <div class="kacheln">
   <div class="kachel"><h3>Heute / diese Woche</h3><p class="leise">Aufträge folgen in Schritt 3.</p></div>
-  <div class="kachel"><h3>Fällig</h3><p class="leise">Prüf- und Austauschfälligkeiten folgen mit den Anlagen.</p></div>
+  {% if faellig is not none %}
+  <div class="kachel"><h3>Fällig</h3>
+    <ul class="kennzahlen">
+      <li><a href="/anlagen?faellig=pruefung_ueberfaellig"><strong class="{{ 'rot' if faellig.pruefung_ueberfaellig }}">{{ faellig.pruefung_ueberfaellig }}</strong> Anlagen mit überfälliger Prüfung</a></li>
+      <li><a href="/anlagen?faellig=pruefung_bald"><strong>{{ faellig.pruefung_bald }}</strong> Prüfung überfällig oder in 30 Tagen</a></li>
+      <li><a href="/anlagen?faellig=austausch_bald"><strong>{{ faellig.austausch_bald }}</strong> Austausch fällig oder in 6 Monaten</a></li>
+    </ul>
+  </div>
+  {% endif %}
   <div class="kachel"><h3>Offene Mängel</h3><p class="leise">folgt</p></div>
   <div class="kachel"><h3>Abzurechnen</h3><p class="leise">folgt</p></div>
 </div>

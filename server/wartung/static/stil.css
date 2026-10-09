@@ -79,3 +79,6 @@ table.komponenten{margin:4px 0 8px}table.komponenten td,table.komponenten th{pad
 .ampel-rot{color:#b71c1c;font-weight:600}
 .nur-vorlesen{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .raumwahl{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0 16px}
+ul.kennzahlen{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+ul.kennzahlen a{text-decoration:none;color:var(--text)}ul.kennzahlen strong{display:inline-block;min-width:2ch;color:var(--navy)}
+ul.kennzahlen strong.rot{color:#b71c1c}
