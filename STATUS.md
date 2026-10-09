@@ -44,7 +44,9 @@
 7. Baustein 3 Aufträge (09.10.2026), in sechs Schritten: 1 Fundament ✓ (Migration 006: auftrag, auftrag_techniker,
    auftrag_gruppe, auftrag_verlauf ⊕; `auftraege.py` mit Statusübergängen, Verschieben mit Grund, Pool ohne
    Techniker; Löschsperre für Anlagen mit Aufträgen und Wohnungen in offenen Aufträgen; Feldart Uhrzeit; Datum muss
-   existieren), 2 Masken planen/Auftrag/Status, 3 Liste + Wochenansicht + Technikersicht, 4 fällige Anlagen
+   existieren), 2 Masken ✓ (Auftrag planen aus der Anlage mit Techniker-/Wohnungsauswahl, Auftragsseite mit
+   Status-Knöpfen und Verlauf, Bearbeiten/Verschieben mit Grund, Abschnitt Aufträge in der Anlage, Datum deutsch
+   mit Wochentag; im Browser geprüft), 3 Liste + Wochenansicht + Technikersicht, 4 fällige Anlagen
    gesammelt planen, 5 Start-Cockpit, 6 Export/Import Foxtag-Format.
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,

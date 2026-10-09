@@ -28,6 +28,15 @@ UEBERGAENGE = {
 # Schritte zurück (und Stornieren) brauchen eine Begründung im Verlauf
 RUECKWAERTS = {("aktiv", "geplant"), ("abgeschlossen", "aktiv"), ("abgerechnet", "abgeschlossen"),
                ("kostenlos", "abgeschlossen"), ("storniert", "geplant")}
+# Beschriftung der Knöpfe je Übergang (alt, neu)
+AKTION_TEXT = {
+    ("geplant", "aktiv"): "Als begonnen markieren", ("geplant", "abgeschlossen"): "Abschließen",
+    ("geplant", "storniert"): "Stornieren", ("aktiv", "abgeschlossen"): "Abschließen",
+    ("aktiv", "geplant"): "Zurück auf geplant", ("abgeschlossen", "abgerechnet"): "Als abgerechnet markieren",
+    ("abgeschlossen", "kostenlos"): "Ohne Rechnung abschließen", ("abgeschlossen", "aktiv"): "Wieder öffnen",
+    ("abgerechnet", "abgeschlossen"): "Abrechnung zurücknehmen", ("kostenlos", "abgeschlossen"): "Doch abrechnen",
+    ("storniert", "geplant"): "Wieder einplanen",
+}
 UMFANG = (("ganze_anlage", "Ganze Anlage"), ("auswahl", "Ausgewählte Wohnungen"))
 TECHNIKER_RECHT = "app.auftraege"
 MAX_GRUND = 500

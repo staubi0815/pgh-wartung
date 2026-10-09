@@ -5,7 +5,7 @@ from datetime import date, timedelta
 import pytest
 
 from wartung import anlagen, anlagenart, auftraege, gruppen, komponenten, kunden, objekte, rechte, typen
-from wartung.felder import Feld, Ungueltig, einlesen
+from wartung.felder import Feld, Ungueltig, datum_de, einlesen
 
 from hilfen import nutzer_mit_passwort, rolle_id
 
@@ -41,6 +41,14 @@ def test_feldarten_datum_und_uhrzeit():
     _, fehler = einlesen(felder, {"d": "2026-02-30", "u": "24:00"})
     assert fehler == {"d": "Datum: Datum bitte als JJJJ-MM-TT.", "u": "Uhrzeit: Uhrzeit bitte als HH:MM."}
     assert einlesen(felder, {"u": "8:45"})[1] == {"u": "Uhrzeit: Uhrzeit bitte als HH:MM."}
+
+
+def test_datum_de():
+    assert datum_de("2026-10-17") == "17.10.2026" and datum_de("2026-10-17", True) == "Sa, 17.10.2026"
+    assert datum_de("2026-10-17 08:30") == "17.10.2026 08:30"
+    assert datum_de("2026-10-09T15:11:42+02:00") == "09.10.2026 15:11"
+    assert datum_de(None) == "" and datum_de("") == "" and datum_de("morgen") == "morgen"
+    assert datum_de("2026-02-30") == "2026-02-30"  # ungültiges Datum bleibt sichtbar statt Fehler
 
 
 # ---------- Planen ----------

@@ -13,8 +13,9 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import anlagen as anlagen_logik, anlagenart, db, faelligkeit, felder, rechte
-from .web import anlagen, anmeldung, export, gruppen, importe, komponenten, kunden, objekte, typen, verwaltung
+from . import anlagen as anlagen_logik, anlagenart, auftraege as auftraege_logik, db, faelligkeit, felder, rechte
+from .web import (anlagen, anmeldung, auftraege, export, gruppen, importe, komponenten, kunden, objekte, typen,
+                  verwaltung)
 from .web.basis import Web, Weiterleitung
 
 HIER = Path(__file__).parent
@@ -44,9 +45,11 @@ def erzeuge_app(daten_ordner=None, https=False):
                        max_age=12 * 3600, same_site="strict", https_only=https)
     app.mount("/static", StaticFiles(directory=HIER / "static"), name="static")
     vorlagen = Jinja2Templates(directory=HIER / "templates")
+    vorlagen.env.filters["de"] = felder.datum_de
     vorlagen.env.globals.update(BEREICHE=rechte.BEREICHE, VERWALTUNG=verwaltung.MENUE, anzeige=felder.anzeige,
                                 ANLAGENARTEN=dict(anlagen_logik.arten_auswahl()), ANLAGENART=anlagenart.alle(),
-                                AMPEL_TEXT=faelligkeit.AMPEL_TEXT)
+                                AMPEL_TEXT=faelligkeit.AMPEL_TEXT,
+                                AUFTRAG_STATUS=auftraege_logik.STATUS_TEXT)
 
     @app.middleware("http")
     async def sicherheitskoepfe(request, call_next):
@@ -64,6 +67,7 @@ def erzeuge_app(daten_ordner=None, https=False):
         return RedirectResponse(exc.ziel, status_code=303)
 
     web = Web(con, vorlagen, daten)
-    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, typen, importe, export, verwaltung):
+    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, auftraege, typen, importe, export,
+                    verwaltung):
         app.include_router(bereich.router(web))
     return app

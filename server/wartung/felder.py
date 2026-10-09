@@ -127,3 +127,23 @@ def like_muster(suche):
 def fuer_bearbeiten(felder):
     """Beim Bearbeiten ist die Nummer Pflicht (sie wurde beim Anlegen vergeben) – ohne Hinweis „leer = automatisch“."""
     return tuple(replace(f, pflicht=True, hilfe="") if f.name == "nummer" else f for f in felder)
+
+
+WOCHENTAGE = ("Mo", "Di", "Mi", "Do", "Fr", "Sa", "So")
+
+
+def datum_de(text, wochentag=False):
+    """Datum für die Anzeige: „2026-10-17“ -> „17.10.2026“, „2026-10-17 08:30“ bzw. ISO-Zeitstempel
+    „2026-10-17T08:30:00+02:00“ -> „17.10.2026 08:30“; mit wochentag „Sa, 17.10.2026“. Anderes bleibt unverändert."""
+    if not text or not _DATUM.match(str(text)[:10]):
+        return text or ""
+    text = str(text)
+    try:
+        tag = date.fromisoformat(text[:10])
+    except ValueError:
+        return text
+    ergebnis = tag.strftime("%d.%m.%Y")
+    if wochentag:
+        ergebnis = f"{WOCHENTAGE[tag.weekday()]}, {ergebnis}"
+    uhrzeit = text[11:16]
+    return f"{ergebnis} {uhrzeit}" if _UHRZEIT.match(uhrzeit) else ergebnis

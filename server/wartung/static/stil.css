@@ -89,3 +89,12 @@ table.import tr.status-fehler td{background:#fdecea}table.import tr.status-vorha
 ul.vorlagen{display:flex;flex-wrap:wrap;gap:8px 24px;padding:0;list-style:none}
 h2.abschnitt{margin-top:32px}
 [hidden]{display:none !important}
+.zwei-spalten{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.zwei-spalten{grid-template-columns:1fr}}
+.status-marke{display:inline-block;font-size:.8rem;font-weight:600;padding:2px 10px;border-radius:12px;border:1px solid var(--line);background:var(--bg-soft);color:var(--navy);vertical-align:middle}
+.status-aktiv{background:#fff8e1;border-color:#f9a825;color:#8d6e00}
+.status-abgeschlossen,.status-abgerechnet,.status-kostenlos{background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20}
+.status-storniert{color:var(--muted);text-decoration:line-through}
+.statusaktionen{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.statusaktionen form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin:0}
+.statusaktionen input{min-width:220px}

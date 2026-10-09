@@ -1,0 +1,76 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% from "_ampel.html" import ampel %}
+{% block titel %}{{ 'Auftrag planen' if not u else 'Auftrag ' ~ u.nummer }}{% endblock %}
+{% block inhalt %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}">{{ a.nummer }} {{ a.adr_strasse }}</a> ›
+  {% if u %}<a href="/auftraege/{{ u.id }}">{{ u.nummer }}</a> › bearbeiten{% else %}Auftrag planen{% endif %}</p>
+<h1>{% if u %}Auftrag {{ u.nummer }} bearbeiten{% else %}Auftrag planen{% endif %}
+  <span class="leise">{{ art.name }} · {{ a.adr_strasse }}, {{ a.adr_ort }}</span></h1>
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+
+<div class="zwei-spalten">
+<form method="post" action="{{ '/auftraege/' ~ u.id ~ '/bearbeiten' if u else '/anlagen/' ~ a.id ~ '/auftraege/neu' }}" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, werte, fehler, {'nummer': vorschau}) }}
+  {% if u %}
+  <label class="breit">Grund, falls sich der Termin ändert <span class="leise">(steht im Verlauf)</span>
+    <input name="grund" maxlength="500" value="{{ werte.get('grund', '') }}" placeholder="z. B. Mieter krank, Schlüssel fehlt">
+  </label>
+  {% endif %}
+
+  <fieldset class="breit auswahl{{ ' mit-fehler' if fehler.get('techniker') }}">
+    <legend>Techniker</legend>
+    {% if techniker_auswahl %}
+    <div class="raumwahl">
+    {% for tid, name in techniker_auswahl %}
+      <label class="haken"><input type="checkbox" name="techniker" value="{{ tid }}" {% if tid in werte.get('techniker', []) %}checked{% endif %}> {{ name }}</label>
+    {% endfor %}
+    </div>
+    {% else %}<p class="leise">Es gibt noch keine Nutzer mit dem Recht, Aufträge in der App durchzuführen.</p>{% endif %}
+    <span class="leise">Niemand gewählt = Pool: jeder Techniker kann den Auftrag übernehmen.</span>
+    {% if fehler.get('techniker') %}<span class="feldfehler">{{ fehler['techniker'] }}</span>{% endif %}
+  </fieldset>
+
+  <fieldset class="breit auswahl{{ ' mit-fehler' if fehler.get('umfang') }}">
+    <legend>Umfang</legend>
+    {% set gesperrt = u and u.status != 'geplant' %}
+    {% for w, text in umfang %}
+      <label class="haken"><input type="radio" name="umfang" value="{{ w }}" {% if werte.get('umfang', 'ganze_anlage') == w %}checked{% endif %}
+        {% if gesperrt %}disabled{% endif %}> {{ text }}{% if w == 'ganze_anlage' %} <span class="leise">({{ a.wohnungen }} {{ art.gruppe_mehrzahl }}, {{ a.komponenten }} {{ art.komponente_mehrzahl }})</span>{% endif %}</label>
+    {% endfor %}
+    {% if gruppen %}
+    <div class="raumwahl">
+    {% for g in gruppen %}
+      <label class="haken"><input type="checkbox" name="gruppen" value="{{ g.id }}" {% if g.id in werte.get('gruppen', []) %}checked{% endif %}
+        {% if gesperrt %}disabled{% endif %}> {{ art.gruppe }} {{ g.nummer }}{% if g.bezeichnung %} · {{ g.bezeichnung }}{% endif %}</label>
+    {% endfor %}
+    </div>
+    <span class="leise">Die {{ art.gruppe_mehrzahl }} zählen nur bei „{{ umfang[1][1] }}“.</span>
+    {% endif %}
+    {% if gesperrt %}
+      {# deaktivierte Felder werden nicht gesendet – den bisherigen Umfang unverändert mitschicken #}
+      <input type="hidden" name="umfang" value="{{ werte.get('umfang') }}">
+      {% for gid in werte.get('gruppen', []) %}<input type="hidden" name="gruppen" value="{{ gid }}">{% endfor %}
+      <span class="leise">Der Umfang ist nur änderbar, solange der Auftrag geplant ist.</span>
+    {% endif %}
+    {% if fehler.get('umfang') %}<span class="feldfehler">{{ fehler['umfang'] }}</span>{% endif %}
+  </fieldset>
+
+  <div class="breit knopfzeile">
+    <button>{{ 'Speichern' if u else 'Auftrag planen' }}</button>
+    <a href="{{ '/auftraege/' ~ u.id if u else '/anlagen/' ~ a.id }}">Abbrechen</a>
+  </div>
+</form>
+
+<aside class="karte">
+  <h2>Anlage</h2>
+  <dl class="daten">
+    <dt>Anlage</dt><dd><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a>{% if a.bezeichnung %} · {{ a.bezeichnung }}{% endif %}</dd>
+    <dt>Kunde</dt><dd>{{ a.kunde_name }}</dd>
+    <dt>Anschrift</dt><dd>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}</dd>
+    <dt>{{ art.komponente_mehrzahl }}</dt><dd>{{ a.komponenten }} in {{ a.wohnungen }} {{ art.gruppe_mehrzahl }}</dd>
+    {% if a.komponenten %}<dt>Nächste Prüfung</dt><dd>{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}</dd>{% endif %}
+    {% if a.hinweise_techniker %}<dt>Hinweise der Anlage</dt><dd>{{ a.hinweise_techniker }}</dd>{% endif %}
+  </dl>
+</aside>
+</div>
+{% endblock %}

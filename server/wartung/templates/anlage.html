@@ -75,6 +75,26 @@
   {% for meldung in fehler.values() %}<p class="fehler">{{ meldung }}</p>{% endfor %}
 </section>
 
+<section class="karte" id="auftraege">
+  <div class="zeile">
+    <h2>Aufträge</h2>
+    {% if 'auftraege.planen' in rechte and not a.passiv %}<a class="knopf" href="/anlagen/{{ a.id }}/auftraege/neu">Auftrag planen</a>{% endif %}
+  </div>
+  {% if auftraege %}
+  <table>
+    <tr><th>Nr.</th><th>Termin</th><th>Art</th><th>Status</th></tr>
+    {% for x in auftraege %}
+    <tr>
+      <td><a href="/auftraege/{{ x.id }}">{{ x.nummer }}</a></td>
+      <td>{{ x.datum | de(true) }}{% if x.uhrzeit %} {{ x.uhrzeit }}{% endif %}</td>
+      <td>{{ auftragsarten.get(x.auftragsart, x.auftragsart) }}</td>
+      <td><span class="status-marke status-{{ x.status }}">{{ AUFTRAG_STATUS[x.status] }}</span></td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}<p class="leise">Noch keine Aufträge.{% if a.passiv %} Die Anlage ist passiv – dafür werden keine Aufträge geplant.{% endif %}</p>{% endif %}
+</section>
+
 <section class="karte" id="wohnungen">
   <div class="zeile">
     <h2>{{ art.gruppe_mehrzahl }} und {{ art.komponente_mehrzahl }}</h2>
@@ -123,7 +143,7 @@
 {% if darf %}
 <div class="nebenbei">
   {{ form.loeschen('/anlagen/' ~ a.id ~ '/loeschen', csrf, 'Anlage ' ~ a.nummer ~ ' wirklich löschen? Sie wird nur als gelöscht markiert.', 'Anlage löschen') }}
-  <span class="leise">Nur möglich, solange die Anlage keine Wohnungen hat.</span>
+  <span class="leise">Nur möglich, solange die Anlage keine Wohnungen und keine Aufträge (außer stornierten) hat.</span>
 </div>
 {% endif %}
 {% endblock %}

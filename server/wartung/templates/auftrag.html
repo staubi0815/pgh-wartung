@@ -1,0 +1,77 @@
+{% extends "basis.html" %}{% block titel %}Auftrag {{ u.nummer }}{% endblock %}
+{% block inhalt %}
+{% set darf = 'auftraege.planen' in rechte %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }} {{ u.adr_strasse }}</a> › Auftrag {{ u.nummer }}</p>
+<div class="zeile">
+  <h1>{{ auftragsart }} <span class="leise">{{ u.nummer }}</span>
+    <span class="status-marke status-{{ u.status }}">{{ status_text[u.status] }}</span></h1>
+  {% if darf and offen %}<a class="knopf" href="/auftraege/{{ u.id }}/bearbeiten">Bearbeiten / verschieben</a>{% endif %}
+</div>
+{% set meldungen = {'angelegt': 'Auftrag geplant.', 'gespeichert': 'Gespeichert.', 'unveraendert': 'Keine Änderung.',
+                    'status': 'Status geändert.'} %}
+{% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
+{% if hinweis == 'nicht_aenderbar' %}<p class="fehler">Abgeschlossene und stornierte Aufträge können nicht mehr geändert werden.</p>{% endif %}
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% endif %}
+
+<div class="zwei-spalten">
+<section class="karte">
+  <h2>Auftrag</h2>
+  <dl class="daten">
+    <dt>Termin</dt><dd>{{ u.datum | de(true) }}{% if u.uhrzeit %} um {{ u.uhrzeit }} Uhr{% else %} (ganztägig){% endif %}{% if u.dauer_minuten %} · ca. {{ u.dauer_minuten }} min{% endif %}</dd>
+    <dt>Techniker</dt><dd>{% for t in techniker %}{{ t.name }}{% if not loop.last %}, {% endif %}{% else %}Pool (jeder Techniker){% endfor %}</dd>
+    <dt>Umfang</dt><dd>{% if u.umfang == 'ganze_anlage' %}Ganze Anlage{% else %}{% for g in gruppen %}{{ art.gruppe if art else 'Gruppe' }} {{ g.nummer }}{% if g.bezeichnung %} ({{ g.bezeichnung }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</dd>
+    {% if u.hinweise %}<dt>Hinweise für den Techniker</dt><dd>{{ u.hinweise }}</dd>{% endif %}
+    {% if u.notiz_intern %}<dt>Interne Notiz</dt><dd>{{ u.notiz_intern }}</dd>{% endif %}
+    {% if u.abgeschlossen_am %}<dt>Abgeschlossen am</dt><dd>{{ u.abgeschlossen_am | de }}</dd>{% endif %}
+    {% if u.rechnung_nummer %}<dt>Rechnung</dt><dd>{{ u.rechnung_nummer }}</dd>{% endif %}
+  </dl>
+</section>
+<aside class="karte">
+  <h2>Anlage</h2>
+  <dl class="daten">
+    <dt>Anlage</dt><dd><a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }}</a>{% if u.anlage_bezeichnung %} · {{ u.anlage_bezeichnung }}{% endif %}</dd>
+    <dt>Kunde</dt><dd><a href="/kunden/{{ u.kunde_id }}">{{ u.kunde_name }}</a></dd>
+    <dt>Anschrift</dt><dd>{{ u.adr_strasse }}, {{ u.adr_plz }} {{ u.adr_ort }}</dd>
+    {% if u.hinweise_techniker %}<dt>Hinweise der Anlage</dt><dd>{{ u.hinweise_techniker }}</dd>{% endif %}
+  </dl>
+</aside>
+</div>
+
+{% if darf and aktionen %}
+<section class="karte" id="status">
+  <h2>Status ändern</h2>
+  {% if fehler.get('grund') %}<p class="fehler">{{ fehler['grund'] }}</p>{% endif %}
+  <div class="statusaktionen">
+  {% for neu, text, grund in aktionen %}
+    <form method="post" action="/auftraege/{{ u.id }}/status"
+          {% if neu == 'storniert' %}data-frage="Auftrag {{ u.nummer }} wirklich stornieren?"{% endif %}>
+      <input type="hidden" name="csrf_token" value="{{ csrf }}">
+      <input type="hidden" name="neu" value="{{ neu }}">
+      {% if grund %}<input name="grund" maxlength="500" required aria-label="Grund für „{{ text }}“" placeholder="Grund (Pflicht)"
+                           value="{{ status_form.get('grund', '') if status_form.get('neu') == neu else '' }}">{% endif %}
+      {% if neu == 'abgerechnet' %}<input name="rechnung_nummer" maxlength="30" aria-label="Rechnungsnummer" placeholder="Rechnungsnummer (optional)">{% endif %}
+      <button class="{{ 'zweitrangig' if grund else '' }}">{{ text }}</button>
+    </form>
+  {% endfor %}
+  </div>
+  <p class="leise">Ab Baustein „App“ setzt das Tablet „begonnen“ selbst; Abschließen und Abrechnen bleiben im Büro.</p>
+</section>
+{% endif %}
+
+<section class="karte">
+  <h2>Verlauf</h2>
+  <table>
+    <tr><th>Zeit</th><th>Ereignis</th><th>Grund</th><th>Von</th></tr>
+    {% for v in verlauf %}
+    <tr>
+      <td>{{ v.zeitpunkt | de }}</td>
+      <td>{% if v.ereignis == 'angelegt' %}geplant für {{ v.termin_neu | de }}
+          {% elif v.ereignis == 'verschoben' %}verschoben von {{ v.termin_alt | de }} auf {{ v.termin_neu | de }}
+          {% else %}{{ status_text.get(v.status_alt, v.status_alt) }} → {{ status_text.get(v.status_neu, v.status_neu) }}{% endif %}</td>
+      <td>{{ v.grund }}</td>
+      <td>{{ v.nutzer_name or '–' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endblock %}

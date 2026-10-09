@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import anlagen, anlagenart, gruppen, komponenten, kunden
+from .. import anlagen, anlagenart, auftraege, gruppen, komponenten, kunden
 from ..felder import Ungueltig
 from .kunden import BEARBEITEN, LESEN
 
@@ -23,7 +23,9 @@ def router(web):
                          felder=anlagen.felder_bearbeiten(), hinweis=hinweis, fehler=fehler or {},
                          zuordnung=zuordnung or {}, gruppen=gruppen.liste(con, a["id"]),
                          komponenten=komponenten.je_gruppe(con, a["id"], anlagenart.holen(a["anlagenart"])),
-                         zugang_namen=dict(gruppen.ZUGANG), status=status)
+                         zugang_namen=dict(gruppen.ZUGANG), auftraege=auftraege.fuer_anlage(con, a["id"]),
+                         auftragsarten={x.schluessel: x.name for x in anlagenart.holen(a["anlagenart"]).auftragsarten},
+                         status=status)
 
     @r.get("", response_class=HTMLResponse)
     def liste(request: Request, q: str = "", art: str = "", faellig: str = "", hinweis: str = ""):

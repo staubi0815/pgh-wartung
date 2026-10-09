@@ -36,7 +36,7 @@
 <table>
   <thead><tr><th>Zeit</th><th>Art</th><th>Von</th></tr></thead>
   <tbody>
-  {% for e in letzte %}<tr><td>{{ e.zeit[:16].replace('T', ' ') }}</td><td>{{ 'Foxtag-Format' if e.feld == 'foxtag' else 'Vollexport' }}</td><td>{{ e.name or '–' }}</td></tr>{% endfor %}
+  {% for e in letzte %}<tr><td>{{ e.zeit | de }}</td><td>{{ 'Foxtag-Format' if e.feld == 'foxtag' else 'Vollexport' }}</td><td>{{ e.name or '–' }}</td></tr>{% endfor %}
   </tbody>
 </table>
 {% endif %}
