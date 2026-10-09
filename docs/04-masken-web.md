@@ -89,7 +89,8 @@ Kunde. Aktionen: Status ändern (mit Begründung), in Auftrag einplanen, als „
 
 Firma (Name, Logo, Nummernkreise, Berichtsfußzeile) · Nutzer und Rollen · Geräte (freischalten/sperren, letzter
 Abgleich) · Meldertypen (Katalog) · Artikel und Preise · Kontakte · Labels · Vorlagen (Ankündigung, Aushang, Mail-
-Texte) · Import (Excel: Kunden, Objekte, Anlagen, Wohnungen/Melder) · Abgleich-Konflikte · Protokoll (Änderungen).
+Texte) · Import (Excel: Kunden, Objekte, Anlagen, Wohnungen/Melder) · Export (Vollexport, Foxtag-Format; siehe
+docs/05 Abschnitt 6) · Abgleich-Konflikte · Protokoll (Änderungen).
 
 ## 9. Berechtigungen
 
@@ -100,7 +101,7 @@ Seiten prüfen nur Rechte. Übersicht als Matrix unter Verwaltung → Rollen und
 | Standardrolle | darf |
 |---|---|
 | Administration | alles, auch künftige Rechte; fest, nicht änderbar |
-| Büro | Stammdaten, Aufträge, Mängel, Berichte, Rechnungsentwürfe, Auswertungen, Import/Export, Katalog |
+| Büro | Stammdaten, Aufträge, Mängel, Berichte, Rechnungsentwürfe, Auswertungen, Import, Export im Foxtag-Format, Katalog |
 | Techniker | App (Aufträge, Melder vor Ort, Fotos); Webseite nur eigene Aufträge |
 | Techniker nur App | wie Techniker, ohne Webseite |
 

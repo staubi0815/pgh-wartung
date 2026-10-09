@@ -1,0 +1,43 @@
+{% extends "verwaltung.html" %}{% block titel %}Export{% endblock %}
+{% block bereich %}
+<h1>Export</h1>
+<p class="fehler">Exporte enthalten Kunden- und Mieterdaten. Nur auf dem NAS ablegen, nicht per Mail versenden.
+  An einen anderen Dienst erst nach Abschluss eines Auftragsverarbeitungsvertrags weitergeben.</p>
+
+<h2>Vollexport</h2>
+<p class="leise">Alle Daten vollständig – auch gelöschte und ersetzte Einträge und das Änderungsprotokoll – als JSON und
+  als CSV-Datei je Tabelle, dazu der Aufbau der Datenbank. Damit kann jedes andere Programm die Daten übernehmen.
+  Passwörter und Anmeldedaten sind nicht enthalten.</p>
+{% if darf_voll %}
+<form method="post" action="/verwaltung/export/voll">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <button>Vollexport herunterladen (ZIP)</button>
+</form>
+{% else %}
+<p class="leise">Der Vollexport enthält auch Nutzer und Änderungsprotokoll. Er steht deshalb nur Nutzern zur Verfügung,
+  die zusätzlich die Rechte „Nutzer“ und „Änderungsprotokoll“ haben (in der Regel die Administration).</p>
+{% endif %}
+
+<h2>Foxtag-Format</h2>
+<p class="leise">Kunden, Kontakte, Objekte, Anlagen, Melder-Typen und die Melder je Anlage als Excel-Dateien genau im
+  Format der Foxtag-Importvorlagen, nummeriert in der Reihenfolge für den Import. Nur der gültige Bestand (ohne gelöschte
+  Einträge, Melder nur wenn verbaut). Hinweise zum Import stehen in der Datei LIESMICH.txt im ZIP.</p>
+{% if darf_foxtag %}
+<form method="post" action="/verwaltung/export/foxtag">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  <button>Foxtag-Export herunterladen (ZIP)</button>
+</form>
+{% else %}
+<p class="leise">Dafür ist zusätzlich das Recht zum Ansehen der Stammdaten nötig.</p>
+{% endif %}
+
+{% if letzte %}
+<h2>Letzte Exporte</h2>
+<table>
+  <thead><tr><th>Zeit</th><th>Art</th><th>Von</th></tr></thead>
+  <tbody>
+  {% for e in letzte %}<tr><td>{{ e.zeit[:16].replace('T', ' ') }}</td><td>{{ 'Foxtag-Format' if e.feld == 'foxtag' else 'Vollexport' }}</td><td>{{ e.name or '–' }}</td></tr>{% endfor %}
+  </tbody>
+</table>
+{% endif %}
+{% endblock %}

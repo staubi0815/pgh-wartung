@@ -23,7 +23,7 @@ BEREICHE = {
     ],
     "Daten": [
         ("import", "Daten importieren (Excel)"),
-        ("export", "Daten exportieren (Vollexport, Foxtag-Format)"),
+        ("export", "Daten exportieren (Foxtag-Format; Vollexport nur zusammen mit Nutzer- und Protokollrecht)"),
     ],
     "Verwaltung": [
         ("verwaltung.firma", "Firmendaten und Nummernkreise"),

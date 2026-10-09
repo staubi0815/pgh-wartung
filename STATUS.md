@@ -35,4 +35,12 @@
    ab 1. Januar des Baujahrs – Zugabe nach Lehrgang prüfen: `austausch_zugabe_monate` in der Anlagenart),
    5 Excel-Import ✓ (Verwaltung → Excel-Import, Foxtag-Vorlagenformat für Kunden, Kontakte, Objekte, Anlagen,
    Typen, Melder je Anlage; Vorschau als Probelauf, Übernehmen alles oder nichts, Vorhandenes bleibt unverändert;
-   mit den echten Foxtag-Vorlagen getestet),
+   mit den echten Foxtag-Vorlagen getestet), 6 Export ✓ (09.10.2026, Verwaltung → Export: Vollexport JSON/CSV/Schema
+   als ZIP und Foxtag-Format als nummerierte Excel-Dateien; Rundweg Export → Import getestet; Vollexport nur mit
+   Nutzer- und Protokollrecht, Büro darf den Foxtag-Export; jeder Export im Änderungsprotokoll; 143 Tests grün;
+   Details `docs/05` Abschnitt 6). **Baustein 2 Stammdaten damit fertig.**
+   Offen: Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11., erfundene Daten); Import fasst
+   Zeilenumbrüche in Notizen zu Leerzeichen zusammen (prüfen, ob Notizen mehrzeilig bleiben sollen).
+6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
+   Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,
+   Fotos, Auftrag beenden, **Offline-Test** (Methode steht in `docs/08`, Termin mit Patrick), zwei Geräte.

@@ -94,5 +94,12 @@ Mehrwert gegenüber Foxtag (eine Unterschrift je Auftrag).
 
 ## 6. Noch zu prüfen (nächste Schritte)
 
+**Offline-Test, Methode (erprobt 09.10.2026, Test selbst verschoben):** Android-eigene Netzsperre nur für die App,
+per adb: `cmd connectivity set-chain3-enabled true` und `cmd connectivity set-package-networking-enabled false
+app.foxtag.service`; zurück mit `… enabled true app.foxtag.service` und `set-chain3-enabled false`. Wirkt auf WLAN
+und Mobilfunk, andere Apps und adb bleiben online, kein Eingriff in FritzBox/AdGuard/Proxmox. (AdGuard-Sperre wäre
+hausweit und würde durch Umschalten auf Mobilfunk umgangen; die Proxmox-Firewall sieht den WLAN-Verkehr nicht.)
+
+
 Scan · Fotos · Auftrag beenden (und Bericht danach) · **Flugmodus** (Verhalten offline, Anzeige wartender Daten) · **zwei Geräte** am selben Auftrag
 (Handy + Browser/Tablet) · Konflikte.

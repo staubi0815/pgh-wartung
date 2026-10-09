@@ -61,3 +61,29 @@ Regeln: Vorschau = Probelauf mit vollständigem Zurückrollen; Übernehmen nur, 
 vorhandene Nummern/Plätze werden übersprungen (nie überschrieben); GRUPPE.NAME „Bewohner, Lage“ wird getrennt;
 Typen werden über Hersteller + Modell gefunden oder einmal angelegt. Noch nicht übernommen: Labels, Techniker-Nummer,
 Sub-Komponenten (Türen). Getestet mit den Original-Vorlagen aus dem Foxtag-Testkonto (nur lokal, nicht im Repo).
+
+## 6. Export (umgesetzt 09.10.2026)
+
+Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/export.py`), jeweils als ZIP:
+
+- **Foxtag-Format:** `01_Kunden`, `02_Kontakte`, `03_Objekte`, `04_Anlagen`, `05_Typen_<Anlagenart>` und
+  `06_Melder_<Anlagennummer>` als `.xlsx`, dazu `LIESMICH.txt` mit Reihenfolge und Hinweisen. Spalten kommen aus
+  denselben Definitionen wie der Import (`excel_import.ARTEN`), Kopfzeilen sind identisch mit den Foxtag-Vorlagen.
+  Nur gültiger Bestand (nicht gelöscht, Melder nur verbaut). Formate wie in den Vorlagen: Nummern als Zahl, Datum als
+  Excel-Datum, LAND als Code; PLZ als Text (führende Null bleibt). WARTUNGSANWENDUNG.NUMMER = erster `import_namen`-
+  Eintrag der Anlagenart („RWM“) – in Foxtag muss die Wartungsanwendung diese Nummer haben. Objekt-Anschrift = wirksame
+  Anschrift; Kontakt-Funktion steht in der Notiz; GRUPPE.NAME = „Bewohner, Lage“. Text mit „=“ bleibt Text (keine
+  Formel), Steuerzeichen werden weggelassen, gleiche Dateinamen bekommen einen Zusatz `_2`.
+- **Vollexport:** `daten.json` (maßgeblich, alle Tabellen, auch gelöschte/ersetzte Datensätze und Änderungsprotokoll),
+  `tabellen/<tabelle>.csv` (UTF-8 mit BOM, Semikolon; Formel-Text mit vorangestelltem `'`), `schema.sql`,
+  `LIESMICH.txt`. Nicht enthalten: Tabelle `anmeldeversuch`, Spalten `*_hash`, `einladung_bis`, `sitzung_zaehler`.
+  Eine neue Tabelle muss im Test bewusst als exportiert oder ausgenommen eingetragen werden.
+- **Rechte:** Foxtag-Export braucht `export` + `stammdaten.lesen`; Vollexport zusätzlich `verwaltung.nutzer` +
+  `verwaltung.protokoll` (enthält Nutzer und Protokoll) – Büro darf also den Foxtag-Export, den Vollexport nur die
+  Administration. Kein Export zeigt mehr, als der Nutzer in der Oberfläche sehen darf.
+- Jeder Export steht im Änderungsprotokoll (wer, wann, Umfang); Download nur per Formular mit CSRF-Merkmal.
+- **Rundweg getestet:** Foxtag-Export → eigener Import in eine leere Datenbank ergibt dieselben Stammdaten.
+  Bekannte Abweichungen: Typ-Bezeichnung wird beim Import aus dem Modell gebildet; der Import fasst Zeilenumbrüche
+  in Textfeldern zu Leerzeichen zusammen (betrifft mehrzeilige Notizen, offen).
+- **Offen:** Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11.2026, nur erfundene Daten); Dateien
+  (Fotos, Unterschriften, Berichte) und Aufträge/Artikel kommen mit den jeweiligen Modulen.
