@@ -41,6 +41,11 @@
    Details `docs/05` Abschnitt 6). **Baustein 2 Stammdaten damit fertig.**
    Offen: Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11., erfundene Daten); Import fasst
    Zeilenumbrüche in Notizen zu Leerzeichen zusammen (prüfen, ob Notizen mehrzeilig bleiben sollen).
+7. Baustein 3 Aufträge (09.10.2026), in sechs Schritten: 1 Fundament ✓ (Migration 006: auftrag, auftrag_techniker,
+   auftrag_gruppe, auftrag_verlauf ⊕; `auftraege.py` mit Statusübergängen, Verschieben mit Grund, Pool ohne
+   Techniker; Löschsperre für Anlagen mit Aufträgen und Wohnungen in offenen Aufträgen; Feldart Uhrzeit; Datum muss
+   existieren), 2 Masken planen/Auftrag/Status, 3 Liste + Wochenansicht + Technikersicht, 4 fällige Anlagen
+   gesammelt planen, 5 Start-Cockpit, 6 Export/Import Foxtag-Format.
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,
    Fotos, Auftrag beenden, **Offline-Test** (Methode steht in `docs/08`, Termin mit Patrick), zwei Geräte.

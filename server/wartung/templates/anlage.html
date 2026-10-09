@@ -16,6 +16,8 @@
                     'komponente_ersetzt': art.komponente ~ ' ausgetauscht.', 'komponente_ausgebaut': art.komponente ~ ' ausgebaut.',
                     'gruppe_kopiert': art.gruppe ~ ' kopiert.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
+{% if hinweis == 'hat_auftraege' %}<p class="fehler">Die Anlage hat Aufträge und kann daher nicht gelöscht werden (Aufträge sind Nachweise; stornierte zählen nicht).</p>{% endif %}
+{% if hinweis == 'gruppe_in_auftrag' %}<p class="fehler">Die {{ art.gruppe }} steht in einem offenen Auftrag und kann daher nicht gelöscht werden.</p>{% endif %}
 {% if hinweis == 'hat_wohnungen' %}<p class="fehler">Die Anlage hat noch Wohnungen und kann daher nicht gelöscht werden.</p>{% endif %}
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Die Zuordnung wurde nicht gefunden.</p>{% endif %}
 {% if hinweis == 'gruppe_hat_komponenten' %}<p class="fehler">Die {{ art.gruppe }} kann nicht gelöscht werden, solange {{ art.komponente_mehrzahl }} verbaut sind.</p>{% endif %}

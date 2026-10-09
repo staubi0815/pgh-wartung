@@ -64,8 +64,9 @@ def router(web):
         await web.formular(request)
         try:
             anlagen.loeschen(con, anlage_id, n["id"])
-        except Ungueltig:
-            return RedirectResponse(f"/anlagen/{anlage_id}?hinweis=hat_wohnungen", status_code=303)
+        except Ungueltig as e:
+            hinweis = "hat_auftraege" if "auftraege" in e.fehler else "hat_wohnungen"
+            return RedirectResponse(f"/anlagen/{anlage_id}?hinweis={hinweis}", status_code=303)
         return RedirectResponse(f"/objekte/{a['objekt_id']}?hinweis=anlage_geloescht", status_code=303)
 
     # ---------- Ansprechpartner ----------

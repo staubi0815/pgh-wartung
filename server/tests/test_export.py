@@ -188,7 +188,8 @@ def test_rundweg_export_dann_import(bestand, tmp_path):
 
 # ---------- Vollexport ----------
 
-ERWARTETE_TABELLEN = {"abgleich_zaehler", "aenderungsprotokoll", "anlage", "anlage_kontakt", "firma", "gruppe",
+ERWARTETE_TABELLEN = {"abgleich_zaehler", "aenderungsprotokoll", "anlage", "anlage_kontakt", "auftrag",
+                      "auftrag_gruppe", "auftrag_techniker", "auftrag_verlauf", "firma", "gruppe",
                       "komponente", "komponententyp", "kontakt", "kunde", "massnahme", "nummernkreis", "nutzer",
                       "nutzer_rolle", "objekt", "rolle", "rolle_recht", "schema_version"}
 

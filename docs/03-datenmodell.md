@@ -70,13 +70,19 @@ datenblatt_link, aktiv.
 
 ## 2. Aufträge und Arbeit vor Ort
 
-### auftrag
-nummer (A-1001), anlage_id, auftragsart (`wartung` | `installation` | `nachtermin` | `reparatur` | `ferninspektion`),
-status (`ungeplant` | `geplant` | `aktiv` | `abgeschlossen` | `storniert` | `verschoben` | `abgerechnet` | `kostenlos`),
-beginn, ende, ganztaegig, techniker (Liste nutzer_id) oder `pool`, umfang (`ganze_anlage` | Liste gruppe_id /
-komponente_id), einzuplanende_maengel (Liste mangel_id), hinweise, angekuendigt_am (Terminankündigung),
-abgeschlossen_am, bericht_datei, rechnung_nummer (Verweis ins Büro-Repo-Werkzeug).
-Statusverlauf in `auftrag_status` ⊕ (zeit, alt, neu, nutzer).
+### auftrag (umgesetzt 09.10.2026, Migration 006, Logik `server/wartung/auftraege.py`)
+nummer (A-1001), anlage_id, auftragsart (Schlüssel aus der Anlagenart-Konfiguration: `wartung` | `installation` |
+`nachtermin` | `ferninspektion`), status (`geplant` | `aktiv` | `abgeschlossen` | `abgerechnet` | `kostenlos` |
+`storniert`), datum, uhrzeit (leer = ganztägig), dauer_minuten, umfang (`ganze_anlage` | `auswahl`), hinweise (für
+den Techniker), notiz_intern, angekuendigt_am, abgeschlossen_am, rechnung_nummer.
+Techniker in `auftrag_techniker` (mehrere; keiner = **Pool**, jeder Techniker darf übernehmen), Wohnungen bei
+Umfang „auswahl“ in `auftrag_gruppe` (beide nur als gelöscht markieren). Verlauf in `auftrag_verlauf` ⊕ (angelegt,
+status alt → neu, verschoben Termin alt → neu, Grund, wer, wann). „Verschoben“ ist kein Status.
+Übergänge: geplant → aktiv | abgeschlossen | storniert; aktiv → abgeschlossen | geplant; abgeschlossen →
+abgerechnet | kostenlos | aktiv; abgerechnet/kostenlos → abgeschlossen; storniert → geplant. Stornieren und jeder
+Schritt zurück brauchen einen Grund. Termin/Techniker/Hinweise änderbar solange geplant/aktiv, Umfang nur geplant.
+Aufträge werden nie gelöscht; eine Anlage mit (nicht stornierten) Aufträgen ist nicht löschbar, eine Wohnung im
+Umfang eines offenen Auftrags auch nicht. Später: einzuplanende_maengel (mit den Mängeln, Baustein 4).
 
 ### besuch ⊕ (je Gruppe/Wohnung und Auftrag)
 auftrag_id, gruppe_id, ergebnis (`erledigt` | `nicht_angetroffen` | `zutritt_verweigert` | `teilweise`),

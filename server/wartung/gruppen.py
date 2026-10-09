@@ -79,8 +79,13 @@ def aendern(con, art, gruppe_id, form, nutzer_id):
 
 
 def loeschen(con, art, gruppe_id, nutzer_id):
-    """Markiert die Gruppe als gelöscht – nur ohne verbaute Komponenten."""
+    """Markiert die Gruppe als gelöscht – nur ohne verbaute Komponenten und nicht, solange sie im Umfang eines
+    offenen Auftrags steht."""
     with db.transaktion(con):
+        if con.execute("SELECT 1 FROM auftrag_gruppe z JOIN auftrag u ON u.id = z.auftrag_id WHERE z.gruppe_id = ? "
+                       "AND z.geloescht = 0 AND u.geloescht = 0 AND u.status IN ('geplant', 'aktiv')",
+                       (gruppe_id,)).fetchone():
+            raise Ungueltig({"auftraege": f"Die {art.gruppe} steht in einem offenen Auftrag."})
         if con.execute("SELECT 1 FROM komponente WHERE gruppe_id = ? AND geloescht = 0 AND status = 'verbaut'",
                        (gruppe_id,)).fetchone():
             raise Ungueltig({"": f"Hier sind noch {art.komponente_mehrzahl} verbaut. "

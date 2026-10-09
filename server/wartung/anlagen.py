@@ -153,8 +153,12 @@ def aendern(con, anlage_id, form, nutzer_id):
 
 
 def loeschen(con, anlage_id, nutzer_id):
-    """Markiert die Anlage und ihre Kontakt-Zuordnungen als gelöscht – nur ohne Wohnungen."""
+    """Markiert die Anlage und ihre Kontakt-Zuordnungen als gelöscht – nur ohne Wohnungen und ohne Aufträge
+    (außer stornierten): Aufträge sind Nachweise und sollen nicht verwaisen."""
     with db.transaktion(con):
+        if con.execute("SELECT 1 FROM auftrag WHERE anlage_id = ? AND geloescht = 0 AND status != 'storniert'",
+                       (anlage_id,)).fetchone():
+            raise Ungueltig({"auftraege": "Die Anlage hat Aufträge und kann daher nicht gelöscht werden."})
         if con.execute("SELECT 1 FROM gruppe WHERE anlage_id = ? AND geloescht = 0", (anlage_id,)).fetchone():
             raise Ungueltig({"": "Die Anlage hat noch Wohnungen. Bitte zuerst diese löschen."})
         for z in con.execute("SELECT id FROM anlage_kontakt WHERE anlage_id = ? AND geloescht = 0",

@@ -4,11 +4,13 @@ So bekommen alle Masken (Kunde, Kontakt, Objekt, …) dieselben Regeln, ohne sie
 """
 import re
 from dataclasses import dataclass, replace
+from datetime import date
 
-ARTEN = ("text", "textarea", "email", "tel", "auswahl", "zahl", "ja_nein", "datum")
+ARTEN = ("text", "textarea", "email", "tel", "auswahl", "zahl", "ja_nein", "datum", "uhrzeit")
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 _TEL = re.compile(r"^[0-9+()/\-. ]{3,30}$")
 _DATUM = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+_UHRZEIT = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 
 
 class Ungueltig(ValueError):
@@ -39,6 +41,17 @@ class Feld:
             raise ValueError(f"unbekannte Feldart {self.art!r}")
 
 
+def _gueltiges_datum(text):
+    """JJJJ-MM-TT und ein Tag, den es gibt (kein 2026-02-30)."""
+    if not _DATUM.match(text):
+        return False
+    try:
+        date.fromisoformat(text)
+    except ValueError:
+        return False
+    return True
+
+
 def einlesen(felder, form):
     """Liest die Felder aus einem Formular, bereinigt und prüft sie.
 
@@ -57,7 +70,7 @@ def einlesen(felder, form):
         if not text:
             if f.pflicht:
                 fehler[f.name] = f"{f.titel} ist Pflicht."
-            werte[f.name] = None if f.art in ("zahl", "datum") else ""
+            werte[f.name] = None if f.art in ("zahl", "datum", "uhrzeit") else ""
             continue
         if len(text) > f.max_laenge:
             fehler[f.name] = f"{f.titel}: höchstens {f.max_laenge} Zeichen."
@@ -67,8 +80,10 @@ def einlesen(felder, form):
             fehler[f.name] = f"{f.titel}: nur Ziffern und + ( ) / - . erlaubt."
         elif f.art == "auswahl" and text not in {w for w, _ in f.auswahl}:
             fehler[f.name] = f"{f.titel}: ungültige Auswahl."
-        elif f.art == "datum" and not _DATUM.match(text):
+        elif f.art == "datum" and not _gueltiges_datum(text):
             fehler[f.name] = f"{f.titel}: Datum bitte als JJJJ-MM-TT."
+        elif f.art == "uhrzeit" and not _UHRZEIT.match(text):
+            fehler[f.name] = f"{f.titel}: Uhrzeit bitte als HH:MM."
         elif f.art == "zahl":
             try:
                 zahl = int(text)

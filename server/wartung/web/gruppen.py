@@ -68,9 +68,9 @@ def router(web):
         await web.formular(request)
         try:
             gruppen.loeschen(con, art, gruppe_id, n["id"])
-        except Ungueltig:
-            return RedirectResponse(f"/anlagen/{g['anlage_id']}?hinweis=gruppe_hat_komponenten#g-{gruppe_id}",
-                                    status_code=303)
+        except Ungueltig as e:
+            hinweis = "gruppe_in_auftrag" if "auftraege" in e.fehler else "gruppe_hat_komponenten"
+            return RedirectResponse(f"/anlagen/{g['anlage_id']}?hinweis={hinweis}#g-{gruppe_id}", status_code=303)
         return RedirectResponse(f"/anlagen/{g['anlage_id']}?hinweis=gruppe_geloescht#wohnungen", status_code=303)
 
     return r
