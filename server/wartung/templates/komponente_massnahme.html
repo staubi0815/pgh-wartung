@@ -1,0 +1,22 @@
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ art.komponente }} {{ vorgang }}{% endblock %}
+{% block inhalt %}
+{% set platz = art.nummer_anzeige(g.nummer, k.nummer) %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}#g-{{ g.id }}">{{ a.nummer }} {{ a.adr_strasse }}</a> ›
+  <a href="/komponenten/{{ k.id }}">{{ platz }}</a> › {{ vorgang }}</p>
+<h1>{{ art.komponente }} {{ platz }} {{ vorgang }} <span class="leise">{{ k.raum }} · {{ k.typ_bezeichnung }}{% if k.baujahr %} · Baujahr {{ k.baujahr }}{% endif %}</span></h1>
+{% if vorgang == 'austauschen' %}
+<p class="leise">Der bisherige {{ art.komponente }} wird als „ersetzt“ gespeichert, der neue übernimmt Platz {{ platz }} und Raum „{{ k.raum }}“.
+  In Betrieb seit = Austauschdatum.</p>
+{% else %}
+<p class="leise">Der {{ art.komponente }} wird als „ausgebaut“ gespeichert; Platz {{ platz }} ist danach frei.</p>
+{% endif %}
+{% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
+<form method="post" action="/komponenten/{{ k.id }}/{{ vorgang }}" class="karte raster">
+  <input type="hidden" name="csrf_token" value="{{ csrf }}">
+  {{ form.felder(felder, werte, fehler) }}
+  <div class="breit knopfzeile">
+    <button>{{ 'Austausch speichern' if vorgang == 'austauschen' else 'Ausbau speichern' }}</button>
+    <a href="/komponenten/{{ k.id }}">Abbrechen</a>
+  </div>
+</form>
+{% endblock %}

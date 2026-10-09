@@ -89,7 +89,7 @@ def naechste_nummer(con, gruppe_id):
 
 # ---------- Prüfen ----------
 
-def _eindeutig_pruefen(con, art, gruppe_id, werte, fehler, eigene_id=None):
+def eindeutig_pruefen(con, art, gruppe_id, werte, fehler, eigene_id=None):
     andere = "AND geloescht = 0 AND id != ?"
     if werte.get("nummer") is not None and con.execute(
             f"SELECT 1 FROM komponente WHERE gruppe_id = ? AND nummer = ? AND sub_nummer = 0 AND status = 'verbaut' "
@@ -114,7 +114,7 @@ def _daten_pruefen(werte, fehler):
         fehler.setdefault("inbetriebnahme_am", "Inbetriebnahme vor dem Baujahr ist nicht möglich.")
 
 
-def _normalisieren(art, werte):
+def normalisieren(art, werte):
     """Leere eindeutige Felder als NULL (sonst kollidieren zwei leere), Raumart aus dem Raum ableiten."""
     for feld in ("funk_id", "barcode"):
         if feld in werte:
@@ -126,17 +126,17 @@ def _normalisieren(art, werte):
 
 def _pruefen(con, art, gruppe_id, form, eigene_id=None, typ_bisher=None):
     werte, fehler = einlesen(felder(con, art, typ_bisher), form)
-    _normalisieren(art, werte)
+    normalisieren(art, werte)
     _daten_pruefen(werte, fehler)
     if eigene_id and werte["nummer"] is None:
         fehler["nummer"] = "Nr. ist Pflicht."
-    _eindeutig_pruefen(con, art, gruppe_id, werte, fehler, eigene_id)
+    eindeutig_pruefen(con, art, gruppe_id, werte, fehler, eigene_id)
     if fehler:
         raise Ungueltig(fehler)
     return werte
 
 
-def _schreiben(funktion):
+def sicher_schreiben(funktion):
     """Letzte Sicherung: verletzt ein gleichzeitiger Zugriff doch eine Eindeutigkeit, gibt es eine klare Meldung."""
     try:
         return funktion()
@@ -157,7 +157,7 @@ def anlegen(con, art, gruppe, form, nutzer_id):
                                                  "gruppe_id": gruppe["id"], "status": "verbaut"}, nutzer_id)
             faelligkeit.komponente_berechnen(con, kid)
             return kid
-    return _schreiben(ausfuehren)
+    return sicher_schreiben(ausfuehren)
 
 
 def mehrere_anlegen(con, art, gruppe, form, raeume, nutzer_id):
@@ -185,7 +185,7 @@ def mehrere_anlegen(con, art, gruppe, form, raeume, nutzer_id):
                 ids.append(kid)
                 nummer += 1
             return ids
-    return _schreiben(ausfuehren)
+    return sicher_schreiben(ausfuehren)
 
 
 def aendern(con, art, komponente, form, nutzer_id):
@@ -196,7 +196,7 @@ def aendern(con, art, komponente, form, nutzer_id):
             anzahl = db.aendern(con, "komponente", komponente["id"], werte, nutzer_id)
             faelligkeit.komponente_berechnen(con, komponente["id"])
             return anzahl
-    return _schreiben(ausfuehren)
+    return sicher_schreiben(ausfuehren)
 
 
 def loeschen(con, komponente_id, nutzer_id):

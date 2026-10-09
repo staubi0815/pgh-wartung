@@ -12,7 +12,9 @@
                     'kontakt_entfernt': 'Zuordnung entfernt.', 'gruppe_angelegt': art.gruppe ~ ' angelegt.',
                     'gruppe_gespeichert': art.gruppe ~ ' gespeichert.', 'gruppe_geloescht': art.gruppe ~ ' gelöscht.',
                     'komponente_angelegt': art.komponente ~ ' angelegt.', 'komponenten_angelegt': art.komponente_mehrzahl ~ ' angelegt.',
-                    'komponente_gespeichert': art.komponente ~ ' gespeichert.', 'komponente_geloescht': art.komponente ~ ' gelöscht.'} %}
+                    'komponente_gespeichert': art.komponente ~ ' gespeichert.', 'komponente_geloescht': art.komponente ~ ' gelöscht.',
+                    'komponente_ersetzt': art.komponente ~ ' ausgetauscht.', 'komponente_ausgebaut': art.komponente ~ ' ausgebaut.',
+                    'gruppe_kopiert': art.gruppe ~ ' kopiert.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_wohnungen' %}<p class="fehler">Die Anlage hat noch Wohnungen und kann daher nicht gelöscht werden.</p>{% endif %}
 {% if hinweis == 'nicht_gefunden' %}<p class="fehler">Die Zuordnung wurde nicht gefunden.</p>{% endif %}

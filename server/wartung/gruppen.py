@@ -39,6 +39,11 @@ def liste(con, anlage_id):
         "ORDER BY g.nummer", (anlage_id,)).fetchall()
 
 
+def anzahl_komponenten(con, gruppe_id):
+    return con.execute("SELECT COUNT(*) FROM komponente WHERE gruppe_id = ? AND geloescht = 0 AND status = 'verbaut'",
+                       (gruppe_id,)).fetchone()[0]
+
+
 def naechste_nummer(con, anlage_id):
     zeile = con.execute("SELECT MAX(nummer) FROM gruppe WHERE anlage_id = ? AND geloescht = 0",
                         (anlage_id,)).fetchone()

@@ -21,6 +21,31 @@
   </div>
 </form>
 {% if not neu %}
+<section class="karte">
+  <h2>Austauschen oder ausbauen</h2>
+  <p class="leise">Beim Austausch bleibt der bisherige {{ art.komponente }} mit Grund und Datum im Verlauf erhalten;
+    der neue übernimmt Platz {{ art.nummer_anzeige(g.nummer, k.nummer) }} und Raum.</p>
+  <div class="knopfzeile">
+    <a class="knopf zweitrangig" href="/komponenten/{{ k.id }}/austauschen">Austauschen</a>
+    <a class="knopf zweitrangig" href="/komponenten/{{ k.id }}/ausbauen">Ausbauen</a>
+  </div>
+</section>
+{% if verlauf %}
+<section class="karte">
+  <h2>Verlauf an diesem Platz</h2>
+  <table>
+    <tr><th>Datum</th><th>Vorgang</th><th>Grund</th><th>Typ</th><th>Seriennr.</th><th>Baujahr</th><th>Bemerkung</th></tr>
+    {% for v in verlauf %}
+    <tr>
+      <td>{% if v.zeitpunkt %}{{ v.zeitpunkt[8:10] }}.{{ v.zeitpunkt[5:7] }}.{{ v.zeitpunkt[:4] }}{% endif %}</td>
+      <td>{{ 'ersetzt' if v.status == 'ersetzt' else 'ausgebaut' }}</td>
+      <td>{{ gruende.get(v.grund, v.grund or '') }}</td>
+      <td>{{ v.typ_bezeichnung }}</td><td>{{ v.seriennummer }}</td><td>{{ v.baujahr or '' }}</td><td>{{ v.bemerkung or '' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
 <div class="nebenbei">
   {{ form.loeschen('/komponenten/' ~ k.id ~ '/loeschen', csrf, art.komponente ~ ' ' ~ art.nummer_anzeige(g.nummer, k.nummer) ~ ' als Fehleingabe löschen? (Für einen echten Ausbau bitte „Ausbauen“ verwenden.)', 'Als Fehleingabe löschen') }}
   <span class="leise">Nur für versehentlich angelegte Einträge.</span>

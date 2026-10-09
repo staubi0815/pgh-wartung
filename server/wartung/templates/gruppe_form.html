@@ -17,6 +17,9 @@
 </form>
 {% if not neu %}
 <div class="nebenbei">
+  <a class="knopf zweitrangig" href="/gruppen/{{ g.id }}/kopieren">{{ art.gruppe }} kopieren (gleicher Grundriss)</a>
+</div>
+<div class="nebenbei">
   {{ form.loeschen('/gruppen/' ~ g.id ~ '/loeschen', csrf, art.gruppe ~ ' ' ~ g.nummer ~ ' wirklich löschen?', art.gruppe ~ ' löschen') }}
   <span class="leise">Nur möglich, solange keine {{ art.komponente_mehrzahl }} verbaut sind.</span>
 </div>

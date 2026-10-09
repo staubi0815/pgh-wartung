@@ -1,8 +1,11 @@
-"""Seiten: Komponente (Melder) anlegen – einzeln oder mehrere auf einmal –, bearbeiten, löschen (Fehleingabe)."""
+"""Seiten: Komponente (Melder) anlegen – einzeln oder mehrere auf einmal –, bearbeiten, löschen (Fehleingabe),
+austauschen, ausbauen; Gruppe (Wohnung) kopieren."""
+from datetime import date
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from .. import anlagen, anlagenart, gruppen, komponenten, typen
+from .. import anlagen, anlagenart, gruppen, komponenten, lebenslauf, typen
 from ..felder import Ungueltig, fuer_bearbeiten
 from .anlagen import NICHT_GEFUNDEN
 from .kunden import BEARBEITEN
@@ -25,7 +28,9 @@ def router(web):
 
     def formular(request, n, g, art, k, fehler, status=200):
         felder = komponenten.felder(con, art, k.get("komponententyp_id"))
+        verlauf = lebenslauf.verlauf(con, g["id"], k["nummer"]) if k.get("id") and k.get("nummer") else []
         return web.seite(request, "komponente_form.html", n, g=g, a=anlagen.holen(con, g["anlage_id"]), art=art, k=k,
+                         verlauf=verlauf, gruende=dict(lebenslauf.austausch_gruende(art) + lebenslauf.AUSBAU_GRUENDE),
                          fehler=fehler, felder=fuer_bearbeiten(felder) if k.get("id") else felder,
                          vorschau=komponenten.naechste_nummer(con, g["id"]), status=status,
                          keine_typen=not typen.auswahl(con, art.schluessel, k.get("komponententyp_id")))
@@ -100,5 +105,72 @@ def router(web):
         await web.formular(request)
         komponenten.loeschen(con, komponente_id, n["id"])
         return zur_gruppe(gruppen.holen(con, k["gruppe_id"]), "komponente_geloescht")
+
+    # ---------- Lebenslauf: austauschen, ausbauen ----------
+    def massnahme_seite(request, n, k, art, vorgang, werte, fehler, status=200):
+        felder = lebenslauf.felder_austausch(con, art) if vorgang == "austauschen" else lebenslauf.felder_ausbau()
+        g = gruppen.holen(con, k["gruppe_id"])
+        return web.seite(request, "komponente_massnahme.html", n, k=k, g=g, a=anlagen.holen(con, g["anlage_id"]),
+                         art=art, vorgang=vorgang, werte=werte, fehler=fehler, felder=felder, status=status)
+
+    def massnahme_start(request, komponente_id, vorgang):
+        n = web.nutzer(request, BEARBEITEN)
+        k, art = komponente_laden(komponente_id)
+        return massnahme_seite(request, n, k, art, vorgang, {"zeitpunkt": date.today().isoformat(),
+                                                             "komponententyp_id": k["komponententyp_id"]}, {})
+
+    @r.get("/komponenten/{komponente_id}/austauschen", response_class=HTMLResponse)
+    def austauschen_form(request: Request, komponente_id: str):
+        return massnahme_start(request, komponente_id, "austauschen")
+
+    @r.post("/komponenten/{komponente_id}/austauschen")
+    async def austauschen(request: Request, komponente_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        k, art = komponente_laden(komponente_id)
+        form = await web.formular(request)
+        try:
+            lebenslauf.austauschen(con, art, k, form, n["id"])
+        except Ungueltig as e:
+            return massnahme_seite(request, n, k, art, "austauschen", dict(form), e.fehler, 400)
+        return zur_gruppe(gruppen.holen(con, k["gruppe_id"]), "komponente_ersetzt")
+
+    @r.get("/komponenten/{komponente_id}/ausbauen", response_class=HTMLResponse)
+    def ausbauen_form(request: Request, komponente_id: str):
+        return massnahme_start(request, komponente_id, "ausbauen")
+
+    @r.post("/komponenten/{komponente_id}/ausbauen")
+    async def ausbauen(request: Request, komponente_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        k, art = komponente_laden(komponente_id)
+        form = await web.formular(request)
+        try:
+            lebenslauf.ausbauen(con, k, form, n["id"])
+        except Ungueltig as e:
+            return massnahme_seite(request, n, k, art, "ausbauen", dict(form), e.fehler, 400)
+        return zur_gruppe(gruppen.holen(con, k["gruppe_id"]), "komponente_ausgebaut")
+
+    # ---------- Gruppe kopieren ----------
+    def kopieren_seite(request, n, g, art, werte, fehler, status=200):
+        return web.seite(request, "gruppe_kopieren.html", n, g=g, a=anlagen.holen(con, g["anlage_id"]), art=art,
+                         werte=werte, fehler=fehler, felder=gruppen.felder(art), status=status,
+                         vorschau=gruppen.naechste_nummer(con, g["anlage_id"]),
+                         anzahl=gruppen.anzahl_komponenten(con, g["id"]))
+
+    @r.get("/gruppen/{gruppe_id}/kopieren", response_class=HTMLResponse)
+    def kopieren_form(request: Request, gruppe_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        g, art = gruppe_laden(gruppe_id)
+        return kopieren_seite(request, n, g, art, {"zugang": g["zugang"]}, {})
+
+    @r.post("/gruppen/{gruppe_id}/kopieren")
+    async def kopieren(request: Request, gruppe_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        g, art = gruppe_laden(gruppe_id)
+        form = await web.formular(request)
+        try:
+            neu_id = lebenslauf.gruppe_kopieren(con, art, g, form, n["id"])
+        except Ungueltig as e:
+            return kopieren_seite(request, n, g, art, dict(form), e.fehler, 400)
+        return RedirectResponse(f"/anlagen/{g['anlage_id']}?hinweis=gruppe_kopiert#g-{neu_id}", status_code=303)
 
     return r
