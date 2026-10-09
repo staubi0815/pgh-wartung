@@ -55,7 +55,7 @@ def test_filter_und_startseite(drei_anlagen):
     seite = c.get("/anlagen?faellig=pruefung_ueberfaellig").text
     assert "ANL-0001" in seite and "ANL-0002" not in seite and "ampel-rot" in seite
     start = c.get("/").text
-    assert 'href="/anlagen?faellig=pruefung_ueberfaellig"' in start and "überfälliger Prüfung" in start
+    assert 'href="/anlagen?faellig=pruefung_ueberfaellig"' in start and "Prüfung überfällig" in start
 
 
 def test_passive_anlage_ruht(drei_anlagen):

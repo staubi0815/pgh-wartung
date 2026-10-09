@@ -133,7 +133,10 @@ Patricks Lehrgang (KW 42) von ihm gegenlesen.
 
 - `naechste_pruefung_am` = letzte Prüfung mit Ergebnis `ok`/`mangel` + 12 Monate (gleitend); ohne Prüfung =
   Inbetriebnahme + 12 Monate. Ampel: grün > 30 Tage, gelb ≤ 30 Tage, rot überfällig.
-- `austausch_faellig_am` = Baujahr/Herstellungsdatum + 10 Jahre (Typ-Einstellung), sonst Inbetriebnahme + 10 Jahre.
+- `austausch_faellig_am` = Baujahr + 10 Jahre (Typ-Einstellung vor Anlagenart), sonst Inbetriebnahme + 10 Jahre.
+  Vom Baujahr ist nur das Jahr bekannt → vorsichtig ab 1. Januar; Zugabe (`austausch_zugabe_monate`) nach Lehrgang
+  gegen DIN 14676-1 prüfen. Umgesetzt in `server/wartung/faelligkeit.py` (08.10.2026).
+- `letzte_pruefung_am` je Komponente (Migration 004): bis zu den Aufträgen von Hand/Import, danach aus der Prüfung.
 - Anlage zeigt die früheste Fälligkeit ihrer aktiven Komponenten.
 
 ## 6. Abgleich (Kurzform, Details folgen in Stufe 3)

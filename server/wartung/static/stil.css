@@ -82,3 +82,5 @@ table.komponenten{margin:4px 0 8px}table.komponenten td,table.komponenten th{pad
 ul.kennzahlen{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
 ul.kennzahlen a{text-decoration:none;color:var(--text)}ul.kennzahlen strong{display:inline-block;min-width:2ch;color:var(--navy)}
 ul.kennzahlen strong.rot{color:#b71c1c}
+.nowrap{white-space:nowrap}
+.kachel .leise{margin:0 0 6px}

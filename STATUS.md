@@ -30,5 +30,6 @@
    Nummernkreise, Anlagenart-Lader, Web in Bereiche aufgeteilt), 2 Kunden + Kontakte ✓ (Liste/Suche/Filter,
    Detail, Anlegen/Ändern/Löschen-Markierung, Rückfrage beim Löschen), 3 Objekte + Anlagen ✓ (Anschrift eigen oder
    „wie Kunde“, Objekt kann Kunden wechseln, Anlagenart fest, Ansprechpartner mit Rolle, Anlagenliste mit Suche),
-   4 Wohnungen + Melder +
-   Typenkatalog + Fälligkeiten, 5 Excel-Import, 6 Export (Foxtag-Format + Vollexport).
+   4 Wohnungen + Melder ✓ (Typenkatalog unter Verwaltung, Wohnungen, Melder einzeln/mehrere, Austausch/Ausbau mit
+   Maßnahme ⊕ und Verlauf, Wohnung kopieren, Fälligkeiten mit Ampel in Anlage/Liste/Startseite; Austausch vorsichtig
+   ab 1. Januar des Baujahrs – Zugabe nach Lehrgang prüfen: `austausch_zugabe_monate` in der Anlagenart),

@@ -19,17 +19,19 @@
 <div class="karte">
 {% if liste %}
 <table>
-  <tr><th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th class="zahl">Wohnungen</th><th class="zahl">Komponenten</th>
+  <tr><th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Umfang</th>
       <th>Nächste Prüfung</th><th>Nächster Austausch</th></tr>
   {% for a in liste %}
   <tr class="{{ 'inaktiv' if a.passiv }}">
-    <td><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
+    <td class="nowrap"><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
     <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %}</td>
     <td><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></td>
     <td>{{ ANLAGENARTEN.get(a.anlagenart, a.anlagenart) }}{% if a.passiv %} <span class="marke-passiv">passiv</span>{% endif %}</td>
-    <td class="zahl">{{ a.wohnungen }}</td><td class="zahl">{{ a.komponenten }}</td>
-    <td>{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}{% endif %}</td>
-    <td>{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.austausch_ampel, a.naechster_austausch_am) }}{% endif %}</td>
+    {% set art = ANLAGENART[a.anlagenart] %}
+    <td class="nowrap">{{ a.wohnungen }} {{ art.gruppe if a.wohnungen == 1 else art.gruppe_mehrzahl }},
+      {{ a.komponenten }} {{ art.komponente if a.komponenten == 1 else art.komponente_mehrzahl }}</td>
+    <td class="nowrap">{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.pruefung_ampel, a.naechste_pruefung_am) }}{% endif %}</td>
+    <td class="nowrap">{% if a.passiv %}<span class="leise">ruht</span>{% elif a.komponenten %}{{ ampel(a.austausch_ampel, a.naechster_austausch_am) }}{% endif %}</td>
   </tr>
   {% endfor %}
 </table>

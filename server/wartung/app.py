@@ -13,7 +13,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import anlagen as anlagen_logik, db, faelligkeit, felder, rechte
+from . import anlagen as anlagen_logik, anlagenart, db, faelligkeit, felder, rechte
 from .web import anlagen, anmeldung, gruppen, komponenten, kunden, objekte, typen, verwaltung
 from .web.basis import Web, Weiterleitung
 
@@ -44,7 +44,8 @@ def erzeuge_app(daten_ordner=None, https=False):
     app.mount("/static", StaticFiles(directory=HIER / "static"), name="static")
     vorlagen = Jinja2Templates(directory=HIER / "templates")
     vorlagen.env.globals.update(BEREICHE=rechte.BEREICHE, VERWALTUNG=verwaltung.MENUE, anzeige=felder.anzeige,
-                                ANLAGENARTEN=dict(anlagen_logik.arten_auswahl()), AMPEL_TEXT=faelligkeit.AMPEL_TEXT)
+                                ANLAGENARTEN=dict(anlagen_logik.arten_auswahl()), ANLAGENART=anlagenart.alle(),
+                                AMPEL_TEXT=faelligkeit.AMPEL_TEXT)
 
     @app.middleware("http")
     async def sicherheitskoepfe(request, call_next):
