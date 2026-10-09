@@ -1,0 +1,87 @@
+{% extends "basis.html" %}{% block titel %}Aufträge{% endblock %}
+{% block inhalt %}
+{% set woche_ansicht = werte.ansicht == 'woche' %}
+<div class="zeile">
+  <h1>Aufträge{% if eingeschraenkt %} <span class="leise">– meine{% if eingeschraenkt[1] %} und Pool{% endif %}</span>{% endif %}</h1>
+  <div class="knopfzeile">
+    <a class="knopf{{ ' zweitrangig' if woche_ansicht }}" href="/auftraege">Liste</a>
+    <a class="knopf{{ ' zweitrangig' if not woche_ansicht }}" href="/auftraege?ansicht=woche">Woche</a>
+  </div>
+</div>
+{% if hinweis == 'nicht_gefunden' %}<p class="fehler">Der Auftrag wurde nicht gefunden.</p>{% endif %}
+{% if 'auftraege.planen' in rechte %}<p class="leise">Neue Aufträge planen Sie bei der Anlage („Auftrag planen“).</p>{% endif %}
+
+<form method="get" action="/auftraege" class="filter">
+  <input type="hidden" name="ansicht" value="{{ werte.ansicht }}">
+  {% if woche_ansicht %}<input type="hidden" name="woche" value="{{ montag.isoformat() }}">{% endif %}
+  <input type="search" name="q" value="{{ werte.q }}" placeholder="Suche: Nr., Adresse, Kunde" aria-label="Suche">
+  <select name="status" aria-label="Status">
+    {% for w, text in status_auswahl %}<option value="{{ w }}" {% if (werte.status or ('alle' if woche_ansicht else 'offen')) == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+  {% if not woche_ansicht %}
+  <label class="inline">von <input type="date" name="von" value="{{ werte.von }}"></label>
+  <label class="inline">bis <input type="date" name="bis" value="{{ werte.bis }}"></label>
+  {% endif %}
+  {% if not eingeschraenkt %}
+  <select name="techniker" aria-label="Techniker">
+    <option value="">alle Techniker</option>
+    <option value="pool" {% if werte.techniker == 'pool' %}selected{% endif %}>Pool (ohne Techniker)</option>
+    {% for tid, name in techniker_auswahl %}<option value="{{ tid }}" {% if werte.techniker == tid %}selected{% endif %}>{{ name }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <select name="art" aria-label="Auftragsart">
+    <option value="">alle Auftragsarten</option>
+    {% for w, text in auftragsarten %}<option value="{{ w }}" {% if werte.art == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
+  </select>
+  <button class="zweitrangig">Filtern</button>
+  {% if werte.q or werte.status or werte.von or werte.bis or werte.techniker or werte.art %}<a href="/auftraege{{ '?ansicht=woche&woche=' ~ montag.isoformat() if woche_ansicht }}">zurücksetzen</a>{% endif %}
+</form>
+
+{% macro zeile_techniker(x) %}{{ x.techniker_namen or 'Pool' }}{% endmacro %}
+
+{% if woche_ansicht %}
+<div class="zeile wochenkopf">
+  <h2>Woche vom {{ montag.isoformat() | de }}</h2>
+  {% set filter_url = '&status=' ~ werte.status ~ '&techniker=' ~ werte.techniker ~ '&art=' ~ werte.art ~ '&q=' ~ (werte.q | urlencode) %}
+  <div class="knopfzeile">
+    <a href="/auftraege?ansicht=woche&woche={{ vorher }}{{ filter_url }}">‹ Vorwoche</a>
+    <a href="/auftraege?ansicht=woche{{ filter_url }}">Diese Woche</a>
+    <a href="/auftraege?ansicht=woche&woche={{ nachher }}{{ filter_url }}">Nächste Woche ›</a>
+  </div>
+</div>
+<div class="woche">
+  {% for tag, eintraege in tage %}
+  <section class="tag{{ ' heute' if tag.isoformat() == heute }}">
+    <h3>{{ tag.isoformat() | de(true) }}</h3>
+    {% for x in eintraege %}
+    <a class="termin status-rand-{{ x.status }}" href="/auftraege/{{ x.id }}">
+      <strong>{{ x.uhrzeit or 'ganztägig' }}</strong> · {{ x.nummer }}<br>
+      {{ x.adr_strasse }}, {{ x.adr_ort }}<br>
+      <span class="leise">{{ arten_text.get(x.auftragsart, x.auftragsart) }} · {{ zeile_techniker(x) }}{% if x.status != 'geplant' %} · {{ AUFTRAG_STATUS[x.status] }}{% endif %}</span>
+    </a>
+    {% else %}<p class="leise">–</p>{% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% else %}
+<div class="karte">
+{% if liste %}
+<table>
+  <tr><th>Termin</th><th>Nr.</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Techniker</th><th>Status</th></tr>
+  {% for x in liste %}
+  <tr>
+    <td class="nowrap">{{ x.datum | de(true) }}{% if x.uhrzeit %} {{ x.uhrzeit }}{% endif %}</td>
+    <td class="nowrap"><a href="/auftraege/{{ x.id }}">{{ x.nummer }}</a></td>
+    <td>{{ x.adr_strasse }}, {{ x.adr_plz }} {{ x.adr_ort }}</td>
+    <td>{{ x.kunde_name }}</td>
+    <td>{{ arten_text.get(x.auftragsart, x.auftragsart) }}</td>
+    <td>{{ zeile_techniker(x) }}</td>
+    <td><span class="status-marke status-{{ x.status }}">{{ AUFTRAG_STATUS[x.status] }}</span></td>
+  </tr>
+  {% endfor %}
+</table>
+<p class="leise">{{ liste | length }} Auftr{{ 'äge' if liste | length != 1 else 'ag' }}{% if mehr %} – es gibt mehr als {{ max_liste }}; bitte Zeitraum oder Filter eingrenzen{% endif %}</p>
+{% else %}<p>Keine Aufträge gefunden.</p>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

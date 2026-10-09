@@ -98,3 +98,15 @@ h2.abschnitt{margin-top:32px}
 .statusaktionen{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .statusaktionen form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin:0}
 .statusaktionen input{min-width:220px}
+label.inline{display:inline-flex;flex-direction:row;gap:6px;align-items:center;margin:0}
+.woche{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
+@media (max-width:1000px){.woche{grid-template-columns:1fr}}
+.woche .tag{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:8px;min-height:120px}
+.woche .tag.heute{border-color:var(--navy);box-shadow:inset 0 3px 0 var(--navy)}
+.woche .tag h3{margin:0 0 6px;font-size:.85rem;color:var(--navy)}
+.woche .termin{display:block;font-size:.85rem;padding:6px;margin-bottom:6px;border-radius:6px;border:1px solid var(--line);border-left:4px solid var(--navy);background:var(--bg-soft);color:inherit;text-decoration:none}
+.woche .termin:hover{background:#fff}
+.woche .status-rand-aktiv{border-left-color:#f9a825}
+.woche .status-rand-abgeschlossen,.woche .status-rand-abgerechnet,.woche .status-rand-kostenlos{border-left-color:#2e7d32}
+.woche .status-rand-storniert{border-left-color:var(--muted);opacity:.6;text-decoration:line-through}
+.wochenkopf{margin-top:8px}

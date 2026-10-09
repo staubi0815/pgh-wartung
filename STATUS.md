@@ -46,7 +46,9 @@
    Techniker; Löschsperre für Anlagen mit Aufträgen und Wohnungen in offenen Aufträgen; Feldart Uhrzeit; Datum muss
    existieren), 2 Masken ✓ (Auftrag planen aus der Anlage mit Techniker-/Wohnungsauswahl, Auftragsseite mit
    Status-Knöpfen und Verlauf, Bearbeiten/Verschieben mit Grund, Abschnitt Aufträge in der Anlage, Datum deutsch
-   mit Wochentag; im Browser geprüft), 3 Liste + Wochenansicht + Technikersicht, 4 fällige Anlagen
+   mit Wochentag; im Browser geprüft), 3 Liste + Wochenansicht ✓ (Menü „Aufträge“; Filter Status/Zeitraum/
+   Techniker/Pool/Art/Suche; Büro und Planende sehen alle, Techniker eigene + Pool, nur Webzugang nur eigene;
+   interne Notiz nur fürs Büro; im Browser geprüft), 4 fällige Anlagen
    gesammelt planen, 5 Start-Cockpit, 6 Export/Import Foxtag-Format.
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,

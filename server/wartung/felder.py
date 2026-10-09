@@ -41,7 +41,7 @@ class Feld:
             raise ValueError(f"unbekannte Feldart {self.art!r}")
 
 
-def _gueltiges_datum(text):
+def gueltiges_datum(text):
     """JJJJ-MM-TT und ein Tag, den es gibt (kein 2026-02-30)."""
     if not _DATUM.match(text):
         return False
@@ -80,7 +80,7 @@ def einlesen(felder, form):
             fehler[f.name] = f"{f.titel}: nur Ziffern und + ( ) / - . erlaubt."
         elif f.art == "auswahl" and text not in {w for w, _ in f.auswahl}:
             fehler[f.name] = f"{f.titel}: ungültige Auswahl."
-        elif f.art == "datum" and not _gueltiges_datum(text):
+        elif f.art == "datum" and not gueltiges_datum(text):
             fehler[f.name] = f"{f.titel}: Datum bitte als JJJJ-MM-TT."
         elif f.art == "uhrzeit" and not _UHRZEIT.match(text):
             fehler[f.name] = f"{f.titel}: Uhrzeit bitte als HH:MM."

@@ -1,14 +1,18 @@
-"""Seiten: Auftrag planen (aus der Anlage), Auftrag ansehen, bearbeiten/verschieben, Status wechseln.
+"""Seiten: Auftragsliste und Wochenansicht, Auftrag planen (aus der Anlage), ansehen, bearbeiten/verschieben,
+Status wechseln.
 
-Rechte: ansehen mit stammdaten.lesen, planen/ändern/Status mit auftraege.planen.
+Rechte: Liste und Auftrag ansehen mit Webzugang – mit stammdaten.lesen alle Aufträge, sonst nur eigene (Techniker
+zusätzlich Pool-Aufträge, siehe auftraege.sicht). Planen/ändern/Status mit auftraege.planen.
 """
+from datetime import date, timedelta
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from .. import anlagen, anlagenart, auftraege, gruppen, nummern
 from ..felder import Ungueltig
+from .basis import Weiterleitung
 
-LESEN = "stammdaten.lesen"
 PLANEN = "auftraege.planen"
 
 
@@ -28,7 +32,38 @@ def router(web):
         return web.holen_oder_weiter(anlagen.holen(con, anlage_id), "/anlagen?hinweis=nicht_gefunden")
 
     def auftrag_laden(auftrag_id):
-        return web.holen_oder_weiter(auftraege.holen(con, auftrag_id), "/anlagen?hinweis=nicht_gefunden")
+        return web.holen_oder_weiter(auftraege.holen(con, auftrag_id), "/auftraege?hinweis=nicht_gefunden")
+
+    def alle_auftragsarten():
+        """(Schlüssel, Name) aller Auftragsarten über alle Anlagenarten, ohne Doppelte."""
+        arten = {}
+        for art in anlagenart.alle().values():
+            for x in art.auftragsarten:
+                arten.setdefault(x.schluessel, x.name)
+        return tuple(arten.items())
+
+    # ---------- Liste / Woche ----------
+    @r.get("/auftraege", response_class=HTMLResponse)
+    def liste(request: Request, ansicht: str = "liste", status: str = "", von: str = "", bis: str = "",
+              techniker: str = "", art: str = "", q: str = "", woche: str = "", hinweis: str = ""):
+        n = web.nutzer(request)
+        eingeschraenkt = auftraege.sicht(request.state.rechte, n["id"])
+        filter_ = {"techniker_id": techniker if eingeschraenkt is None else "", "auftragsart": art, "suche": q,
+                   "eingeschraenkt": eingeschraenkt}
+        werte = {"ansicht": "woche" if ansicht == "woche" else "liste", "status": status, "von": von, "bis": bis,
+                 "techniker": techniker, "art": art, "q": q}
+        gemeinsam = dict(werte=werte, eingeschraenkt=eingeschraenkt, status_auswahl=auftraege.LISTE_STATUS,
+                         auftragsarten=alle_auftragsarten(), arten_text=dict(alle_auftragsarten()),
+                         techniker_auswahl=auftraege.techniker_auswahl(con) if eingeschraenkt is None else (),
+                         hinweis=hinweis, max_liste=auftraege.MAX_LISTE, heute=date.today().isoformat())
+        if werte["ansicht"] == "woche":
+            montag, tage = auftraege.woche(con, woche, status or "alle", **filter_)
+            return web.seite(request, "auftraege_liste.html", n, tage=tage, montag=montag,
+                             vorher=(montag - timedelta(days=7)).isoformat(),
+                             nachher=(montag + timedelta(days=7)).isoformat(), **gemeinsam)
+        eintraege = auftraege.liste(con, status or "offen", von, bis, **filter_)
+        return web.seite(request, "auftraege_liste.html", n, liste=eintraege[:auftraege.MAX_LISTE],
+                         mehr=len(eintraege) > auftraege.MAX_LISTE, **gemeinsam)
 
     def formular_seite(request, n, a, u, werte, fehler=None, status=200):
         art = anlagenart.holen(a["anlagenart"])
@@ -74,8 +109,11 @@ def router(web):
     # ---------- ansehen ----------
     @r.get("/auftraege/{auftrag_id}", response_class=HTMLResponse)
     def detail(request: Request, auftrag_id: str, hinweis: str = ""):
-        n = web.nutzer(request, LESEN)
-        return detail_seite(request, n, auftrag_laden(auftrag_id), hinweis)
+        n = web.nutzer(request)
+        u = auftrag_laden(auftrag_id)
+        if not auftraege.darf_sehen(con, auftrag_id, request.state.rechte, n["id"]):
+            raise Weiterleitung("/?hinweis=keine_berechtigung")
+        return detail_seite(request, n, u, hinweis)
 
     # ---------- bearbeiten / verschieben ----------
     @r.get("/auftraege/{auftrag_id}/bearbeiten", response_class=HTMLResponse)

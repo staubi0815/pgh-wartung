@@ -1,7 +1,9 @@
 {% extends "basis.html" %}{% block titel %}Auftrag {{ u.nummer }}{% endblock %}
 {% block inhalt %}
 {% set darf = 'auftraege.planen' in rechte %}
-<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }} {{ u.adr_strasse }}</a> › Auftrag {{ u.nummer }}</p>
+{% set stamm = 'stammdaten.lesen' in rechte %}
+<p class="pfad"><a href="/auftraege">Aufträge</a> ›
+  {% if stamm %}<a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }} {{ u.adr_strasse }}</a>{% else %}{{ u.anlage_nummer }} {{ u.adr_strasse }}{% endif %} › Auftrag {{ u.nummer }}</p>
 <div class="zeile">
   <h1>{{ auftragsart }} <span class="leise">{{ u.nummer }}</span>
     <span class="status-marke status-{{ u.status }}">{{ status_text[u.status] }}</span></h1>
@@ -21,7 +23,7 @@
     <dt>Techniker</dt><dd>{% for t in techniker %}{{ t.name }}{% if not loop.last %}, {% endif %}{% else %}Pool (jeder Techniker){% endfor %}</dd>
     <dt>Umfang</dt><dd>{% if u.umfang == 'ganze_anlage' %}Ganze Anlage{% else %}{% for g in gruppen %}{{ art.gruppe if art else 'Gruppe' }} {{ g.nummer }}{% if g.bezeichnung %} ({{ g.bezeichnung }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</dd>
     {% if u.hinweise %}<dt>Hinweise für den Techniker</dt><dd>{{ u.hinweise }}</dd>{% endif %}
-    {% if u.notiz_intern %}<dt>Interne Notiz</dt><dd>{{ u.notiz_intern }}</dd>{% endif %}
+    {% if u.notiz_intern and stamm %}<dt>Interne Notiz</dt><dd>{{ u.notiz_intern }}</dd>{% endif %}
     {% if u.abgeschlossen_am %}<dt>Abgeschlossen am</dt><dd>{{ u.abgeschlossen_am | de }}</dd>{% endif %}
     {% if u.rechnung_nummer %}<dt>Rechnung</dt><dd>{{ u.rechnung_nummer }}</dd>{% endif %}
   </dl>
@@ -29,8 +31,8 @@
 <aside class="karte">
   <h2>Anlage</h2>
   <dl class="daten">
-    <dt>Anlage</dt><dd><a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }}</a>{% if u.anlage_bezeichnung %} · {{ u.anlage_bezeichnung }}{% endif %}</dd>
-    <dt>Kunde</dt><dd><a href="/kunden/{{ u.kunde_id }}">{{ u.kunde_name }}</a></dd>
+    <dt>Anlage</dt><dd>{% if stamm %}<a href="/anlagen/{{ u.anlage_id }}">{{ u.anlage_nummer }}</a>{% else %}{{ u.anlage_nummer }}{% endif %}{% if u.anlage_bezeichnung %} · {{ u.anlage_bezeichnung }}{% endif %}</dd>
+    <dt>Kunde</dt><dd>{% if stamm %}<a href="/kunden/{{ u.kunde_id }}">{{ u.kunde_name }}</a>{% else %}{{ u.kunde_name }}{% endif %}</dd>
     <dt>Anschrift</dt><dd>{{ u.adr_strasse }}, {{ u.adr_plz }} {{ u.adr_ort }}</dd>
     {% if u.hinweise_techniker %}<dt>Hinweise der Anlage</dt><dd>{{ u.hinweise_techniker }}</dd>{% endif %}
   </dl>

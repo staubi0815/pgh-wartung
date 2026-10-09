@@ -8,10 +8,10 @@ Regeln:
 - Ein Auftrag ohne Techniker ist ein Pool-Auftrag: jeder Techniker darf ihn übernehmen.
 - Aufträge werden nie gelöscht, nur storniert.
 """
-from datetime import date
+from datetime import date, timedelta
 
 from . import anlagenart, db, nummern, rechte
-from .felder import Feld, Ungueltig, einlesen
+from .felder import Feld, Ungueltig, einlesen, gueltiges_datum, like_muster
 
 STATUS = (("geplant", "Geplant"), ("aktiv", "In Arbeit"), ("abgeschlossen", "Abgeschlossen"),
           ("abgerechnet", "Abgerechnet"), ("kostenlos", "Abgeschlossen ohne Rechnung"), ("storniert", "Storniert"))
@@ -120,6 +120,98 @@ def fuer_anlage(con, anlage_id):
     """Alle Aufträge einer Anlage, neueste zuerst."""
     return con.execute("SELECT * FROM auftrag WHERE anlage_id = ? AND geloescht = 0 ORDER BY datum DESC, "
                        "uhrzeit DESC, nummer DESC", (anlage_id,)).fetchall()
+
+
+# ---------- Listen und Sichtbarkeit ----------
+
+LISTE_STATUS = (("offen", "offen (geplant, in Arbeit)"), ("abzurechnen", "abzurechnen (abgeschlossen)"),
+                ("alle", "alle außer stornierte"), *STATUS)
+MAX_LISTE = 500
+VOLLE_SICHT = ("stammdaten.lesen", "auftraege.planen")   # sieht alle Aufträge; sonst eigene (+ Pool als Techniker)
+
+
+def _sichtbar_sql(nutzer_id, mit_pool):
+    """Bedingung „eigener Auftrag oder (falls Techniker) Pool-Auftrag“ für Nutzer ohne volle Sicht."""
+    sql = ("(EXISTS (SELECT 1 FROM auftrag_techniker t WHERE t.auftrag_id = u.id AND t.geloescht = 0 "
+           "AND t.nutzer_id = ?)")
+    if mit_pool:
+        sql += " OR NOT EXISTS (SELECT 1 FROM auftrag_techniker t WHERE t.auftrag_id = u.id AND t.geloescht = 0)"
+    return sql + ")", [nutzer_id]
+
+
+def sicht(rechte_menge, nutzer_id):
+    """None = alle Aufträge; sonst (nutzer_id, mit_pool) für die Einschränkung auf eigene Aufträge."""
+    if any(r in rechte_menge for r in VOLLE_SICHT):
+        return None
+    return nutzer_id, TECHNIKER_RECHT in rechte_menge
+
+
+def darf_sehen(con, auftrag_id, rechte_menge, nutzer_id):
+    eingeschraenkt = sicht(rechte_menge, nutzer_id)
+    if eingeschraenkt is None:
+        return True
+    bedingung, parameter = _sichtbar_sql(*eingeschraenkt)
+    return con.execute(f"SELECT 1 FROM auftrag u WHERE u.id = ? AND u.geloescht = 0 AND {bedingung}",
+                       [auftrag_id, *parameter]).fetchone() is not None
+
+
+def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", suche="", eingeschraenkt=None):
+    """Aufträge mit Anlage, Anschrift und Technikernamen, nach Termin sortiert (ganztägige zuerst).
+
+    status: Schlüssel aus LISTE_STATUS (unbekannt = offen); von/bis: JJJJ-MM-TT (ungültig = ignoriert);
+    techniker_id: Nutzer-id oder „pool“; eingeschraenkt: Ergebnis von sicht(). Höchstens MAX_LISTE Einträge.
+    """
+    sql = (_GRUND_SQL.replace("SELECT u.*,", "SELECT u.*, (SELECT group_concat(name, ', ') FROM (SELECT n.name "
+                              "FROM auftrag_techniker t JOIN nutzer n ON n.id = t.nutzer_id WHERE t.auftrag_id = u.id "
+                              "AND t.geloescht = 0 ORDER BY n.name COLLATE NOCASE)) AS techniker_namen,", 1))
+    parameter = []
+    gruppen_status = {"offen": OFFEN, "abzurechnen": ("abgeschlossen",),
+                      "alle": tuple(s for s, _ in STATUS if s != "storniert")}
+    werte = gruppen_status.get(status) or ((status,) if status in STATUS_TEXT else OFFEN)
+    sql += f" AND u.status IN ({', '.join('?' * len(werte))})"
+    parameter += list(werte)
+    if von and gueltiges_datum(von):
+        sql += " AND u.datum >= ?"
+        parameter.append(von)
+    if bis and gueltiges_datum(bis):
+        sql += " AND u.datum <= ?"
+        parameter.append(bis)
+    if techniker_id == "pool":
+        sql += " AND NOT EXISTS (SELECT 1 FROM auftrag_techniker t WHERE t.auftrag_id = u.id AND t.geloescht = 0)"
+    elif techniker_id:
+        sql += (" AND EXISTS (SELECT 1 FROM auftrag_techniker t WHERE t.auftrag_id = u.id AND t.geloescht = 0 "
+                "AND t.nutzer_id = ?)")
+        parameter.append(techniker_id)
+    if auftragsart:
+        sql += " AND u.auftragsart = ?"
+        parameter.append(auftragsart)
+    if suche.strip():
+        felder = ("u.nummer", "a.nummer", "a.bezeichnung", "k.nummer", "k.name",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.strasse ELSE o.strasse END",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.ort ELSE o.ort END")
+        sql += " AND (" + " OR ".join(f"{f} LIKE ? ESCAPE '\\'" for f in felder) + ")"
+        parameter += [like_muster(suche.strip())] * len(felder)
+    if eingeschraenkt is not None:
+        bedingung, p = _sichtbar_sql(*eingeschraenkt)
+        sql += " AND " + bedingung
+        parameter += p
+    sql += f" ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT {MAX_LISTE + 1}"
+    return con.execute(sql, parameter).fetchall()
+
+
+def montag(tag):
+    """Montag der Woche, in der tag (date oder JJJJ-MM-TT) liegt; ungültig = diese Woche."""
+    if isinstance(tag, str):
+        tag = date.fromisoformat(tag) if gueltiges_datum(tag) else date.today()
+    return tag - timedelta(days=tag.weekday())
+
+
+def woche(con, tag, status="alle", **filter_):
+    """Aufträge der Woche (Mo–So), in der tag liegt: (montag, [(datum, [aufträge])] für 7 Tage)."""
+    mo = montag(tag)
+    tage = [mo + timedelta(days=i) for i in range(7)]
+    eintraege = liste(con, status, tage[0].isoformat(), tage[-1].isoformat(), **filter_)
+    return mo, [(t, [x for x in eintraege if x["datum"] == t.isoformat()]) for t in tage]
 
 
 def techniker_auswahl(con, auch_ids=()):
