@@ -6,3 +6,16 @@ document.addEventListener("submit", function (e) {
     e.preventDefault();
   }
 });
+
+// Felder mit data-nur-fuer="<wert>" nur zeigen, wenn die Auswahl #importart diesen Wert hat (ohne JS: alle sichtbar).
+function nurPassendeFelder() {
+  var auswahl = document.getElementById("importart");
+  if (!auswahl) { return; }
+  document.querySelectorAll("[data-nur-fuer]").forEach(function (feld) {
+    feld.hidden = feld.getAttribute("data-nur-fuer") !== auswahl.value;
+  });
+}
+document.addEventListener("change", function (e) {
+  if (e.target.id === "importart") { nurPassendeFelder(); }
+});
+document.addEventListener("DOMContentLoaded", nurPassendeFelder);

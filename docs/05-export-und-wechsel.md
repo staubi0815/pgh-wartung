@@ -52,3 +52,12 @@ per Excel-Import.
 
 Bausteine werden mit dem jeweiligen Modul gebaut (Kunden-Modul bringt seinen Export mit usw.). Test: Export in das
 Foxtag-Testkonto importieren, solange es läuft (bis ca. 08.11.2026) – nur mit erfundenen Testdaten.
+
+## 5. Import (umgesetzt 09.10.2026)
+
+Verwaltung → Excel-Import liest dieselben Vorlagen (`server/wartung/excel_import.py`): Kunden, Kontakte, Objekte,
+Anlagen (WARTUNGSANWENDUNG.NUMMER = Importname der Anlagenart, z. B. „RWM“), Melder-Typen, Melder je Anlage.
+Regeln: Vorschau = Probelauf mit vollständigem Zurückrollen; Übernehmen nur, wenn keine Zeile fehlerhaft ist;
+vorhandene Nummern/Plätze werden übersprungen (nie überschrieben); GRUPPE.NAME „Bewohner, Lage“ wird getrennt;
+Typen werden über Hersteller + Modell gefunden oder einmal angelegt. Noch nicht übernommen: Labels, Techniker-Nummer,
+Sub-Komponenten (Türen). Getestet mit den Original-Vorlagen aus dem Foxtag-Testkonto (nur lokal, nicht im Repo).

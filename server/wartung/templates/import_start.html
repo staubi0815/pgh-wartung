@@ -13,13 +13,13 @@
       {% for a in arten %}<option value="{{ a.schluessel }}" {% if werte.get('art') == a.schluessel %}selected{% endif %}>{{ loop.index }}. {{ a.titel }}</option>{% endfor %}
     </select>
   </label>
-  <label>Art neuer Kunden <span class="leise">(nur beim Kunden-Import)</span>
+  <label data-nur-fuer="kunden">Art neuer Kunden <span class="leise">(nur beim Kunden-Import)</span>
     <select name="kundenart">{% for w, t in kundenarten %}<option value="{{ w }}" {% if werte.get('kundenart') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
   </label>
-  <label>Anlagenart <span class="leise">(nur beim Typen-Import)</span>
+  <label data-nur-fuer="typen">Anlagenart <span class="leise">(nur beim Typen-Import)</span>
     <select name="anlagenart">{% for w, t in anlagenarten %}<option value="{{ w }}" {% if werte.get('anlagenart') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}</select>
   </label>
-  <label class="breit">Anlage <span class="leise">(nur beim Melder-Import: in welche Anlage)</span>
+  <label class="breit" data-nur-fuer="komponenten">Anlage <span class="leise">(nur beim Melder-Import: in welche Anlage)</span>
     <select name="anlage_id">
       <option value="">– wählen –</option>
       {% for w, t in anlagen_auswahl %}<option value="{{ w }}" {% if werte.get('anlage_id') == w %}selected{% endif %}>{{ t }}</option>{% endfor %}
@@ -30,7 +30,7 @@
   </label>
   <div class="breit knopfzeile"><button>Hochladen und prüfen</button></div>
 </form>
-<h2>Leere Vorlagen</h2>
+<h2 class="abschnitt">Leere Vorlagen</h2>
 <p class="leise">Spalten wie in den Foxtag-Vorlagen, Pflichtspalten mit *.</p>
 <ul class="vorlagen">
   {% for a in arten %}<li><a href="/verwaltung/import/vorlage/{{ a.schluessel }}.xlsx">{{ a.titel }}</a></li>{% endfor %}

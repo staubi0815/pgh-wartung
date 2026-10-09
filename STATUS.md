@@ -33,3 +33,6 @@
    4 Wohnungen + Melder ✓ (Typenkatalog unter Verwaltung, Wohnungen, Melder einzeln/mehrere, Austausch/Ausbau mit
    Maßnahme ⊕ und Verlauf, Wohnung kopieren, Fälligkeiten mit Ampel in Anlage/Liste/Startseite; Austausch vorsichtig
    ab 1. Januar des Baujahrs – Zugabe nach Lehrgang prüfen: `austausch_zugabe_monate` in der Anlagenart),
+   5 Excel-Import ✓ (Verwaltung → Excel-Import, Foxtag-Vorlagenformat für Kunden, Kontakte, Objekte, Anlagen,
+   Typen, Melder je Anlage; Vorschau als Probelauf, Übernehmen alles oder nichts, Vorhandenes bleibt unverändert;
+   mit den echten Foxtag-Vorlagen getestet),
