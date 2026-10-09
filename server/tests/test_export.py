@@ -70,9 +70,10 @@ def test_foxtag_dateien_und_kopf(bestand):
     inhalt, anzahl = export.foxtag(bestand)
     dateien = entpacken(inhalt)
     assert list(dateien) == ["LIESMICH.txt", "01_Kunden.xlsx", "02_Kontakte.xlsx", "03_Objekte.xlsx",
-                             "04_Anlagen.xlsx", "05_Typen_Rauchwarnmelder.xlsx", "06_Melder_ANL_1.xlsx"]
+                             "04_Anlagen.xlsx", "05_Typen_Rauchwarnmelder.xlsx", "06_Melder_ANL_1.xlsx",
+                             "07_Auftraege.xlsx"]
     assert anzahl == {"01_Kunden.xlsx": 1, "02_Kontakte.xlsx": 1, "03_Objekte.xlsx": 2, "04_Anlagen.xlsx": 1,
-                      "05_Typen_Rauchwarnmelder.xlsx": 1, "06_Melder_ANL_1.xlsx": 2}
+                      "05_Typen_Rauchwarnmelder.xlsx": 1, "06_Melder_ANL_1.xlsx": 2, "07_Auftraege.xlsx": 0}
     # Kopfzeilen genau wie die Foxtag-Vorlagen (Pflichtspalten mit *)
     assert blatt(dateien["01_Kunden.xlsx"])[0] == ["KUNDEN.NUMMER*", "KUNDE.NAME*", "ADRESSZEILE 1", "ADRESSZEILE 2",
                                                    "PLZ", "ORT", "LAND", "NOTIZ"]
@@ -117,7 +118,7 @@ def test_foxtag_werte(bestand):
 def test_foxtag_leerer_bestand(umgebung):
     dateien = entpacken(export.foxtag(umgebung[1])[0])
     assert list(dateien) == ["LIESMICH.txt", "01_Kunden.xlsx", "02_Kontakte.xlsx", "03_Objekte.xlsx",
-                             "04_Anlagen.xlsx"]
+                             "04_Anlagen.xlsx", "07_Auftraege.xlsx"]
     assert blatt(dateien["01_Kunden.xlsx"])[1] == []
 
 

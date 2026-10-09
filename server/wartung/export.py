@@ -21,10 +21,11 @@ import openpyxl
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Font
 
-from . import anlagenart, db
+from . import anlagenart, auftraege, db
 from .excel_import import ARTEN
 
 DATUMSFORMAT = "DD.MM.YYYY"
+DATUM_ZEIT_FORMAT = "DD.MM.YYYY HH:MM"
 
 # Tabellen, die der Vollexport bewusst weglässt, mit Begründung (steht auch in LIESMICH.txt)
 AUSGENOMMEN_TABELLEN = {
@@ -78,7 +79,7 @@ def _mappe(importart, zeilen, blatt):
     mappe = openpyxl.Workbook()
     ws = mappe.active
     ws.title = blatt[:31]
-    ws.append([f"{s}*" if s in importart.pflicht else s for s in importart.spalten])
+    ws.append(importart.kopfzeile())
     for zelle in ws[1]:
         zelle.font = Font(bold=True)
     for werte in zeilen:
@@ -86,7 +87,9 @@ def _mappe(importart, zeilen, blatt):
         ws.append([ILLEGAL_CHARACTERS_RE.sub("", w) if isinstance(w, str) else w
                    for w in (werte.get(s) for s in importart.spalten)])
         for zelle in ws[ws.max_row]:
-            if isinstance(zelle.value, date):
+            if isinstance(zelle.value, datetime) and (zelle.value.hour, zelle.value.minute) != (0, 0):
+                zelle.number_format = DATUM_ZEIT_FORMAT
+            elif isinstance(zelle.value, date):
                 zelle.number_format = DATUMSFORMAT
             elif isinstance(zelle.value, str) and zelle.data_type == "f":
                 zelle.data_type = "s"   # Text, der mit „=“ beginnt, bleibt Text (keine Formel)
@@ -172,6 +175,25 @@ def _komponenten(con, anlage_id):
             for k in con.execute(sql, (anlage_id,))]
 
 
+def _auftraege(con):
+    """Offene Aufträge (geplant, in Arbeit); Foxtag-Vorlage: höchstens drei Techniker je Auftrag.
+    Rückgabe: (Zeilen, Anzahl ohne Techniker/Pool, Anzahl ohne Personalnummer, Anzahl mit mehr als drei Technikern)."""
+    zeilen, pool, ohne_nummer, zu_viele = [], 0, 0, 0
+    for u in auftraege.liste(con, "offen"):
+        techniker = auftraege.techniker(con, u["id"])
+        nummern = [t["personalnummer"] or "" for t in techniker]
+        pool += not techniker
+        ohne_nummer += any(not x for x in nummern)
+        zu_viele += len(nummern) > 3
+        nummern = (nummern + ["", "", ""])[:3]
+        termin = datetime.fromisoformat(f"{u['datum']}T{u['uhrzeit']}") if u["uhrzeit"] else _datum(u["datum"])
+        zeilen.append({"AUFTRAG.NUMMER": u["nummer"], "ANLAGE.NUMMER": u["anlage_nummer"], "DATUM": termin,
+                       "AUFTRAGSTYP.NUMMER": auftraege.foxtag_auftragstyp(u["auftragsart"]),
+                       "TECHNIKER.NUMMER": nummern[0], "TECHNIKER.NUMMER2": nummern[1],
+                       "TECHNIKER.NUMMER3": nummern[2], "AUFTRAG.HINWEISE": u["hinweise"]})
+    return zeilen, pool, ohne_nummer, zu_viele
+
+
 FOXTAG_LIESMICH = """Export im Foxtag-Importformat (PGH-Wartung), erstellt am {zeit}
 
 Die Dateien in der Reihenfolge ihrer Nummern über den Datenimport von Foxtag einlesen:
@@ -181,7 +203,9 @@ Vor dem Import in Foxtag:
 - Die Wartungsanwendung für Rauchwarnmelder muss in Foxtag die Nummer „{rwm}“ haben (Spalte
   WARTUNGSANWENDUNG.NUMMER in der Anlagen-Datei), sonst die Spalte vorher anpassen.
 - Melder je Anlage über die Anlage in Foxtag importieren (Datei 06_..._<Anlagennummer>.xlsx).
-
+- Aufträge (07_Auftraege.xlsx, nur offene): die Auftragstypen müssen in Foxtag die Nummern {auftragstypen} haben,
+  die Techniker ihre Personalnummer (bei uns: Verwaltung -> Nutzer). Foxtag verlangt mindestens einen Techniker.
+{auftrag_hinweise}
 Was nicht oder anders übertragen wird:
 - Nur der gültige Bestand: als gelöscht markierte Datensätze fehlen, Melder nur, wenn sie verbaut sind.
 - Objekte: Anschrift ist die wirksame Anschrift (bei „wie Kunde“ die des Kunden).
@@ -189,7 +213,9 @@ Was nicht oder anders übertragen wird:
 - Wohnungen: Bewohner und Lage stehen zusammen in GRUPPE.NAME („Bewohner, Lage“).
 - Foxtag übernimmt je Melder nur das Datum der letzten Prüfung, nicht den Prüfverlauf; der Verlauf bleibt im
   Vollexport und in den Berichten.
-- Noch nicht enthalten (gibt es in PGH-Wartung noch nicht): Labels, Techniker je Anlage, Artikel, Aufträge.
+- Aufträge: nur geplante und laufende; erledigte gehen nicht in Foxtag (Nachweis über Bericht und Vollexport).
+  Uhrzeit steht mit im Datum; der Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar (ganze Anlage).
+- Noch nicht enthalten (gibt es in PGH-Wartung noch nicht): Labels, Techniker je Anlage, Artikel.
 
 Achtung: Die Dateien enthalten Kunden- und Mieterdaten. Nur auf dem NAS ablegen, nicht per Mail versenden;
 an einen anderen Dienst erst nach Abschluss eines Auftragsverarbeitungsvertrags übergeben.
@@ -223,9 +249,20 @@ def foxtag(con):
             if zeilen:
                 dazu(f"06_{dateiname_sicher(art.komponente_mehrzahl)}_{dateiname_sicher(a['nummer'])}.xlsx",
                      ARTEN["komponenten"][0], zeilen, art.name)
+        zeilen, pool, ohne_nummer, zu_viele = _auftraege(con)
+        dazu("07_Auftraege.xlsx", ARTEN["auftraege"][0], zeilen, "Aufträge")
     liste = "\n".join(f"  {name}  ({n} {'Zeile' if n == 1 else 'Zeilen'})" for name, n in anzahl.items())
     rwm = wartungsanwendung(anlagenart.holen("rauchwarnmelder"))
-    text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm)
+    typen = sorted({auftraege.foxtag_auftragstyp(x.schluessel) for a in anlagenart.alle().values()
+                    for x in a.auftragsarten})
+    warnungen = [f"  ACHTUNG: {pool} Auftrag/Aufträge ohne Techniker (Pool) – vor dem Import einen eintragen."
+                 if pool else "",
+                 f"  ACHTUNG: bei {ohne_nummer} Auftrag/Aufträgen fehlt einem Techniker die Personalnummer."
+                 if ohne_nummer else "",
+                 f"  ACHTUNG: {zu_viele} Auftrag/Aufträge mit mehr als drei Technikern – "
+                 "nur die ersten drei stehen drin." if zu_viele else ""]
+    text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm, auftragstypen=", ".join(typen),
+                                  auftrag_hinweise="".join(w + "\n" for w in warnungen if w))
     return _zip([("LIESMICH.txt", text.encode("utf-8"))] + dateien), anzahl
 
 

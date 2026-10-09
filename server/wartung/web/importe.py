@@ -120,7 +120,7 @@ def router(web):
         importart = excel_import.ARTEN[art][0]
         mappe = openpyxl.Workbook()
         mappe.active.title = importart.titel[:31]
-        mappe.active.append([f"{s}*" if s in importart.pflicht else s for s in importart.spalten])
+        mappe.active.append(importart.kopfzeile())
         puffer = io.BytesIO()
         mappe.save(puffer)
         return Response(puffer.getvalue(), headers={"Content-Disposition": f'attachment; filename="Vorlage_{art}.xlsx"'},

@@ -1,4 +1,5 @@
-"""Excel-Import im Format der Foxtag-Importvorlagen (docs/05): Kunden, Kontakte, Objekte, Anlagen, Typen, Melder.
+"""Excel-Import im Format der Foxtag-Importvorlagen (docs/05): Kunden, Kontakte, Objekte, Anlagen, Typen, Melder,
+Aufträge.
 
 Ablauf: lesen → prüfen (Probelauf, der am Ende vollständig zurückgerollt wird) → übernehmen (alles oder nichts).
 Jede Zeile läuft durch dieselbe Fachlogik wie die Eingabemasken (kunden.anlegen usw.); deshalb zeigt die Vorschau
@@ -13,7 +14,7 @@ from datetime import date, datetime
 import openpyxl
 from openpyxl.utils.exceptions import InvalidFileException
 
-from . import anlagen, anlagenart, db, gruppen, komponenten, kunden, objekte, typen
+from . import anlagen, anlagenart, auftraege, db, gruppen, komponenten, kunden, objekte, typen
 from .felder import Ungueltig
 
 MAX_BYTES = 5 * 1024 * 1024
@@ -76,6 +77,13 @@ def datum(wert):
         except ValueError:
             pass
     raise Ungueltig({"": f"Datum „{text(wert)}“ nicht lesbar (erwartet z. B. 17.11.2016)."})
+
+
+def uhrzeit(wert):
+    """Uhrzeit aus einer Excel-Datumszelle mit Zeitanteil (HH:MM), sonst ''."""
+    if isinstance(wert, datetime) and (wert.hour, wert.minute) != (0, 0):
+        return wert.strftime("%H:%M")
+    return ""
 
 
 def land(wert):
@@ -142,6 +150,11 @@ class Importart:
     pflicht: tuple          # davon Pflicht (müssen in der Datei vorhanden sein)
     ignoriert: tuple = ()   # bekannte Foxtag-Spalten, die (noch) nicht übernommen werden
     braucht_anlage: bool = False
+    foxtag_pflicht: tuple = ()  # zusätzlich in Foxtag Pflicht (bei uns nicht), z. B. Techniker beim Auftrag
+
+    def kopfzeile(self):
+        """Spaltennamen wie in der Foxtag-Vorlage: Pflichtspalten (bei uns oder in Foxtag) mit *."""
+        return [f"{s}*" if s in self.pflicht or s in self.foxtag_pflicht else s for s in self.spalten]
 
 
 def _kunde_nach_nummer(con, nummer):
@@ -289,6 +302,45 @@ def _komponente(con, w, nutzer_id, optionen):
     return "neu", beschreibung, hinweise
 
 
+def _auftrag(con, w, nutzer_id, optionen):
+    nummer, anlage_nr = text(w.get("AUFTRAG.NUMMER")), text(w.get("ANLAGE.NUMMER"))
+    beschreibung = f"{nummer or '(neue Nummer)'} für Anlage {anlage_nr}"
+    if nummer and con.execute("SELECT 1 FROM auftrag WHERE nummer = ? COLLATE NOCASE", (nummer,)).fetchone():
+        return "vorhanden", beschreibung, []
+    zeile = con.execute("SELECT id FROM anlage WHERE nummer = ? COLLATE NOCASE AND geloescht = 0",
+                        (anlage_nr,)).fetchone()
+    anlage = anlagen.holen(con, zeile["id"]) if zeile else None
+    if anlage is None:
+        raise Ungueltig({"": f"Anlage {anlage_nr or '(leer)'} gibt es nicht (zuerst Anlagen importieren)."})
+    art = anlagenart.holen(anlage["anlagenart"])
+    typ = text(w.get("AUFTRAGSTYP.NUMMER")).lower()
+    auftragsart = next((a.schluessel for a in art.auftragsarten if typ in (a.schluessel.lower(), a.name.lower())), None)
+    if auftragsart is None:
+        moeglich = ", ".join(auftraege.foxtag_auftragstyp(a.schluessel) for a in art.auftragsarten)
+        raise Ungueltig({"": f"Auftragstyp „{text(w.get('AUFTRAGSTYP.NUMMER'))}“ unbekannt (möglich: {moeglich})."})
+    techniker_ids, hinweise = [], []
+    for spalte in ("TECHNIKER.NUMMER", "TECHNIKER.NUMMER2", "TECHNIKER.NUMMER3"):
+        personalnummer = text(w.get(spalte))
+        if personalnummer:
+            n = con.execute("SELECT id FROM nutzer WHERE personalnummer = ? AND geloescht = 0",
+                            (personalnummer,)).fetchone()
+            if n is None:
+                raise Ungueltig({"": f"Einen Nutzer mit Personalnummer {personalnummer} gibt es nicht."})
+            techniker_ids.append(n["id"])
+    if not techniker_ids:
+        hinweise.append("Ohne Techniker: Pool-Auftrag.")
+    tag = datum(w.get("DATUM"))
+    if not tag:
+        raise Ungueltig({"": "Datum fehlt."})
+    if tag < date.today().isoformat():
+        hinweise.append("Datum liegt in der Vergangenheit.")
+    form = auftraege.FormularWerte({"nummer": nummer, "auftragsart": auftragsart, "datum": tag,
+                                    "uhrzeit": uhrzeit(w.get("DATUM")), "hinweise": text(w.get("AUFTRAG.HINWEISE")),
+                                    "umfang": "ganze_anlage"}, techniker_ids)
+    aid = auftraege.anlegen(con, anlage, form, nutzer_id, vergangenheit_erlaubt=True)
+    return "neu", f"{auftraege.holen(con, aid)['nummer']} für Anlage {anlage['nummer']}", hinweise
+
+
 ARTEN = {
     "kunden": (Importart("kunden", "Kunden", ("KUNDEN.NUMMER", "KUNDE.NAME", "ADRESSZEILE 1", "ADRESSZEILE 2", "PLZ",
                                               "ORT", "LAND", "NOTIZ"),
@@ -310,8 +362,13 @@ ARTEN = {
                                "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"),
                               ("NUMMER", "TYP.NAME"), ignoriert=("ZULASSUNGSNUMMER",), braucht_anlage=True),
                     _komponente),
+    "auftraege": (Importart("auftraege", "Aufträge", ("AUFTRAG.NUMMER", "ANLAGE.NUMMER", "DATUM", "AUFTRAGSTYP.NUMMER",
+                                                      "TECHNIKER.NUMMER", "TECHNIKER.NUMMER2", "TECHNIKER.NUMMER3",
+                                                      "AUFTRAG.HINWEISE"),
+                            ("ANLAGE.NUMMER", "DATUM", "AUFTRAGSTYP.NUMMER"),
+                            foxtag_pflicht=("TECHNIKER.NUMMER",)), _auftrag),
 }
-REIHENFOLGE = ("kunden", "kontakte", "objekte", "anlagen", "typen", "komponenten")
+REIHENFOLGE = ("kunden", "kontakte", "objekte", "anlagen", "typen", "komponenten", "auftraege")
 
 
 def _schluessel(art, w, optionen):
@@ -324,6 +381,8 @@ def _schluessel(art, w, optionen):
         return text(w.get("OBJEKT.NUMMER")).lower() or None
     if art == "anlagen":
         return text(w.get("ANLAGE.NUMMER")).lower() or None
+    if art == "auftraege":
+        return text(w.get("AUFTRAG.NUMMER")).lower() or None
     if art == "komponenten":
         return (text(w.get("GRUPPE.NUMMER")) or "1", text(w.get("NUMMER")), text(w.get("SUB-NUMMER")) or "0")
     return None
@@ -348,7 +407,7 @@ def _vorbereiten(art, inhalt, optionen):
                           f"verwenden.")
     ergebnis = Ergebnis(art)
     unbekannt = [s for s in kopf if s and s not in importart.spalten and s not in importart.ignoriert
-                 and not s.startswith("HINWEIS")]
+                 and not s.startswith(("HINWEIS", "HILFE"))]
     if unbekannt:
         ergebnis.hinweise.append(f"Nicht verwendete Spalten: {', '.join(unbekannt)}.")
     if not zeilen:

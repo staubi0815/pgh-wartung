@@ -58,6 +58,12 @@ Mehrfachauswahl → „Aufträge planen“.
 
 ## 5. Aufträge
 
+**Umgesetzt 09.10.2026 (Baustein 3):** Auftrag planen aus der Anlage (Techniker mehrfach oder Pool, Umfang ganze
+Anlage oder Wohnungen), Auftragsseite mit Status-Knöpfen, Verlauf und Verschieben mit Grund, Liste mit Filtern und
+Wochenansicht, Sammelplanung aus der Anlagenliste, Start-Cockpit. Techniker sehen eigene und Pool-Aufträge. Noch
+offen (mit den Prüfungen, Baustein 4/5): Fortschritt je Wohnung, Material, Bericht, Terminankündigung, Rechnung,
+Mängel einplanen. Ursprüngliche Planung:
+
 **Liste/Kalender:** Umschalter Liste ↔ Wochenkalender. Filter: Zeitraum, Status, Techniker, Auftragsart.
 
 **Auftrag planen (Dialog):** Anlage, Auftragsart, Datum/Uhrzeit (ganztägig), Techniker (einer/mehrere) oder Pool,

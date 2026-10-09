@@ -69,3 +69,15 @@ def test_startseite_techniker(lage):
     assert "(meine und Pool)" in s and f'href="/auftraege/{ids["heute_tom"]}"' in s
     assert f'href="/auftraege/{ids["heute_ute"]}"' not in s
     assert "Abzurechnen" not in s and "Fällig" not in s and "Überfällige Aufträge" in s
+
+
+def test_cockpit_zaehlt_ohne_listengrenze(lage, monkeypatch):
+    """Die Liste ist für die Anzeige begrenzt, die Zahlen im Cockpit dürfen es nicht sein."""
+    con = lage["con"]
+    a = anlagen.holen(con, con.execute("SELECT id FROM anlage").fetchone()[0])
+    for _ in range(3):
+        aid = auftraege.anlegen(con, a, {"auftragsart": "wartung", "datum": HEUTE.isoformat()}, None)
+        auftraege.status_setzen(con, aid, "abgeschlossen", None)
+    monkeypatch.setattr(auftraege, "MAX_LISTE", 1)
+    assert len(auftraege.liste(con, "abzurechnen")) == 2  # Anzeige: 1 + 1 („es gibt mehr“)
+    assert auftraege.cockpit(con)["abzurechnen"] == 4

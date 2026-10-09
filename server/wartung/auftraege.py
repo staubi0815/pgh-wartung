@@ -76,6 +76,11 @@ def auftragsart_name(art_schluessel, auftragsart):
     return auftragsart
 
 
+def foxtag_auftragstyp(auftragsart):
+    """Nummer des Auftragstyps im Foxtag-Format: Schlüssel in Großbuchstaben („wartung“ -> „WARTUNG“)."""
+    return auftragsart.upper()
+
+
 def termin_text(datum, uhrzeit):
     return f"{datum} {uhrzeit}" if uhrzeit else datum
 
@@ -155,11 +160,13 @@ def darf_sehen(con, auftrag_id, rechte_menge, nutzer_id):
                        [auftrag_id, *parameter]).fetchone() is not None
 
 
-def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", suche="", eingeschraenkt=None):
+def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", suche="", eingeschraenkt=None,
+          begrenzt=True):
     """Aufträge mit Anlage, Anschrift und Technikernamen, nach Termin sortiert (ganztägige zuerst).
 
     status: Schlüssel aus LISTE_STATUS (unbekannt = offen); von/bis: JJJJ-MM-TT (ungültig = ignoriert);
-    techniker_id: Nutzer-id oder „pool“; eingeschraenkt: Ergebnis von sicht(). Höchstens MAX_LISTE Einträge.
+    techniker_id: Nutzer-id oder „pool“; eingeschraenkt: Ergebnis von sicht(). begrenzt: höchstens MAX_LISTE + 1
+    Einträge (einer mehr, damit die Seite „es gibt mehr“ erkennt); zum Zählen begrenzt=False.
     """
     sql = (_GRUND_SQL.replace("SELECT u.*,", "SELECT u.*, (SELECT group_concat(name, ', ') FROM (SELECT n.name "
                               "FROM auftrag_techniker t JOIN nutzer n ON n.id = t.nutzer_id WHERE t.auftrag_id = u.id "
@@ -195,7 +202,7 @@ def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", 
         bedingung, p = _sichtbar_sql(*eingeschraenkt)
         sql += " AND " + bedingung
         parameter += p
-    sql += f" ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT {MAX_LISTE + 1}"
+    sql += " ORDER BY u.datum, u.uhrzeit, u.nummer" + (f" LIMIT {MAX_LISTE + 1}" if begrenzt else "")
     return con.execute(sql, parameter).fetchall()
 
 
@@ -206,12 +213,13 @@ def cockpit(con, eingeschraenkt=None, heute=None):
     gestern = (heute - timedelta(days=1)).isoformat()
     sonntag = (montag(heute) + timedelta(days=6)).isoformat()
     morgen = (heute + timedelta(days=1)).isoformat()
+    def anzahl(status, von="", bis=""):
+        return len(liste(con, status, von, bis, eingeschraenkt=eingeschraenkt, begrenzt=False))
     return {
         "heute": liste(con, "offen", heute.isoformat(), heute.isoformat(), eingeschraenkt=eingeschraenkt),
-        "rest_woche": len(liste(con, "offen", morgen, sonntag, eingeschraenkt=eingeschraenkt)) if morgen <= sonntag
-        else 0,
-        "ueberfaellig": len(liste(con, "offen", bis=gestern, eingeschraenkt=eingeschraenkt)),
-        "abzurechnen": len(liste(con, "abzurechnen", eingeschraenkt=eingeschraenkt)),
+        "rest_woche": anzahl("offen", morgen, sonntag) if morgen <= sonntag else 0,
+        "ueberfaellig": anzahl("offen", bis=gestern),
+        "abzurechnen": anzahl("abzurechnen"),
         "gestern": gestern,
     }
 
@@ -243,7 +251,7 @@ def techniker_auswahl(con, auch_ids=()):
 
 # ---------- Prüfen ----------
 
-def _pruefen(con, art, anlage_id, form, auftrag=None):
+def _pruefen(con, art, anlage_id, form, auftrag=None, vergangenheit_erlaubt=False):
     """Formular -> (werte, techniker_ids, gruppen_ids). Wirft Ungueltig."""
     neu = auftrag is None
     werte, fehler = einlesen(felder(art, mit_nummer=neu), form)
@@ -251,7 +259,7 @@ def _pruefen(con, art, anlage_id, form, auftrag=None):
         fehler_nr = nummern.pruefen(con, "auftrag", werte["nummer"])
         if fehler_nr:
             fehler["nummer"] = fehler_nr
-    if neu and werte.get("datum") and werte["datum"] < date.today().isoformat():
+    if neu and not vergangenheit_erlaubt and werte.get("datum") and werte["datum"] < date.today().isoformat():
         fehler["datum"] = "Das Datum liegt in der Vergangenheit."
 
     bisher = [t["id"] for t in techniker(con, auftrag["id"])] if auftrag else []
@@ -309,13 +317,15 @@ def _verlauf(con, auftrag_id, ereignis, nutzer_id, **werte):
                                         **werte}, nutzer_id)
 
 
-def anlegen(con, anlage, form, nutzer_id):
-    """Plant einen Auftrag für eine Anlage. anlage: Zeile aus anlagen.holen. Gibt die id zurück."""
+def anlegen(con, anlage, form, nutzer_id, vergangenheit_erlaubt=False):
+    """Plant einen Auftrag für eine Anlage. anlage: Zeile aus anlagen.holen. Gibt die id zurück.
+    vergangenheit_erlaubt: nur für den Import (offene Aufträge aus einem anderen System übernehmen)."""
     if anlage["passiv"]:
         raise Ungueltig({"": "Die Anlage ist passiv – für sie werden keine Aufträge geplant."})
     art = anlagenart.holen(anlage["anlagenart"])
     with db.transaktion(con):
-        werte, techniker_ids, gruppen_ids = _pruefen(con, art, anlage["id"], form)
+        werte, techniker_ids, gruppen_ids = _pruefen(con, art, anlage["id"], form,
+                                                     vergangenheit_erlaubt=vergangenheit_erlaubt)
         werte["nummer"] = werte["nummer"] or nummern.naechste(con, "auftrag")
         aid = db.anlegen(con, "auftrag", {**werte, "anlage_id": anlage["id"], "status": "geplant"}, nutzer_id)
         _techniker_setzen(con, aid, techniker_ids, nutzer_id)
@@ -347,8 +357,8 @@ def mehrere_anlegen(con, anlagen_liste, gemeinsam, termine, nutzer_id):
         with db.transaktion(con):
             for a in anlagen_liste:
                 datum, uhrzeit = termine.get(a["id"], ("", ""))
-                form = _MehrfachFormular({**gemeinsam, "datum": datum, "uhrzeit": uhrzeit, "umfang": "ganze_anlage"},
-                                         gemeinsam.get("techniker", []))
+                form = FormularWerte({**gemeinsam, "datum": datum, "uhrzeit": uhrzeit, "umfang": "ganze_anlage"},
+                                     gemeinsam.get("techniker", []))
                 try:
                     ids.append(anlegen(con, a, form, nutzer_id))
                 except Ungueltig as e:
@@ -360,8 +370,8 @@ def mehrere_anlegen(con, anlagen_liste, gemeinsam, termine, nutzer_id):
     return ids
 
 
-class _MehrfachFormular(dict):
-    """dict mit getlist wie ein Formular (für die Technikerliste)."""
+class FormularWerte(dict):
+    """dict mit getlist wie ein Formular (für die Technikerliste) – für Aufrufe ohne Webformular."""
 
     def __init__(self, werte, techniker):
         super().__init__(werte)
@@ -424,16 +434,3 @@ def status_setzen(con, auftrag_id, neu, nutzer_id, grund="", rechnung_nummer="")
             werte["rechnung_nummer"] = ""
         db.aendern(con, "auftrag", auftrag_id, werte, nutzer_id)
         _verlauf(con, auftrag_id, "status", nutzer_id, status_alt=alt, status_neu=neu, grund=grund)
-
-
-def offene_fuer_gruppe(con, gruppe_id):
-    """Offene Aufträge, in deren Umfang („auswahl“) die Wohnung steht."""
-    return con.execute("SELECT u.nummer FROM auftrag_gruppe z JOIN auftrag u ON u.id = z.auftrag_id "
-                       "WHERE z.gruppe_id = ? AND z.geloescht = 0 AND u.geloescht = 0 AND u.status IN ('geplant', "
-                       "'aktiv') ORDER BY u.nummer", (gruppe_id,)).fetchall()
-
-
-def anzahl_fuer_anlage(con, anlage_id):
-    """Aufträge der Anlage, die nicht storniert sind (Nachweise – die Anlage darf dann nicht gelöscht werden)."""
-    return con.execute("SELECT COUNT(*) FROM auftrag WHERE anlage_id = ? AND geloescht = 0 AND status != 'storniert'",
-                       (anlage_id,)).fetchone()[0]

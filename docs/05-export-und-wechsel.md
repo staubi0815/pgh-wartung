@@ -85,5 +85,13 @@ Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/exp
 - **Rundweg getestet:** Foxtag-Export → eigener Import in eine leere Datenbank ergibt dieselben Stammdaten.
   Bekannte Abweichungen: Typ-Bezeichnung wird beim Import aus dem Modell gebildet; der Import fasst Zeilenumbrüche
   in Textfeldern zu Leerzeichen zusammen (betrifft mehrzeilige Notizen, offen).
+- **Aufträge (09.10.2026):** `07_Auftraege.xlsx` mit den offenen Aufträgen (geplant/in Arbeit). AUFTRAGSTYP.NUMMER
+  = Schlüssel der Auftragsart in Großbuchstaben (WARTUNG, INSTALLATION, NACHTERMIN, FERNINSPEKTION – in Foxtag so
+  anlegen), TECHNIKER.NUMMER = Personalnummer (Verwaltung → Nutzer), höchstens drei; Uhrzeit steht als Datum mit
+  Zeit in DATUM (ob Foxtag sie übernimmt, zeigt der Probe-Import). Foxtag verlangt einen Techniker: Pool-Aufträge
+  und fehlende Personalnummern meldet LIESMICH.txt. Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar.
+  **Import** (Verwaltung → Excel-Import → Aufträge): gleiche Spalten; Auftragstyp als Nummer oder Name; leerer
+  Techniker = Pool; Datum in der Vergangenheit erlaubt (Hinweis), damit offene Aufträge aus Foxtag übernommen
+  werden können; Hilfespalte der Foxtag-Vorlage wird übergangen. Rundweg Export → Import getestet.
 - **Offen:** Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11.2026, nur erfundene Daten); Dateien
   (Fotos, Unterschriften, Berichte) und Aufträge/Artikel kommen mit den jeweiligen Modulen.

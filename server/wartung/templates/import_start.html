@@ -3,8 +3,8 @@
 <h1>Excel-Import</h1>
 {% if request.query_params.get('hinweis') == 'abgelaufen' %}<p class="fehler">Die Vorschau ist abgelaufen. Bitte die Datei erneut hochladen.</p>{% endif %}
 {% if fehler %}<p class="fehler">{{ fehler }}</p>{% endif %}
-<p class="leise">Dateien im Format der Foxtag-Importvorlagen. Reihenfolge: erst Kunden, dann Kontakte, Objekte, Anlagen, Typen
-  und zuletzt die Melder je Anlage. Nach dem Hochladen sehen Sie eine Vorschau; gespeichert wird erst mit „Übernehmen“ –
+<p class="leise">Dateien im Format der Foxtag-Importvorlagen. Reihenfolge: erst Kunden, dann Kontakte, Objekte, Anlagen, Typen,
+  die Melder je Anlage und zuletzt die Aufträge. Nach dem Hochladen sehen Sie eine Vorschau; gespeichert wird erst mit „Übernehmen“ –
   und nur, wenn keine Zeile einen Fehler hat. Vorhandene Einträge (gleiche Nummer) werden nicht überschrieben.</p>
 <form method="post" action="/verwaltung/import/pruefen" enctype="multipart/form-data" class="raster">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
