@@ -33,7 +33,7 @@ name („Tablet 1“), nutzer_id, freigeschaltet_am, gesperrt_am, letzter_abglei
 ### kunde
 nummer (K0001), art (`hausverwaltung` | `eigentuemer` | `weg` | `vermieter` | `privat` | `sonstig`), name,
 zusatz, strasse, plz, ort, land (DE), telefon, email, rechnungs_email, lieferantennummer (die der Kunde uns gibt),
-notiz_intern, labels.
+notiz_intern. Labels siehe Abschnitt „label“ (kein eigenes Feld).
 
 ### kontakt
 name, firma, funktion („Hausmeister“, „Verwalter“), telefon, mobil, email, notiz.
@@ -58,13 +58,21 @@ lage (Breite/Länge, für Karte und Fahrten), zugangshinweise („Schlüssel bei
 ### anlage
 nummer (ANL-0001), objekt_id, anlagenart (`rauchwarnmelder`, später `tueren`), bezeichnung, stammtechniker_id (Nutzer, Vorschlag beim Planen), hinweise_techniker,
 verfahren (`A` | `B` | `C` – Art der Inspektion: vor Ort / teilweise Fern / Ferninspektion), passiv (ja/nein),
-einzelnachweis_je_wohnung (ja/nein, Standard nein – z. B. bei Eigentümergemeinschaften einschaltbar), labels, notiz.
+einzelnachweis_je_wohnung (ja/nein, Standard nein – z. B. bei Eigentümergemeinschaften einschaltbar), notiz (Labels siehe „label“).
 Melder werden nur verkauft (Patrick 08.10.2026) – kein Mietmodell, Melder gehören dem Kunden.
 Verknüpfungen: anlage_kontakt (siehe oben), dateien.
 Verschieben (Schritt 8, `anlagen.verschieben`): Die Anlage wechselt mit Wohnungen, Komponenten und Aufträgen in ein anderes
 Objekt, auch eines anderen Kunden (nur `objekt_id` ändert sich; Nummer bleibt). Ansprechpartner-Zuordnungen, deren
 Kontakt nicht zum Kunden des neuen Objekts gehört, werden als gelöscht markiert (`kontakte_bereinigen`); dasselbe
 passiert, wenn ein Objekt den Kunden wechselt. Jede Änderung steht im Änderungsprotokoll.
+
+### label und label_zuordnung (umgesetzt 10.10.2026, Migration 011, Logik `server/wartung/labels.py`)
+`label`: name (ohne Groß-/Kleinschreibung eindeutig unter den nicht gelöschten), farbe (feste Palette: `grau` | `rot` |
+`orange` | `gelb` | `gruen` | `blau` | `violett`). `label_zuordnung`: label_id, art (`kunde` | `objekt` | `anlage` |
+`auftrag`), datensatz_id; je Label und Datensatz höchstens eine nicht gelöschte Zuordnung. `datensatz_id` ist bewusst
+ohne Fremdschlüssel (je `art` zeigt sie auf eine andere Tabelle). Ein Label gilt nur an dem Datensatz, an dem es
+angehakt ist – es wird nicht an untergeordnete Datensätze vererbt. Löschen eines Labels markiert es und alle seine
+Zuordnungen als gelöscht. Beide Tabellen haben die Standardspalten, Abgleichsnummer und Löschschutz wie die übrigen.
 
 ### gruppe (= Wohnung bzw. bei Türen Geschoss/Bauteil)
 anlage_id, nummer (43), bezeichnung („1. OG links“), bewohner (Name am Klingelschild – personenbezogen!),
@@ -76,7 +84,7 @@ bei Türen 1, 2 … für Teile), komponententyp_id, raum („Flur“,
 Auswahlliste je Anlagenart + frei), raumart (`schlafraum` | `kinderzimmer` | `flur_rettungsweg` | `sonstiger`),
 seriennummer, zulassungsnummer (je Komponente, Vorbild Foxtag), funk_id (wM-Bus-Adresse, für Ferninspektion), barcode (eigener Aufkleber), baujahr (Jahr bzw.
 Herstellungsdatum), inbetriebnahme_am, austausch_faellig_am (berechnet, änderbar), naechste_pruefung_am (berechnet),
-status (`aktiv` | `ausgebaut` | `ersetzt`), ersetzt_durch_id, labels, notiz.
+status (`aktiv` | `ausgebaut` | `ersetzt`), ersetzt_durch_id, notiz. (Labels an Komponenten sind noch nicht umgesetzt.)
 Bei Türen zusätzlich `eltern_id` (Sub-Komponenten: Feststellanlage, Haftmagnet, Rauchschalter …).
 
 ### komponententyp (Katalog, je Anlagenart)

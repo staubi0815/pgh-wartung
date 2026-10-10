@@ -77,6 +77,7 @@ erDiagram
     komponententyp ||--o{ komponente : ""
     kontakt ||--o{ kunde_kontakt : ""
     kunde ||--o{ kunde_kontakt : ""
+    label ||--o{ label_zuordnung : ""
     komponente ||--o{ massnahme : "komponente_alt_id"
     komponente ||--o{ massnahme : "komponente_neu_id"
     nutzer ||--o{ nutzer_rolle : ""

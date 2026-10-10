@@ -21,7 +21,7 @@ Auftrag, Seriennummer, Funk-ID) + Anzeige „Abgleich: Tablet 1 vor 5 min“.
 
 ## 2. Kunden
 
-**Liste:** Nummer, Name, Art, Ort, Anzahl Anlagen, nächste Fälligkeit. Filter: Art, Label. Knopf „Kunde anlegen“.
+**Liste:** Nummer, Name, Art, Ort, Anzahl Anlagen, nächste Fälligkeit. Filter: Art, Label (Labels erscheinen als farbige Etiketten hinter dem Namen). Knopf „Kunde anlegen“.
 
 **Kunde (Detail, Reiter):**
 - *Daten:* Art, Name, Zusatz, Anschrift, Telefon, E-Mail, Rechnungs-E-Mail, Lieferantennummer, interne Notiz, Labels.
@@ -94,7 +94,7 @@ Kunde. Aktionen: Status ändern (mit Begründung), in Auftrag einplanen, als „
 ## 8. Verwaltung
 
 Firma (Name, Logo, Nummernkreise, Berichtsfußzeile) · Nutzer und Rollen · Geräte (freischalten/sperren, letzter
-Abgleich) · Meldertypen (Katalog) · Artikel und Preise · Kontakte · Labels · Vorlagen (Ankündigung, Aushang, Mail-
+Abgleich) · Meldertypen (Katalog) · Artikel und Preise · Kontakte · Labels (umgesetzt: Liste mit Zählern, anlegen, umbenennen, Farbe, löschen unter `/verwaltung/labels`; angehakt wird in der Karte „Labels“ von Kunde, Objekt, Anlage und Auftrag; Filter in den Listen Kunden, Anlagen, Aufträge) · Vorlagen (Ankündigung, Aushang, Mail-
 Texte) · Import (Excel: Kunden, Objekte, Anlagen, Wohnungen/Melder) · Export (Vollexport, Foxtag-Format; siehe
 docs/05 Abschnitt 6) · Abgleich-Konflikte · Protokoll (Änderungen).
 

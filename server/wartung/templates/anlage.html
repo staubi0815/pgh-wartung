@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% import "_formular.html" as form %}{% from "_ampel.html" import ampel %}{% block titel %}{{ a.nummer }}{% endblock %}
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% import "_labels.html" as lab %}{% from "_ampel.html" import ampel %}{% block titel %}{{ a.nummer }}{% endblock %}
 {% block inhalt %}
 {% set darf = 'stammdaten.bearbeiten' in rechte %}
 <p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_nummer }} {{ a.kunde_name }}</a> ›
@@ -40,6 +40,8 @@
     {{ form.daten_zeilen(felder, a, weglassen=('nummer', 'bezeichnung', 'passiv', 'stammtechniker_id')) }}
   </dl>
 </section>
+
+{{ lab.karte('/anlagen/' ~ a.id ~ '/labels', labels_alle(), labels_von('anlage', a.id), csrf, 'stammdaten.bearbeiten' in rechte) }}
 
 <section class="karte" id="kontakte">
   <h2>Ansprechpartner</h2>

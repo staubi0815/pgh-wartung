@@ -7,6 +7,12 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Labels:** Frei benennbare, farbige Etiketten (Verwaltung › Labels: anlegen, umbenennen, Farbe aus fester Palette,
+  löschen; die Liste zeigt, wo jedes Label verwendet wird). Angehakt wird in der Karte „Labels“ bei Kunde, Objekt,
+  Anlage und Auftrag; in den Listen Kunden, Anlagen und Aufträge (auch Wochenansicht) gibt es einen Filter und die
+  Etiketten erscheinen in der Zeile. Ein Label gilt nur dort, wo es angehakt ist (keine Vererbung). Löschen entfernt
+  das Label überall. Im Excel-/Foxtag-Export sind Labels nicht enthalten. **Neue Datenbank-Migration 011 (nur neue
+  Tabellen, bestehende Daten bleiben unberührt) – trotzdem vor dem Einspielen die Datenbank sichern.**
 - **Kontakt bei mehreren Kunden:** Ein Kontakt (z. B. ein Hausmeisterdienst) kann bei mehreren Kunden geführt werden.
   Am Kunden: „Vorhandenen hinzufügen“ (mit Suche) und Spalte „Auch bei“. Im Kontakt: Abschnitt „Gehört zu“, „von diesem
   Kunden lösen“ oder „Kontakt löschen (bei allen Kunden)“. Änderungen an den Angaben gelten für alle Kunden. Der

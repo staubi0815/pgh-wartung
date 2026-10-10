@@ -6,7 +6,7 @@ Wohnungen, Melder, Checklisten und Mängeltypen an ihr hängen.
 """
 from datetime import date
 
-from . import anlagenart, db, faelligkeit, nummern, objekte
+from . import anlagenart, db, faelligkeit, labels, nummern, objekte
 from .felder import Feld, Ungueltig, einlesen, fuer_bearbeiten, like_muster
 from .objekte import ADRESSE_SQL
 
@@ -105,7 +105,7 @@ def passt(d, faellig):
             "austausch_bald": d["austausch_ampel"] in ("rot", "gelb")}[faellig]
 
 
-def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False, techniker=""):
+def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False, techniker="", label=""):
     """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten, Ampeln und nächstem
     offenen Auftrag; optional gefiltert nach Fälligkeit (FAELLIG_FILTER) und „ohne offenen Auftrag“."""
     sql, parameter = _GRUND_SQL, []
@@ -123,6 +123,9 @@ def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False, tec
     elif techniker:
         sql += " AND a.stammtechniker_id = ?"
         parameter.append(techniker)
+    if label:
+        sql += labels.filter_sql("anlage", "a.id")
+        parameter.append(label)
     if faellig and faellig not in dict(FAELLIG_FILTER):
         faellig = ""
     zeilen = con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",

@@ -45,13 +45,14 @@ def router(web):
     # ---------- Liste / Woche ----------
     @r.get("/auftraege", response_class=HTMLResponse)
     def liste(request: Request, ansicht: str = "liste", status: str = "", von: str = "", bis: str = "",
-              techniker: str = "", art: str = "", q: str = "", woche: str = "", hinweis: str = "", anzahl: int = 0):
+              techniker: str = "", art: str = "", q: str = "", woche: str = "", hinweis: str = "", anzahl: int = 0,
+              label: str = ""):
         n = web.nutzer(request)
         eingeschraenkt = auftraege.sicht(request.state.rechte, n["id"])
         filter_ = {"techniker_id": techniker if eingeschraenkt is None else "", "auftragsart": art, "suche": q,
-                   "eingeschraenkt": eingeschraenkt}
+                   "eingeschraenkt": eingeschraenkt, "label": label}
         werte = {"ansicht": "woche" if ansicht == "woche" else "liste", "status": status, "von": von, "bis": bis,
-                 "techniker": techniker, "art": art, "q": q}
+                 "techniker": techniker, "art": art, "q": q, "label": label}
         gemeinsam = dict(werte=werte, eingeschraenkt=eingeschraenkt, status_auswahl=auftraege.LISTE_STATUS,
                          auftragsarten=alle_auftragsarten(), arten_text=dict(alle_auftragsarten()),
                          techniker_auswahl=auftraege.techniker_auswahl(con) if eingeschraenkt is None else (),

@@ -1,0 +1,17 @@
+{% extends "verwaltung.html" %}{% import "_labels.html" as lab %}{% block titel %}Labels{% endblock %}
+{% block bereich %}
+<div class="zeile"><h1>Labels</h1><a class="knopf" href="/verwaltung/labels/neu">+ Label anlegen</a></div>
+{% if hinweis == 'angelegt' %}<p class="ok">Label angelegt.</p>{% elif hinweis == 'gespeichert' %}<p class="ok">Gespeichert.</p>{% elif hinweis == 'geloescht' %}<p class="ok">Label gelöscht ({{ anzahl }} Zuordnung{{ 'en' if anzahl != 1 }} entfernt).</p>{% endif %}
+<p class="leise">Labels sind frei benennbare, farbige Etiketten. Sie werden an Kunden, Objekten, Anlagen und Aufträgen angehakt und lassen sich dort in den Listen als Filter nutzen.</p>
+{% if liste %}
+<table>
+  <tr><th>Label</th><th class="zahl">Kunden</th><th class="zahl">Objekte</th><th class="zahl">Anlagen</th><th class="zahl">Aufträge</th></tr>
+  {% for l in liste %}
+  <tr>
+    <td><a href="/verwaltung/labels/{{ l.id }}"><span class="etikett f-{{ l.farbe }}">{{ l.name }}</span></a></td>
+    <td class="zahl">{{ l.n_kunde }}</td><td class="zahl">{{ l.n_objekt }}</td><td class="zahl">{{ l.n_anlage }}</td><td class="zahl">{{ l.n_auftrag }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}<p>Noch keine Labels angelegt.</p>{% endif %}
+{% endblock %}

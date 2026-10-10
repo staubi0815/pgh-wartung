@@ -1,0 +1,25 @@
+{% macro chips(liste) %}{% for l in liste %}<span class="etikett f-{{ l.farbe }}">{{ l.name }}</span> {% endfor %}{% endmacro %}
+
+{% macro filter(alle, gewaehlt) %}{% if alle %}
+  <select name="label" aria-label="Label">
+    <option value="">alle Labels</option>
+    {% for l in alle %}<option value="{{ l.id }}" {% if gewaehlt == l.id %}selected{% endif %}>{{ l.name }}</option>{% endfor %}
+  </select>{% endif %}{% endmacro %}
+
+{# Karte „Labels“ auf der Detailseite: Anzeige, mit Recht zum Ändern auch Ankreuzfelder #}
+{% macro karte(pfad, alle, gesetzt, csrf, darf) %}
+<section class="karte" id="labels">
+  <h2>Labels</h2>
+  {% if darf and alle %}
+  <form method="post" action="{{ pfad }}" class="label-wahl">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    {% for l in alle %}
+    <label class="haken inline"><input type="checkbox" name="label" value="{{ l.id }}" {% if l.id in gesetzt | map(attribute='id') | list %}checked{% endif %}> <span class="etikett f-{{ l.farbe }}">{{ l.name }}</span></label>
+    {% endfor %}
+    <button class="zweitrangig">Labels speichern</button>
+  </form>
+  {% elif gesetzt %}<p>{{ chips(gesetzt) }}</p>
+  {% else %}<p class="leise">Keine Labels.</p>{% endif %}
+  {% if darf and not alle %}<p class="leise">Es gibt noch keine Labels. {% if 'verwaltung.katalog' in rechte %}<a href="/verwaltung/labels/neu">Label anlegen</a>{% else %}Labels legt die Verwaltung an.{% endif %}</p>{% endif %}
+</section>
+{% endmacro %}

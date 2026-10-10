@@ -10,7 +10,7 @@ Regeln:
 """
 from datetime import date, timedelta
 
-from . import anlagenart, db, nummern, rechte
+from . import anlagenart, db, labels, nummern, rechte
 from .felder import Feld, Ungueltig, einlesen, gueltiges_datum, like_muster
 
 STATUS = (("geplant", "Geplant"), ("aktiv", "In Arbeit"), ("abgeschlossen", "Abgeschlossen"),
@@ -161,7 +161,7 @@ def darf_sehen(con, auftrag_id, rechte_menge, nutzer_id):
 
 
 def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", suche="", eingeschraenkt=None,
-          begrenzt=True):
+          begrenzt=True, label=""):
     """Aufträge mit Anlage, Anschrift und Technikernamen, nach Termin sortiert (ganztägige zuerst).
 
     status: Schlüssel aus LISTE_STATUS (unbekannt = offen); von/bis: JJJJ-MM-TT (ungültig = ignoriert);
@@ -198,6 +198,9 @@ def liste(con, status="offen", von="", bis="", techniker_id="", auftragsart="", 
                   "CASE WHEN o.adresse_wie_kunde = 1 THEN k.ort ELSE o.ort END")
         sql += " AND (" + " OR ".join(f"{f} LIKE ? ESCAPE '\\'" for f in felder) + ")"
         parameter += [like_muster(suche.strip())] * len(felder)
+    if label:
+        sql += labels.filter_sql("auftrag", "u.id")
+        parameter.append(label)
     if eingeschraenkt is not None:
         bedingung, p = _sichtbar_sql(*eingeschraenkt)
         sql += " AND " + bedingung

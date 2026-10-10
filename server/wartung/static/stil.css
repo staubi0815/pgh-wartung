@@ -118,3 +118,9 @@ ul.termine li{padding:6px 0;border-bottom:1px solid var(--line)}
 ul.termine li a{display:block}
 .karte+.karte{margin-top:16px}
 #zusammenfuehren{margin-top:24px}
+.etikett{display:inline-block;font-size:.75rem;padding:1px 8px;border-radius:10px;border:1px solid transparent;vertical-align:middle;white-space:nowrap}
+.f-grau{background:#eceff1;color:#37474f;border-color:#cfd8dc}.f-rot{background:#fdecea;color:#b71c1c;border-color:#f5c2be}
+.f-orange{background:#fff3e0;color:#a85a00;border-color:#ffd9a0}.f-gelb{background:#fff9db;color:#7a6200;border-color:#f0e08a}
+.f-gruen{background:#e8f5e9;color:#1b5e20;border-color:#b7dcb9}.f-blau{background:#e3f2fd;color:#0d47a1;border-color:#b3d4f5}
+.f-violett{background:#f3e5f5;color:#6a1b9a;border-color:#dcb8e4}
+form.label-wahl{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center}

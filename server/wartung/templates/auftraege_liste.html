@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% block titel %}Aufträge{% endblock %}
+{% extends "basis.html" %}{% import "_labels.html" as lab %}{% block titel %}Aufträge{% endblock %}
 {% block inhalt %}
 {% set woche_ansicht = werte.ansicht == 'woche' %}
 <div class="zeile">
@@ -34,8 +34,9 @@
     <option value="">alle Auftragsarten</option>
     {% for w, text in auftragsarten %}<option value="{{ w }}" {% if werte.art == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
   </select>
+  {{ lab.filter(labels_alle(), werte.label) }}
   <button class="zweitrangig">Filtern</button>
-  {% if werte.q or werte.status or werte.von or werte.bis or werte.techniker or werte.art %}<a href="/auftraege{{ '?ansicht=woche&woche=' ~ montag.isoformat() if woche_ansicht }}">zurücksetzen</a>{% endif %}
+  {% if werte.q or werte.status or werte.von or werte.bis or werte.techniker or werte.art or werte.label %}<a href="/auftraege{{ '?ansicht=woche&woche=' ~ montag.isoformat() if woche_ansicht }}">zurücksetzen</a>{% endif %}
 </form>
 
 {% macro zeile_techniker(x) %}{{ x.techniker_namen or 'Pool' }}{% endmacro %}
@@ -43,7 +44,7 @@
 {% if woche_ansicht %}
 <div class="zeile wochenkopf">
   <h2>Woche vom {{ montag.isoformat() | de }}</h2>
-  {% set filter_url = '&status=' ~ werte.status ~ '&techniker=' ~ werte.techniker ~ '&art=' ~ werte.art ~ '&q=' ~ (werte.q | urlencode) %}
+  {% set filter_url = '&status=' ~ werte.status ~ '&techniker=' ~ werte.techniker ~ '&art=' ~ werte.art ~ '&label=' ~ werte.label ~ '&q=' ~ (werte.q | urlencode) %}
   <div class="knopfzeile">
     <a href="/auftraege?ansicht=woche&woche={{ vorher }}{{ filter_url }}">‹ Vorwoche</a>
     <a href="/auftraege?ansicht=woche{{ filter_url }}">Diese Woche</a>
@@ -54,11 +55,12 @@
   {% for tag, eintraege in tage %}
   <section class="tag{{ ' heute' if tag.isoformat() == heute }}">
     <h3>{{ tag.isoformat() | de(true) }}</h3>
+    {% set lj = labels_je('auftrag', eintraege | map(attribute='id')) %}
     {% for x in eintraege %}
     <a class="termin status-rand-{{ x.status }}" href="/auftraege/{{ x.id }}">
       <strong>{{ x.uhrzeit or 'ganztägig' }}</strong> · {{ x.nummer }}<br>
       {{ x.adr_strasse }}, {{ x.adr_ort }}<br>
-      <span class="leise">{{ arten_text.get(x.auftragsart, x.auftragsart) }} · {{ zeile_techniker(x) }}{% if x.status != 'geplant' %} · {{ AUFTRAG_STATUS[x.status] }}{% endif %}</span>
+      <span class="leise">{{ arten_text.get(x.auftragsart, x.auftragsart) }} · {{ zeile_techniker(x) }}{% if x.status != 'geplant' %} · {{ AUFTRAG_STATUS[x.status] }}{% endif %}</span>{% if lj.get(x.id) %}<br>{{ lab.chips(lj[x.id]) }}{% endif %}
     </a>
     {% else %}<p class="leise">–</p>{% endfor %}
   </section>
@@ -69,12 +71,13 @@
 {% if liste %}
 <table>
   <tr><th>Termin</th><th>Nr.</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Techniker</th><th>Status</th></tr>
+  {% set lj = labels_je('auftrag', liste | map(attribute='id')) %}
   {% for x in liste %}
   <tr>
     <td class="nowrap">{{ x.datum | de(true) }}{% if x.uhrzeit %} {{ x.uhrzeit }}{% endif %}</td>
     <td class="nowrap"><a href="/auftraege/{{ x.id }}">{{ x.nummer }}</a></td>
     <td>{{ x.adr_strasse }}, {{ x.adr_plz }} {{ x.adr_ort }}</td>
-    <td>{{ x.kunde_name }}</td>
+    <td>{{ x.kunde_name }} {{ lab.chips(lj.get(x.id, [])) }}</td>
     <td>{{ arten_text.get(x.auftragsart, x.auftragsart) }}</td>
     <td>{{ zeile_techniker(x) }}</td>
     <td><span class="status-marke status-{{ x.status }}">{{ AUFTRAG_STATUS[x.status] }}</span></td>
