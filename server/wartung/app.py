@@ -15,7 +15,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from . import anlagen as anlagen_logik, anlagenart, auftraege as auftraege_logik, db, faelligkeit, felder, rechte
 from .web import (anlagen, anmeldung, auftraege, export, gruppen, importe, komponenten, kunden, objekte, typen,
-                  verwaltung)
+                  suche, verwaltung)
 from .web.basis import Web, Weiterleitung
 
 HIER = Path(__file__).parent
@@ -68,6 +68,6 @@ def erzeuge_app(daten_ordner=None, https=False):
 
     web = Web(con, vorlagen, daten)
     for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, auftraege, typen, importe, export,
-                    verwaltung):
+                    verwaltung, suche):
         app.include_router(bereich.router(web))
     return app

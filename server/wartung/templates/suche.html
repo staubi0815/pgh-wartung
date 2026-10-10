@@ -1,0 +1,43 @@
+{% extends "basis.html" %}{% block titel %}Suche{% endblock %}
+{% block inhalt %}
+<h1>Suche</h1>
+<form method="get" action="/suche" class="filter">
+  <input type="search" name="q" value="{{ q }}" placeholder="Nummer, Name, Ort, Seriennummer, Barcode …" aria-label="Suche" autofocus>
+  <button class="zweitrangig">Suchen</button>
+</form>
+{% if zu_kurz %}<p class="leise">Bitte mindestens 2 Zeichen eingeben.</p>
+{% elif q and not ergebnis %}<p>Nichts gefunden für „{{ q }}“.</p>
+{% elif not q %}<p class="leise">Sucht in Kunden, Kontakten, Objekten, Anlagen, Wohnungen, Meldern (Seriennummer, Barcode, Funk-ID) und Aufträgen.</p>{% endif %}
+
+{% macro mehr(gruppe) %}{% if ergebnis[gruppe][1] %}<p class="leise">Mehr als {{ pro_gruppe }} Treffer – Suchbegriff genauer fassen.</p>{% endif %}{% endmacro %}
+
+{% if 'kunden' in ergebnis %}<div class="karte"><h2>Kunden</h2><table>
+  {% for k in ergebnis['kunden'][0] %}<tr><td><a href="/kunden/{{ k.id }}">{{ k.nummer }}</a></td>
+  <td><a href="/kunden/{{ k.id }}">{{ k.name }}</a>{% if k.zusatz %} <span class="leise">{{ k.zusatz }}</span>{% endif %}</td>
+  <td>{{ k.plz }} {{ k.ort }}</td></tr>{% endfor %}</table>{{ mehr('kunden') }}</div>{% endif %}
+
+{% if 'kontakte' in ergebnis %}<div class="karte"><h2>Kontakte</h2><table>
+  {% for c in ergebnis['kontakte'][0] %}<tr><td><a href="/kontakte/{{ c.id }}">{{ c.name }}</a>{% if c.firma %} <span class="leise">{{ c.firma }}</span>{% endif %}</td>
+  <td>{{ c.funktion }}</td><td>{{ c.telefon or c.mobil }}</td><td>{{ c.kunde_name or '' }}</td></tr>{% endfor %}</table>{{ mehr('kontakte') }}</div>{% endif %}
+
+{% if 'objekte' in ergebnis %}<div class="karte"><h2>Objekte</h2><table>
+  {% for o in ergebnis['objekte'][0] %}<tr><td><a href="/objekte/{{ o.id }}">{{ o.nummer }}</a></td>
+  <td><a href="/objekte/{{ o.id }}">{{ o.bezeichnung }}</a></td><td>{{ [o.strasse, ((o.plz or '') ~ ' ' ~ (o.ort or '')) | trim] | select | join(', ') }}</td><td>{{ o.kunde_name }}</td></tr>{% endfor %}</table>{{ mehr('objekte') }}</div>{% endif %}
+
+{% if 'anlagen' in ergebnis %}<div class="karte"><h2>Anlagen</h2><table>
+  {% for a in ergebnis['anlagen'][0] %}<tr><td><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
+  <td>{{ a.bezeichnung }}</td><td>{{ a.objekt_bezeichnung }}</td><td>{{ a.adr_plz }} {{ a.adr_ort }}</td><td>{{ a.kunde_name }}</td></tr>{% endfor %}</table>{{ mehr('anlagen') }}</div>{% endif %}
+
+{% if 'wohnungen' in ergebnis %}<div class="karte"><h2>Wohnungen</h2><table>
+  {% for g in ergebnis['wohnungen'][0] %}<tr><td><a href="/anlagen/{{ g.anlage_id }}">{{ g.anlage_nummer }}</a></td>
+  <td>Nr. {{ g.nummer }}</td><td>{{ g.bezeichnung }}</td><td>{{ g.bewohner }}</td></tr>{% endfor %}</table>{{ mehr('wohnungen') }}</div>{% endif %}
+
+{% if 'melder' in ergebnis %}<div class="karte"><h2>Melder</h2><table>
+  {% for m in ergebnis['melder'][0] %}<tr><td><a href="/komponenten/{{ m.id }}">{{ m.seriennummer or m.barcode or m.funk_id or '–' }}</a></td>
+  <td>{{ m.typ }}</td><td>{% if m.anlage_nummer %}{{ m.anlage_nummer }} · {{ m.gruppe_nummer }}/{{ m.komp_nummer }} {{ m.raum }}{% else %}Lager{% endif %}</td>
+  <td>{{ m.barcode or '' }}</td><td class="leise">{{ m.status }}</td></tr>{% endfor %}</table>{{ mehr('melder') }}</div>{% endif %}
+
+{% if 'auftraege' in ergebnis %}<div class="karte"><h2>Aufträge</h2><table>
+  {% for u in ergebnis['auftraege'][0] %}<tr><td><a href="/auftraege/{{ u.id }}">{{ u.nummer }}</a></td>
+  <td>{{ u.datum }}</td><td>{{ u.anlage_nummer }}</td><td>{{ u.kunde_name }}</td><td class="leise">{{ u.status }}</td></tr>{% endfor %}</table>{{ mehr('auftraege') }}</div>{% endif %}
+{% endblock %}

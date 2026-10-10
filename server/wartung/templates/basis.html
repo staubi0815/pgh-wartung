@@ -21,6 +21,9 @@
     <a class="bald" title="folgt">Mängel</a>
     {% if rechte | select('in', VERWALTUNG | map(attribute=0) | list) | list %}<a href="/verwaltung">Verwaltung</a>{% endif %}
   </nav>
+  <form class="suche" method="get" action="/suche" role="search">
+    <input type="search" name="q" value="{{ q | default('') }}" placeholder="Suchen: Kunde, Anlage, Melder, Auftrag" aria-label="Suche" accesskey="s">
+  </form>
   <div class="konto">
     <a href="/konto/passwort">{{ ich.name }}</a>
     <form method="post" action="/abmelden"><input type="hidden" name="csrf_token" value="{{ csrf }}"><button class="link">Abmelden</button></form>

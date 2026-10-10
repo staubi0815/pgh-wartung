@@ -7,6 +7,9 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Globale Suche:** Suchfeld oben in der Kopfzeile (Kunden, Kontakte, Objekte, Anlagen, Wohnungen samt Bewohner, Melder
+  nach Seriennummer/Barcode/Funk-ID, Aufträge). Ab 2 Zeichen, je Gruppe die ersten 10 Treffer. Techniker finden nur
+  eigene Aufträge und den Pool, keine Stammdaten.
 - **Übersicht:** `docs/00-ueberblick.md` mit Bildern (Systemaufbau, Datenmodell, Lebenslauf eines Auftrags, Stand der
   Bausteine). Datenmodell und Auftragsstatus werden aus dem Code erzeugt; ein Test meldet, wenn sie veraltet sind.
 - **Automatische Prüfung auf GitHub:** Bei jedem Hochladen laufen alle Tests auf einem fremden Rechner. Ergebnis ist
