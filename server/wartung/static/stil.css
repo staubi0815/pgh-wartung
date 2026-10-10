@@ -117,3 +117,4 @@ ul.termine{list-style:none;padding:0;margin:0 0 8px}
 ul.termine li{padding:6px 0;border-bottom:1px solid var(--line)}
 ul.termine li a{display:block}
 .karte+.karte{margin-top:16px}
+#zusammenfuehren{margin-top:24px}

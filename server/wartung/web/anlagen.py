@@ -74,6 +74,28 @@ def router(web):
             return RedirectResponse(f"/anlagen/{anlage_id}?hinweis={hinweis}", status_code=303)
         return RedirectResponse(f"/objekte/{a['objekt_id']}?hinweis=anlage_geloescht", status_code=303)
 
+    # ---------- Verschieben ----------
+    def verschieben_seite(request, n, a, q="", fehler=None, status=200):
+        return web.seite(request, "anlage_verschieben.html", n, a=a, q=q, fehler=fehler or {}, status=status,
+                         ziele=anlagen.ziel_objekte(con, q, a["objekt_id"]))
+
+    @r.get("/{anlage_id}/verschieben", response_class=HTMLResponse)
+    def verschieben_form(request: Request, anlage_id: str, q: str = ""):
+        n = web.nutzer(request, BEARBEITEN)
+        return verschieben_seite(request, n, anlage_laden(anlage_id), q)
+
+    @r.post("/{anlage_id}/verschieben")
+    async def verschieben(request: Request, anlage_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        a = anlage_laden(anlage_id)
+        form = await web.formular(request)
+        try:
+            entfernt = anlagen.verschieben(con, anlage_id, form.get("objekt_id", ""), n["id"])
+        except Ungueltig as e:
+            return verschieben_seite(request, n, a, form.get("q", ""), e.fehler, 400)
+        hinweis = "verschoben_ohne_kontakte" if entfernt else "verschoben"
+        return RedirectResponse(f"/anlagen/{anlage_id}?hinweis={hinweis}", status_code=303)
+
     # ---------- Ansprechpartner ----------
     @r.post("/{anlage_id}/kontakte")
     async def kontakt_zuordnen(request: Request, anlage_id: str):

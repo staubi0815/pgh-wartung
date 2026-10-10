@@ -16,12 +16,15 @@ def router(web):
         return web.holen_oder_weiter(typen.holen(con, typ_id), "/verwaltung/typen")
 
     def formular(request, n, t, fehler, felder, status=200):
-        return web.seite(request, "typ_form.html", n, t=t, fehler=fehler, felder=felder, status=status)
+        bestehend = bool(t.get("id"))
+        return web.seite(request, "typ_form.html", n, t=t, fehler=fehler, felder=felder, status=status,
+                         ziele=typen.ziele_zum_zusammenfuehren(con, t["id"]) if bestehend else (),
+                         komponenten=typen.komponenten_zaehlen(con, t["id"]) if bestehend else 0)
 
     @r.get("", response_class=HTMLResponse)
-    def liste(request: Request, hinweis: str = ""):
+    def liste(request: Request, hinweis: str = "", anzahl: int = 0):
         n = web.nutzer(request, RECHT)
-        return web.seite(request, "typen_liste.html", n, liste=typen.liste(con), hinweis=hinweis,
+        return web.seite(request, "typen_liste.html", n, liste=typen.liste(con), hinweis=hinweis, anzahl=anzahl,
                          funk=dict(typen.FUNK), batterie=dict(typen.BATTERIE))
 
     @r.get("/neu", response_class=HTMLResponse)
@@ -56,5 +59,16 @@ def router(web):
             return formular(request, n, {**dict(t), **dict(form), "aktiv": form.get("aktiv")}, e.fehler,
                             typen.felder_bearbeiten(), 400)
         return RedirectResponse("/verwaltung/typen?hinweis=gespeichert", status_code=303)
+
+    @r.post("/{typ_id}/zusammenfuehren")
+    async def zusammenfuehren(request: Request, typ_id: str):
+        n = web.nutzer(request, RECHT)
+        t = typ_laden(typ_id)
+        form = await web.formular(request)
+        try:
+            anzahl = typen.zusammenfuehren(con, typ_id, form.get("ziel_id", ""), n["id"])
+        except Ungueltig as e:
+            return formular(request, n, dict(t), e.fehler, typen.felder_bearbeiten(), 400)
+        return RedirectResponse(f"/verwaltung/typen?hinweis=zusammengefuehrt&anzahl={anzahl}", status_code=303)
 
     return r

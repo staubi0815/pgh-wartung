@@ -10,4 +10,21 @@
   {{ form.felder(felder, t, fehler) }}
   <div class="breit knopfzeile"><button>Speichern</button><a href="/verwaltung/typen">Abbrechen</a></div>
 </form>
+{% if not neu and ziele %}
+<section class="karte" id="zusammenfuehren">
+  <h2>Mit anderem Typ zusammenführen</h2>
+  <p class="leise">Für doppelt angelegte Typen: Alle {{ komponenten }} Komponenten (auch ausgebaute) dieses Typs wechseln zum gewählten Typ,
+    dieser Typ wird danach gelöscht. Die Fälligkeiten werden neu berechnet. Im Änderungsprotokoll bleibt jede Umstellung nachlesbar.</p>
+  <form method="post" action="/verwaltung/typen/{{ t.id }}/zusammenfuehren" class="filter loeschen"
+        data-frage="Alle Komponenten von „{{ t.bezeichnung }}“ auf den gewählten Typ umstellen und „{{ t.bezeichnung }}“ löschen?">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <select name="ziel_id" aria-label="Zieltyp" required>
+      <option value="">Zieltyp wählen …</option>
+      {% for id, text in ziele %}<option value="{{ id }}">{{ text }}</option>{% endfor %}
+    </select>
+    <button class="zweitrangig gefahr">Zusammenführen</button>
+  </form>
+  {% if fehler.get('ziel_id') %}<p class="fehler">{{ fehler['ziel_id'] }}</p>{% endif %}
+</section>
+{% endif %}
 {% endblock %}

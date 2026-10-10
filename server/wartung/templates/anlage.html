@@ -6,7 +6,8 @@
 <div class="zeile">
   <h1>{{ art.name if art else a.anlagenart }} <span class="leise">{{ a.nummer }}{% if a.bezeichnung %} · {{ a.bezeichnung }}{% endif %}</span>
     {% if a.passiv %}<span class="marke-passiv">passiv</span>{% endif %}</h1>
-  {% if darf %}<a class="knopf" href="/anlagen/{{ a.id }}/bearbeiten">Bearbeiten</a>{% endif %}
+  {% if darf %}<span class="knopfzeile"><a class="knopf zweitrangig" href="/anlagen/{{ a.id }}/verschieben">Verschieben</a>
+    <a class="knopf" href="/anlagen/{{ a.id }}/bearbeiten">Bearbeiten</a></span>{% endif %}
 </div>
 {% set meldungen = {'angelegt': 'Anlage angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_zugeordnet': 'Ansprechpartner zugeordnet.',
                     'kontakt_entfernt': 'Zuordnung entfernt.', 'gruppe_angelegt': art.gruppe ~ ' angelegt.',
@@ -14,7 +15,8 @@
                     'komponente_angelegt': art.komponente ~ ' angelegt.', 'komponenten_angelegt': art.komponente_mehrzahl ~ ' angelegt.',
                     'komponente_gespeichert': art.komponente ~ ' gespeichert.', 'komponente_geloescht': art.komponente ~ ' gelöscht.',
                     'komponente_ersetzt': art.komponente ~ ' ausgetauscht.', 'komponente_ausgebaut': art.komponente ~ ' ausgebaut.',
-                    'gruppe_kopiert': art.gruppe ~ ' kopiert.'} %}
+                    'gruppe_kopiert': art.gruppe ~ ' kopiert.', 'verschoben': 'Anlage verschoben.',
+                    'verschoben_ohne_kontakte': 'Anlage verschoben. Ansprechpartner des bisherigen Kunden wurden entfernt – bitte neu zuordnen.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_auftraege' %}<p class="fehler">Die Anlage hat Aufträge und kann daher nicht gelöscht werden (Aufträge sind Nachweise; stornierte zählen nicht).</p>{% endif %}
 {% if hinweis == 'gruppe_in_auftrag' %}<p class="fehler">Die {{ art.gruppe }} steht in einem offenen Auftrag und kann daher nicht gelöscht werden.</p>{% endif %}
