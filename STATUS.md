@@ -39,8 +39,7 @@
    als ZIP und Foxtag-Format als nummerierte Excel-Dateien; Rundweg Export → Import getestet; Vollexport nur mit
    Nutzer- und Protokollrecht, Büro darf den Foxtag-Export; jeder Export im Änderungsprotokoll; 143 Tests grün;
    Details `docs/05` Abschnitt 6). **Baustein 2 Stammdaten damit fertig.**
-   Offen: Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11., erfundene Daten); Import fasst
-   Zeilenumbrüche in Notizen zu Leerzeichen zusammen (prüfen, ob Notizen mehrzeilig bleiben sollen).
+   Probe-Import ins Foxtag-Testkonto ✓ (10.10.2026, siehe Punkt 9). Offen: Import fasst Zeilenumbrüche in Notizen zu Leerzeichen zusammen (prüfen, ob Notizen mehrzeilig bleiben sollen).
 7. Baustein 3 Aufträge (09.10.2026), in sechs Schritten: 1 Fundament ✓ (Migration 006: auftrag, auftrag_techniker,
    auftrag_gruppe, auftrag_verlauf ⊕; `auftraege.py` mit Statusübergängen, Verschieben mit Grund, Pool ohne
    Techniker; Löschsperre für Anlagen mit Aufträgen und Wohnungen in offenen Aufträgen; Feldart Uhrzeit; Datum muss
@@ -54,7 +53,7 @@
    überfällige Aufträge, fällige Anlagen „davon ohne Auftrag“, abzurechnen; Techniker nur eigene + Pool),
    6 Foxtag-Format ✓ (offene Aufträge als `07_Auftraege.xlsx` im Foxtag-Export, Import als weitere Datenart, Rundweg
    getestet; docs/05 Abschnitt 6). **Baustein 3 Aufträge damit fertig** (182 Tests grün).
-   Offen: Probe-Import ins Foxtag-Testkonto (zeigt u. a., ob Foxtag die Uhrzeit aus DATUM übernimmt).
+   Probe-Import ✓ (Punkt 9): Foxtag übernimmt nur den Tag, Uhrzeit jetzt zusätzlich in den Hinweisen.
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,
    Fotos, Auftrag beenden, **Offline-Test** (Methode steht in `docs/08`, Termin mit Patrick), zwei Geräte.
@@ -63,3 +62,8 @@
    0.1–0.3 (Tags), Entscheidungsliste `docs/09`, PR-Vorlage. Ab jetzt Änderungen nur noch per Pull Request
    (CLAUDE.md „Arbeitsweise“). Offen: unabhängige Prüfung von außen vor dem Echtbetrieb; optional Schutz von `main`
    in den GitHub-Einstellungen (Merge nur mit grünen Tests).
+9. Probe-Import ins Foxtag-Testkonto (10.10.2026, Patrick per Hand, Nachtest per Skript mit Patricks
+   Berechtigungsregel für `node /tmp/foxtag/*.js`): alle Datenarten kommen an. Folgerungen umgesetzt: Dateinamen wie
+   das Foxtag-Menü und Menüpunkt je Datei im LIESMICH, Typen vor Komponenten (sonst legt Foxtag Typen ohne
+   Prüfintervall an), Uhrzeit zusätzlich in den Auftragshinweisen (Import liest sie zurück), Probe-Kontakt ohne
+   E-Mail. Details `docs/05` Abschnitt 6. Probedaten „PT-“ bleiben im Testkonto (läuft ca. 08.11. aus).

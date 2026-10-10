@@ -58,8 +58,8 @@ def test_export_auftraege(quelle):
         ["A-1002", "ANL-1", datetime(MORGEN.year, MORGEN.month, MORGEN.day), "INSTALLATION", None, None, None, None],
         ["A-1003", "ANL-1", datetime(MORGEN.year, MORGEN.month, MORGEN.day), "WARTUNG", None, None, None, None],
         ["A-1001", "ANL-1", datetime(MORGEN.year, MORGEN.month, MORGEN.day, 8, 30), "WARTUNG", "P-1", None, None,
-         "Schlüssel beim Hausmeister"],
-    ]  # abgeschlossener Auftrag A-1004 fehlt; ganztägige vor solchen mit Uhrzeit
+         "Uhrzeit 08:30 Uhr\nSchlüssel beim Hausmeister"],
+    ]  # abgeschlossener Auftrag A-1004 fehlt; ganztägige vor solchen mit Uhrzeit; Uhrzeit auch in den Hinweisen
     assert ws["C4"].number_format == export.DATUM_ZEIT_FORMAT and ws["C2"].number_format == export.DATUMSFORMAT
     assert ("    INSTALLATION  (bei uns: Montage / Erstausstattung)\n"
             "    WARTUNG  (bei uns: Wartung / Inspektion)") in liesmich
@@ -113,6 +113,22 @@ def test_import_fehler_und_hinweise(quelle):
     assert 8 not in meldungen  # reine Hilfezeile übersprungen
     # nichts gespeichert, auch die fehlerfreie erste Zeile nicht
     assert con.execute("SELECT COUNT(*) FROM auftrag WHERE nummer = 'JOB-1'").fetchone()[0] == 0
+
+
+def test_import_uhrzeit_aus_hinweisen(quelle):
+    """Foxtag verliert die Uhrzeit im DATUM; sie kommt aus der ersten Hinweiszeile zurück (auch ohne Zeilenumbruch)."""
+    datei = xlsx(FOXTAG_KOPF,
+                 ["JOB-1", "ANL-1", MORGEN, "WARTUNG", "P-1", None, None, "Uhrzeit 7:15 Uhr Schlüssel beim Nachbarn"],
+                 ["JOB-2", "ANL-1", MORGEN, "WARTUNG", "P-1", None, None, "Uhrzeit 09:00 Uhr"],
+                 ["JOB-3", "ANL-1", datetime(MORGEN.year, MORGEN.month, MORGEN.day, 10, 0), "WARTUNG", "P-1", None,
+                  None, "Uhrzeit 09:00 Uhr\nim Datum steht eine andere Zeit"],
+                 ["JOB-4", "ANL-1", MORGEN, "WARTUNG", "P-1", None, None, "Bitte Uhrzeit 09:00 Uhr beachten"])
+    assert imp.uebernehmen(quelle, "auftraege", datei, None).gespeichert
+    werte = {r["nummer"]: (r["uhrzeit"], r["hinweise"]) for r in quelle.execute(
+        "SELECT nummer, uhrzeit, hinweise FROM auftrag WHERE nummer LIKE 'JOB-%'")}
+    assert werte == {"JOB-1": ("07:15", "Schlüssel beim Nachbarn"), "JOB-2": ("09:00", ""),
+                     "JOB-3": ("10:00", "im Datum steht eine andere Zeit"),  # Zeit im Datum hat Vorrang
+                     "JOB-4": (None, "Bitte Uhrzeit 09:00 Uhr beachten")}  # nur am Anfang erkannt
 
 
 def test_vorlage_auftraege(umgebung):
