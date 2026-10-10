@@ -3,22 +3,30 @@
 Regeln:
 - Erlaubte Statuswechsel stehen in UEBERGAENGE. Jeder Wechsel und jedes Verschieben steht mit Grund im
   Auftragsverlauf (nur anhängen). Stornieren und jeder Schritt zurück brauchen einen Grund.
-- Termin, Techniker und Hinweise sind änderbar, solange der Auftrag geplant oder in Arbeit ist; der Umfang nur,
-  solange er geplant ist (danach können schon Ergebnisse dazu vorliegen).
+- „In Planung“ ist eine unfertige Planung: sie ist änderbar wie ein geplanter Auftrag, steht aber erst nach
+  „Planung abschließen“ (Status geplant) den Technikern zur Verfügung.
+- Termin, Techniker und Hinweise sind änderbar, solange der Auftrag offen ist (in Planung, geplant, in Arbeit); der
+  Umfang nur, solange er in Planung oder geplant ist (danach können schon Ergebnisse dazu vorliegen).
+- Umfang: ganze Anlage, ausgewählte Wohnungen oder ausgewählte einzelne Komponenten (Melder).
+- „Extern beenden“: ein offener Auftrag gilt als an einem vergangenen Tag ohne die App erledigt (z. B. Altprüfung aus
+  einem anderen System); die Komponenten im Umfang bekommen dieses Datum als letzte Prüfung (nie ein älteres als
+  schon eingetragen) und die Fälligkeiten werden neu gerechnet. Ein extern beendeter Auftrag lässt sich nicht
+  wieder öffnen.
 - Ein Auftrag ohne Techniker ist ein Pool-Auftrag: jeder Techniker darf ihn übernehmen.
 - Aufträge werden nie gelöscht, nur storniert.
 """
 from datetime import date, timedelta
 
-from . import anlagenart, db, labels, nummern, rechte
-from .felder import Feld, Ungueltig, einlesen, gueltiges_datum, like_muster
+from . import anlagenart, db, faelligkeit, labels, nummern, rechte
+from .felder import Feld, Ungueltig, datum_de, einlesen, gueltiges_datum, like_muster
 
-STATUS = (("geplant", "Geplant"), ("aktiv", "In Arbeit"), ("abgeschlossen", "Abgeschlossen"),
+STATUS = (("in_planung", "In Planung"), ("geplant", "Geplant"), ("aktiv", "In Arbeit"), ("abgeschlossen", "Abgeschlossen"),
           ("abgerechnet", "Abgerechnet"), ("kostenlos", "Abgeschlossen ohne Rechnung"), ("storniert", "Storniert"))
 STATUS_TEXT = dict(STATUS)
-OFFEN = ("geplant", "aktiv")
+OFFEN = ("in_planung", "geplant", "aktiv")
 UEBERGAENGE = {
-    "geplant": ("aktiv", "abgeschlossen", "storniert"),
+    "in_planung": ("geplant", "storniert"),
+    "geplant": ("aktiv", "abgeschlossen", "storniert", "in_planung"),
     "aktiv": ("abgeschlossen", "geplant"),
     "abgeschlossen": ("abgerechnet", "kostenlos", "aktiv"),
     "abgerechnet": ("abgeschlossen",),
@@ -26,10 +34,12 @@ UEBERGAENGE = {
     "storniert": ("geplant",),
 }
 # Schritte zurück (und Stornieren) brauchen eine Begründung im Verlauf
-RUECKWAERTS = {("aktiv", "geplant"), ("abgeschlossen", "aktiv"), ("abgerechnet", "abgeschlossen"),
+RUECKWAERTS = {("geplant", "in_planung"), ("aktiv", "geplant"), ("abgeschlossen", "aktiv"), ("abgerechnet", "abgeschlossen"),
                ("kostenlos", "abgeschlossen"), ("storniert", "geplant")}
 # Beschriftung der Knöpfe je Übergang (alt, neu)
 AKTION_TEXT = {
+    ("in_planung", "geplant"): "Planung abschließen", ("in_planung", "storniert"): "Stornieren",
+    ("geplant", "in_planung"): "Zurück in Planung",
     ("geplant", "aktiv"): "Als begonnen markieren", ("geplant", "abgeschlossen"): "Abschließen",
     ("geplant", "storniert"): "Stornieren", ("aktiv", "abgeschlossen"): "Abschließen",
     ("aktiv", "geplant"): "Zurück auf geplant", ("abgeschlossen", "abgerechnet"): "Als abgerechnet markieren",
@@ -37,7 +47,7 @@ AKTION_TEXT = {
     ("abgerechnet", "abgeschlossen"): "Abrechnung zurücknehmen", ("kostenlos", "abgeschlossen"): "Doch abrechnen",
     ("storniert", "geplant"): "Wieder einplanen",
 }
-UMFANG = (("ganze_anlage", "Ganze Anlage"), ("auswahl", "Ausgewählte Wohnungen"))
+UMFANG = (("ganze_anlage", "Ganze Anlage"), ("auswahl", "Ausgewählte Wohnungen"), ("melder", "Ausgewählte Melder"))
 TECHNIKER_RECHT = "app.auftraege"
 MAX_GRUND = 500
 
@@ -115,6 +125,15 @@ def gruppen(con, auftrag_id):
                        "WHERE z.auftrag_id = ? AND z.geloescht = 0 ORDER BY g.nummer", (auftrag_id,)).fetchall()
 
 
+def komponenten_im_umfang(con, auftrag_id):
+    """Einzelne Komponenten im Umfang „melder“ (auch ausgebaute, damit der Auftrag vollständig lesbar bleibt)."""
+    return con.execute("SELECT c.*, g.nummer AS gruppe_nummer, t.bezeichnung AS typ_bezeichnung FROM auftrag_komponente z "
+                       "JOIN komponente c ON c.id = z.komponente_id JOIN gruppe g ON g.id = c.gruppe_id "
+                       "JOIN komponententyp t ON t.id = c.komponententyp_id "
+                       "WHERE z.auftrag_id = ? AND z.geloescht = 0 ORDER BY g.nummer, c.nummer, c.sub_nummer",
+                       (auftrag_id,)).fetchall()
+
+
 def verlauf(con, auftrag_id):
     return con.execute("SELECT v.*, n.name AS nutzer_name FROM auftrag_verlauf v "
                        "LEFT JOIN nutzer n ON n.id = v.erstellt_von WHERE v.auftrag_id = ? "
@@ -129,7 +148,7 @@ def fuer_anlage(con, anlage_id):
 
 # ---------- Listen und Sichtbarkeit ----------
 
-LISTE_STATUS = (("offen", "offen (geplant, in Arbeit)"), ("abzurechnen", "abzurechnen (abgeschlossen)"),
+LISTE_STATUS = (("offen", "offen (in Planung, geplant, in Arbeit)"), ("abzurechnen", "abzurechnen (abgeschlossen)"),
                 ("alle", "alle außer stornierte"), *STATUS)
 MAX_LISTE = 500
 VOLLE_SICHT = ("stammdaten.lesen", "auftraege.planen")   # sieht alle Aufträge; sonst eigene (+ Pool als Techniker)
@@ -141,7 +160,7 @@ def _sichtbar_sql(nutzer_id, mit_pool):
            "AND t.nutzer_id = ?)")
     if mit_pool:
         sql += " OR NOT EXISTS (SELECT 1 FROM auftrag_techniker t WHERE t.auftrag_id = u.id AND t.geloescht = 0)"
-    return sql + ")", [nutzer_id]
+    return sql + ") AND u.status <> 'in_planung'", [nutzer_id]
 
 
 def sicht(rechte_menge, nutzer_id):
@@ -255,7 +274,7 @@ def techniker_auswahl(con, auch_ids=()):
 # ---------- Prüfen ----------
 
 def _pruefen(con, art, anlage_id, form, auftrag=None, vergangenheit_erlaubt=False):
-    """Formular -> (werte, techniker_ids, gruppen_ids). Wirft Ungueltig."""
+    """Formular -> (werte, techniker_ids, gruppen_ids, komponenten_ids). Wirft Ungueltig."""
     neu = auftrag is None
     werte, fehler = einlesen(felder(art, mit_nummer=neu), form)
     if neu and werte["nummer"]:
@@ -273,7 +292,7 @@ def _pruefen(con, art, anlage_id, form, auftrag=None, vergangenheit_erlaubt=Fals
         fehler["techniker"] = "Ungültige Techniker-Auswahl."
 
     umfang = form.get("umfang") or "ganze_anlage"
-    gruppen_ids = []
+    gruppen_ids, komponenten_ids = [], []
     if umfang not in dict(UMFANG):
         fehler["umfang"] = "Ungültiger Umfang."
     elif umfang == "auswahl":
@@ -285,10 +304,19 @@ def _pruefen(con, art, anlage_id, form, auftrag=None, vergangenheit_erlaubt=Fals
             fehler["umfang"] = f"Bitte mindestens eine {art.gruppe} wählen (oder „Ganze Anlage“)."
         elif set(gruppen_ids) - vorhanden:
             fehler["umfang"] = f"Ungültige {art.gruppe}-Auswahl."
+    elif umfang == "melder":
+        komponenten_ids = list(dict.fromkeys(form.getlist("komponenten") if hasattr(form, "getlist")
+                                             else form.get("komponenten", [])))
+        vorhanden = {c["id"] for c in con.execute("SELECT id FROM komponente WHERE anlage_id = ? AND geloescht = 0 "
+                                                  "AND status = 'verbaut'", (anlage_id,))}
+        if not komponenten_ids:
+            fehler["umfang"] = f"Bitte die {art.komponente_mehrzahl} wählen (oder „Ganze Anlage“)."
+        elif set(komponenten_ids) - vorhanden:
+            fehler["umfang"] = f"Ungültige {art.komponente}-Auswahl."
     werte["umfang"] = umfang
     if fehler:
         raise Ungueltig(fehler)
-    return werte, techniker_ids, gruppen_ids
+    return werte, techniker_ids, gruppen_ids, komponenten_ids
 
 
 # ---------- Schreiben ----------
@@ -304,15 +332,23 @@ def _techniker_setzen(con, auftrag_id, ids, nutzer_id):
             db.aendern(con, "auftrag_techniker", zid, {"geloescht": 1}, nutzer_id)
 
 
+def _umfang_setzen(con, tabelle, spalte, auftrag_id, ids, nutzer_id):
+    bisher = {z[spalte]: z["id"] for z in con.execute(
+        f"SELECT id, {spalte} FROM {tabelle} WHERE auftrag_id = ? AND geloescht = 0", (auftrag_id,))}
+    for xid in ids:
+        if xid not in bisher:
+            db.anlegen(con, tabelle, {"auftrag_id": auftrag_id, spalte: xid}, nutzer_id)
+    for xid, zid in bisher.items():
+        if xid not in ids:
+            db.aendern(con, tabelle, zid, {"geloescht": 1}, nutzer_id)
+
+
 def _gruppen_setzen(con, auftrag_id, ids, nutzer_id):
-    bisher = {z["gruppe_id"]: z["id"] for z in con.execute(
-        "SELECT id, gruppe_id FROM auftrag_gruppe WHERE auftrag_id = ? AND geloescht = 0", (auftrag_id,))}
-    for gid in ids:
-        if gid not in bisher:
-            db.anlegen(con, "auftrag_gruppe", {"auftrag_id": auftrag_id, "gruppe_id": gid}, nutzer_id)
-    for gid, zid in bisher.items():
-        if gid not in ids:
-            db.aendern(con, "auftrag_gruppe", zid, {"geloescht": 1}, nutzer_id)
+    _umfang_setzen(con, "auftrag_gruppe", "gruppe_id", auftrag_id, ids, nutzer_id)
+
+
+def _komponenten_setzen(con, auftrag_id, ids, nutzer_id):
+    _umfang_setzen(con, "auftrag_komponente", "komponente_id", auftrag_id, ids, nutzer_id)
 
 
 def _verlauf(con, auftrag_id, ereignis, nutzer_id, **werte):
@@ -322,18 +358,21 @@ def _verlauf(con, auftrag_id, ereignis, nutzer_id, **werte):
 
 def anlegen(con, anlage, form, nutzer_id, vergangenheit_erlaubt=False):
     """Plant einen Auftrag für eine Anlage. anlage: Zeile aus anlagen.holen. Gibt die id zurück.
-    vergangenheit_erlaubt: nur für den Import (offene Aufträge aus einem anderen System übernehmen)."""
+    vergangenheit_erlaubt: nur für den Import und für Altprüfungen. Das Formularfeld „in_planung“ legt den Auftrag
+    als unfertige Planung an (Status „in Planung“), sonst ist er geplant."""
     if anlage["passiv"]:
         raise Ungueltig({"": "Die Anlage ist passiv – für sie werden keine Aufträge geplant."})
     art = anlagenart.holen(anlage["anlagenart"])
     with db.transaktion(con):
-        werte, techniker_ids, gruppen_ids = _pruefen(con, art, anlage["id"], form,
-                                                     vergangenheit_erlaubt=vergangenheit_erlaubt)
+        werte, techniker_ids, gruppen_ids, komponenten_ids = _pruefen(
+            con, art, anlage["id"], form, vergangenheit_erlaubt=vergangenheit_erlaubt)
         werte["nummer"] = werte["nummer"] or nummern.naechste(con, "auftrag")
-        aid = db.anlegen(con, "auftrag", {**werte, "anlage_id": anlage["id"], "status": "geplant"}, nutzer_id)
+        status = "in_planung" if form.get("in_planung") else "geplant"
+        aid = db.anlegen(con, "auftrag", {**werte, "anlage_id": anlage["id"], "status": status}, nutzer_id)
         _techniker_setzen(con, aid, techniker_ids, nutzer_id)
         _gruppen_setzen(con, aid, gruppen_ids, nutzer_id)
-        _verlauf(con, aid, "angelegt", nutzer_id, status_neu="geplant",
+        _komponenten_setzen(con, aid, komponenten_ids, nutzer_id)
+        _verlauf(con, aid, "angelegt", nutzer_id, status_neu=status,
                  termin_neu=termin_text(werte["datum"], werte["uhrzeit"]))
     return aid
 
@@ -379,9 +418,10 @@ class FormularWerte(dict):
     def __init__(self, werte, techniker):
         super().__init__(werte)
         self._techniker = list(techniker)
+        self.listen = {}
 
     def getlist(self, name):
-        return list(self._techniker) if name == "techniker" else []
+        return list(self._techniker) if name == "techniker" else list(self.listen.get(name, []))
 
 
 def aendern(con, auftrag_id, form, nutzer_id):
@@ -395,18 +435,21 @@ def aendern(con, auftrag_id, form, nutzer_id):
             raise Ungueltig({"": f"Ein Auftrag mit Status „{STATUS_TEXT[u['status']]}“ kann nicht mehr geändert "
                                  "werden."})
         art = anlagenart.holen(u["anlagenart"])
-        werte, techniker_ids, gruppen_ids = _pruefen(con, art, u["anlage_id"], form, u)
-        if u["status"] != "geplant" and (werte["umfang"] != u["umfang"] or set(gruppen_ids) != {
-                g["id"] for g in gruppen(con, auftrag_id)}):
-            raise Ungueltig({"umfang": "Der Umfang ist nur änderbar, solange der Auftrag geplant ist."})
+        werte, techniker_ids, gruppen_ids, komponenten_ids = _pruefen(con, art, u["anlage_id"], form, u)
+        vorher_g = {g["id"] for g in gruppen(con, auftrag_id)}
+        vorher_c = {c["id"] for c in komponenten_im_umfang(con, auftrag_id)}
+        if u["status"] == "aktiv" and (werte["umfang"] != u["umfang"] or set(gruppen_ids) != vorher_g
+                                       or set(komponenten_ids) != vorher_c):
+            raise Ungueltig({"umfang": "Der Umfang ist nur änderbar, solange der Auftrag in Planung oder geplant ist."})
         grund = " ".join(str(form.get("grund") or "").split())[:MAX_GRUND]
         termin_alt, termin_neu = termin_text(u["datum"], u["uhrzeit"]), termin_text(werte["datum"], werte["uhrzeit"])
         geaendert = db.aendern(con, "auftrag", auftrag_id, werte, nutzer_id) > 0
         vorher_t = {t["id"] for t in techniker(con, auftrag_id)}
-        vorher_g = {g["id"] for g in gruppen(con, auftrag_id)}
         _techniker_setzen(con, auftrag_id, techniker_ids, nutzer_id)
         _gruppen_setzen(con, auftrag_id, gruppen_ids, nutzer_id)
-        geaendert = geaendert or vorher_t != set(techniker_ids) or vorher_g != set(gruppen_ids)
+        _komponenten_setzen(con, auftrag_id, komponenten_ids, nutzer_id)
+        geaendert = (geaendert or vorher_t != set(techniker_ids) or vorher_g != set(gruppen_ids)
+                     or vorher_c != set(komponenten_ids))
         if termin_alt != termin_neu:
             _verlauf(con, auftrag_id, "verschoben", nutzer_id, termin_alt=termin_alt, termin_neu=termin_neu,
                      grund=grund)
@@ -424,12 +467,15 @@ def status_setzen(con, auftrag_id, neu, nutzer_id, grund="", rechnung_nummer="")
         alt = u["status"]
         if neu not in UEBERGAENGE.get(alt, ()):
             raise Ungueltig({"": f"Von „{STATUS_TEXT[alt]}“ nach „{STATUS_TEXT.get(neu, neu)}“ ist nicht möglich."})
+        if (alt, neu) == ("abgeschlossen", "aktiv") and u["extern"]:
+            raise Ungueltig({"": "Ein extern beendeter Auftrag lässt sich nicht wieder öffnen "
+                                 "(sonst stimmen die eingetragenen letzten Prüfungen nicht mehr)."})
         if grund_noetig(alt, neu) and not grund:
             raise Ungueltig({"grund": "Bitte einen Grund angeben."})
         werte = {"status": neu}
         if neu == "abgeschlossen" and not u["abgeschlossen_am"]:
             werte["abgeschlossen_am"] = date.today().isoformat()
-        if neu in ("geplant", "aktiv"):
+        if neu in ("in_planung", "geplant", "aktiv"):
             werte["abgeschlossen_am"] = None
         if neu == "abgerechnet":
             werte["rechnung_nummer"] = rechnung_nummer
@@ -437,3 +483,70 @@ def status_setzen(con, auftrag_id, neu, nutzer_id, grund="", rechnung_nummer="")
             werte["rechnung_nummer"] = ""
         db.aendern(con, "auftrag", auftrag_id, werte, nutzer_id)
         _verlauf(con, auftrag_id, "status", nutzer_id, status_alt=alt, status_neu=neu, grund=grund)
+
+
+def _komponenten_des_umfangs(con, u):
+    """Verbaute Komponenten, die der Umfang des Auftrags umfasst."""
+    grund = ("SELECT c.id, c.inbetriebnahme_am, c.letzte_pruefung_am FROM komponente c "
+             "WHERE c.geloescht = 0 AND c.status = 'verbaut' AND c.anlage_id = ?")
+    if u["umfang"] == "auswahl":
+        return con.execute(grund + " AND c.gruppe_id IN (SELECT gruppe_id FROM auftrag_gruppe "
+                                   "WHERE auftrag_id = ? AND geloescht = 0)", (u["anlage_id"], u["id"])).fetchall()
+    if u["umfang"] == "melder":
+        return con.execute(grund + " AND c.id IN (SELECT komponente_id FROM auftrag_komponente "
+                                   "WHERE auftrag_id = ? AND geloescht = 0)", (u["anlage_id"], u["id"])).fetchall()
+    return con.execute(grund, (u["anlage_id"],)).fetchall()
+
+
+def extern_beenden(con, auftrag_id, datum, nutzer_id, bemerkung=""):
+    """Beendet einen offenen Auftrag als „extern erledigt am datum“ (nicht in der Zukunft).
+
+    Die Komponenten im Umfang bekommen datum als letzte Prüfung, wenn dort noch keine oder eine ältere steht und das
+    Datum nicht vor der Inbetriebnahme liegt; die Fälligkeiten werden neu gerechnet. Gibt (gesetzt, übersprungen)
+    zurück: übersprungen = Komponenten mit neuerer Prüfung oder Inbetriebnahme nach dem Datum.
+    """
+    bemerkung = " ".join(str(bemerkung or "").split())[:MAX_GRUND]
+    datum = str(datum or "").strip()
+    if not gueltiges_datum(datum):
+        raise Ungueltig({"datum": "Bitte das Datum der Prüfung angeben (TT.MM.JJJJ)."})
+    if datum > date.today().isoformat():
+        raise Ungueltig({"datum": "Das Datum liegt in der Zukunft."})
+    with db.transaktion(con):
+        u = holen(con, auftrag_id)
+        if u is None:
+            raise Ungueltig({"": "Den Auftrag gibt es nicht."})
+        if u["status"] not in OFFEN:
+            raise Ungueltig({"": f"Ein Auftrag mit Status „{STATUS_TEXT[u['status']]}“ lässt sich nicht extern "
+                                 "beenden."})
+        gesetzt = uebersprungen = 0
+        for c in _komponenten_des_umfangs(con, u):
+            if (c["letzte_pruefung_am"] and c["letzte_pruefung_am"] >= datum) or (
+                    c["inbetriebnahme_am"] and c["inbetriebnahme_am"] > datum):
+                uebersprungen += 1
+                continue
+            db.aendern(con, "komponente", c["id"], {"letzte_pruefung_am": datum}, nutzer_id)
+            faelligkeit.komponente_berechnen(con, c["id"])
+            gesetzt += 1
+        db.aendern(con, "auftrag", auftrag_id, {"status": "abgeschlossen", "extern": 1, "abgeschlossen_am": datum},
+                   nutzer_id)
+        grund = f"Extern beendet, Prüfung am {datum_de(datum)}" + (f": {bemerkung}" if bemerkung else "")
+        _verlauf(con, auftrag_id, "status", nutzer_id, status_alt=u["status"], status_neu="abgeschlossen",
+                 grund=grund[:MAX_GRUND + 60])
+    return gesetzt, uebersprungen
+
+
+def altpruefung_nachtragen(con, anlage, form, nutzer_id):
+    """Trägt eine frühere Prüfung nach: legt einen Auftrag zum Prüfdatum (Feld „datum“, nicht in der Zukunft) an und
+    beendet ihn gleich extern. Gibt (auftrag_id, gesetzt, übersprungen) zurück."""
+    datum = str(form.get("datum") or "").strip()
+    if gueltiges_datum(datum) and datum > date.today().isoformat():
+        raise Ungueltig({"datum": "Das Datum liegt in der Zukunft."})
+    with db.transaktion(con):
+        daten = {k: form.get(k) for k in ("nummer", "auftragsart", "datum", "hinweise", "notiz_intern", "umfang")}
+        daten["umfang"] = form.get("umfang") or "ganze_anlage"
+        formular = FormularWerte(daten, [])
+        formular.listen = {"gruppen": form.getlist("gruppen") if hasattr(form, "getlist") else [],
+                           "komponenten": form.getlist("komponenten") if hasattr(form, "getlist") else []}
+        aid = anlegen(con, anlage, formular, nutzer_id, vergangenheit_erlaubt=True)
+        gesetzt, uebersprungen = extern_beenden(con, aid, datum, nutzer_id, form.get("bemerkung", ""))
+    return aid, gesetzt, uebersprungen

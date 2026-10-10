@@ -99,7 +99,7 @@ def test_umfang_bei_laufendem_auftrag_gesperrt(web):
     aid = auftrag_id(planen_formular(web, umfang="auswahl", gruppen=[web["g1"]]))
     auftraege.status_setzen(con, aid, "aktiv", None)
     form = c.get(f"/auftraege/{aid}/bearbeiten").text
-    assert "nur änderbar, solange der Auftrag geplant ist" in form
+    assert "nur änderbar, solange der Auftrag in Planung oder geplant ist" in form
     assert re.search(rf'<input type="hidden" name="gruppen" value="{web["g1"]}">', form)
     # Absenden mit den mitgeschickten (gesperrten) Werten: Techniker ändern geht, Umfang bleibt
     r = c.post(f"/auftraege/{aid}/bearbeiten", data={"csrf_token": csrf_aus(form), "auftragsart": "wartung",

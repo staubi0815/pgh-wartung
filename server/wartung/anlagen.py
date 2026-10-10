@@ -51,9 +51,9 @@ def felder_bearbeiten(techniker=()):
 
 # ---------- Lesen ----------
 
-# frühester offener (geplant/in Arbeit) Auftrag der Anlage
+# frühester offener (in Planung/geplant/in Arbeit) Auftrag der Anlage
 _NAECHSTER_AUFTRAG = ("FROM auftrag u WHERE u.anlage_id = a.id AND u.geloescht = 0 "
-                      "AND u.status IN ('geplant', 'aktiv') ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
+                      "AND u.status IN ('in_planung', 'geplant', 'aktiv') ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
 _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_bezeichnung, o.kunde_id, "
               f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
               " (SELECT s.name FROM nutzer s WHERE s.id = a.stammtechniker_id) AS stammtechniker_name, "

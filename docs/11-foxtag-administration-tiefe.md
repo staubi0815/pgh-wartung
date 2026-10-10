@@ -98,9 +98,9 @@ Wichtig bleibt: Vorlagen von Foxtag nicht übernehmen (Inhalte sind Foxtags).
 
 | Punkt | Foxtag | Wir | Bew. |
 |---|---|---|---|
-| Status | in Planung → geplant → Auftrag läuft → erledigt → abgerechnet; Menü: zurück in Planung, auf „läuft“ setzen, entfällt, **als extern beenden**, löschen | geplant → läuft → abgeschlossen, storniert, Verschieben mit Grund, Verlauf | W: „in Planung“ (unfertige Planung), „abgerechnet“, **extern beenden** |
+| Status | in Planung → geplant → Auftrag läuft → erledigt → abgerechnet; Menü: zurück in Planung, auf „läuft“ setzen, entfällt, **als extern beenden**, löschen | geplant → läuft → abgeschlossen, storniert, Verschieben mit Grund, Verlauf | **Erledigt 10.10.2026:** „in Planung“, **extern beenden**; „abgerechnet“ war schon da |
 | Kopf | Nummer, Datum+Uhrzeit (Datum/Zeit/ganztägig getrennt bearbeitbar), mehrere Techniker, Hinweise (eigener Dialog), Kunde/Objekt/Anlage, **Verlauf mit Zeitstempel und Nutzer**, iCal-Download, Chips „+Link“ und „+Label“ | wie links, ohne Link/Label/iCal | = ; W Label/Link |
-| **Prüfumfang** | „Ganze Anlage (n Komponenten)“ oder **detaillierte Planung**: je Komponente ein Schalter „eingeplant“ (Nummer, Typ, Standort, Barcode, S/N, Baujahr, Fälligkeit, Labels), zusätzlich eingeplante Störungen | Auswahl der Wohnungen im Auftrag (`auftrag_gruppe`), nicht je Melder | W: je Melder (Nachtermin einzelner Melder) |
+| **Prüfumfang** | „Ganze Anlage (n Komponenten)“ oder **detaillierte Planung**: je Komponente ein Schalter „eingeplant“ (Nummer, Typ, Standort, Barcode, S/N, Baujahr, Fälligkeit, Labels), zusätzlich eingeplante Störungen | Auswahl der Wohnungen im Auftrag (`auftrag_gruppe`), nicht je Melder | **Erledigt 10.10.2026:** Umfang „Ausgewählte Melder“ |
 | Neuer Auftrag | Auftragsnummer automatisch oder eigene, Anlage, Typ, Datum/Uhrzeit/bis/ganztägig, Techniker (mehrere, „Jeder (Pool)“), Prüfumfang, Hinweise | wie links; Bis-Zeit statt Dauer | = |
 | Veröffentlicht | Schalter Ja/Nein; Berichtsempfänger (E-Mail mit Download-Link); Versandhistorie | fehlt | K (Baustein 5) |
 | Berichte und Dateien | Kennzahlen: geprüfte Komponenten n von m (%), bestätigte Prüfungen, Mängel, Unterschriften; Liste aktualisieren, Bericht laden | fehlt | K |

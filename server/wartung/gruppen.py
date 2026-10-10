@@ -84,7 +84,7 @@ def loeschen(con, art, gruppe_id, nutzer_id):
     offenen Auftrags steht."""
     with db.transaktion(con):
         if con.execute("SELECT 1 FROM auftrag_gruppe z JOIN auftrag u ON u.id = z.auftrag_id WHERE z.gruppe_id = ? "
-                       "AND z.geloescht = 0 AND u.geloescht = 0 AND u.status IN ('geplant', 'aktiv')",
+                       "AND z.geloescht = 0 AND u.geloescht = 0 AND u.status IN ('in_planung', 'geplant', 'aktiv')",
                        (gruppe_id,)).fetchone():
             raise Ungueltig({"auftraege": f"Die {art.gruppe} steht in einem offenen Auftrag."})
         if con.execute("SELECT 1 FROM komponente WHERE gruppe_id = ? AND geloescht = 0 AND status = 'verbaut'",
