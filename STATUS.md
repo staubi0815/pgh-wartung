@@ -17,12 +17,12 @@
    **Grundgerüst Web läuft** (08.10.2026): http://192.168.178.31:8000 – Anmeldung (Argon2, Sperre nach 5 Fehlversuchen,
    CSRF, Sicherheitsköpfe), Einmal-Links zum Passwort-Setzen, Nutzer/Rollen, Firma, Änderungsprotokoll (nur anhängen).
    12 Tests grün. Deploy: `./deploy.sh`. Admin-Einladung für Patrick in Drive `pgh-wartung-einrichten.txt` (48 h).
-   Offen: feste IP (Patrick), HTTPS, Sicherung der Anwendungsdaten; nächster Baustein Kunden/Objekte/Anlagen/Wohnungen/Melder + Import.
+   Feste IP eingetragen (Patrick, 10.10.2026). Offen: HTTPS, Sicherung der Anwendungsdaten; nächster Baustein Kunden/Objekte/Anlagen/Wohnungen/Melder + Import.
 4. Analyse Foxtag-Rollen und -App (`docs/06`, 08.10.2026). **Einzelrechte + kombinierbare Rollen umgesetzt**
    (Migration 002, `rechte.py`, Masken Verwaltung → Rollen und Rechte; 29 Tests grün; DB vorher gesichert unter
    `/var/lib/pgh-wartung/sicherung/wartung-vor-002-2026-10-08.db`). Dabei behoben: eine DB-Verbindung je Thread und
    Transaktionen mit BEGIN IMMEDIATE/SAVEPOINT (vorher teilten sich gleichzeitige Anfragen eine Verbindung).
-   App-Zerlegung: Patrick hat Erlaubnis von Foxtag telefonisch eingeholt (Mail folgt, dann hier vermerken).
+   App-Zerlegung: Patrick hat Erlaubnis von Foxtag telefonisch eingeholt, Bestätigung per Mail liegt bei Patrick vor (abgeheftet, 10.10.2026).
    Analyse Foxtag 2 (111.0.6) fertig → `docs/07`; Patrick hat die Analyse-Werkzeuge per Berechtigungsregel
    freigegeben. Folge: Abgleich als **Befehlsprotokoll** + Server-Abgleichnummer (docs/02, docs/03 angepasst).
    Offen: Bildschirmfolge durch Bedienen im Testkonto (bis ca. 08.11.).
@@ -67,3 +67,5 @@
    das Foxtag-Menü und Menüpunkt je Datei im LIESMICH, Typen vor Komponenten (sonst legt Foxtag Typen ohne
    Prüfintervall an), Uhrzeit zusätzlich in den Auftragshinweisen (Import liest sie zurück), Probe-Kontakt ohne
    E-Mail. Details `docs/05` Abschnitt 6. Probedaten „PT-“ bleiben im Testkonto (läuft ca. 08.11. aus).
+10. Abgleich Foxtag ↔ pgh-wartung (10.10.2026): `docs/10-abgleich-foxtag.md` – Felder, Aufträge, Rollen, Verwaltung,
+    Hintergrund, Selbst-Check; Lückenliste mit Reihenfolge.
