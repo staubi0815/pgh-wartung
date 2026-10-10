@@ -7,6 +7,11 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Foxtag-Export/-Import: Stammtechniker und Zulassungsnummer:** Der Foxtag-Export trägt bei den Anlagen die Personalnummer
+  des Stammtechnikers ein (TECHNIKER.NUMMER; fehlt sie, warnt die LIESMICH). Der Import setzt den Stammtechniker, wenn es
+  einen Techniker mit dieser Personalnummer gibt, sonst erscheint ein Hinweis. Die Zulassungsnummer der Melder steht im
+  Export als zusätzliche letzte Spalte, aber nur in Dateien, in denen sie vorkommt (die RWM-Vorlage kennt sie nicht –
+  lehnt Foxtag die Datei ab, die Spalte vor dem Import löschen). Keine Datenbank-Änderung.
 - **Aufträge: Status „In Planung“, Prüfumfang je Melder, extern beenden:** Ein Auftrag kann zunächst „in Planung“ sein
   (unfertig; Techniker sehen ihn nicht) und wird mit „Planung abschließen“ zu „geplant“. Als Umfang lassen sich einzelne
   Melder wählen (z. B. Nachtermin). Offene Aufträge lassen sich „extern beenden“: Datum der Prüfung eintragen, die Melder

@@ -82,8 +82,8 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 
 - Import (Excel, Foxtag-Format): Kunden, Kontakte, Objekte, Anlagen, Typen, Melder, Aufträge. Probelauf, alles oder nichts. =
 - Export: Foxtag-Format (nummerierte Excel-Dateien, mit Probe-Import im Testkonto verifiziert) und Vollexport. +
-- Foxtag-seitig bekannt: Zulassungsnummer, zweites Label, Standard-Techniker, Artikelpositionen sind Spalten, die wir
-  noch nicht liefern (hängt an den Lücken oben).
+- Foxtag-seitig bekannt: Zulassungsnummer, Standard-Techniker (seit 10.10.2026 im Export/Import, Schritt 11), zweites
+  Label und Artikelpositionen sind Spalten, die wir noch nicht (vollständig) liefern (hängt an den Lücken oben).
 
 ## 7 Selbst-Check unseres Codes (10.10.2026)
 
@@ -103,6 +103,6 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 1. **K, ohne Foxtag-Bezug:** HTTPS, Sicherung aufs NAS.
 2. **K, Baustein 4 (App):** Geräteverwaltung, Fotos/Dateien, Prüfung, Mängel, Unterschrift.
 3. **K, Baustein 5:** Artikel/Material, Berichte, Berichtsempfänger, Terminankündigung per E-Mail.
-4. **W, kleine Stammdaten-Erweiterungen:** Labels (erledigt), Standard-Techniker je Anlage, Zulassungsnummer je Komponente,
+4. **W, kleine Stammdaten-Erweiterungen:** Labels, Standard-Techniker je Anlage, Zulassungsnummer je Komponente (alle erledigt, Export/Import Schritt 11),
    Kontakt an mehreren Kunden, Anlage verschieben, Doku/Schema Link-Feld.
 5. **S:** Status je Techniker, iCal, Zeitzone, Integrationen.

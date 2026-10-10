@@ -258,9 +258,17 @@ def _anlage(con, w, nutzer_id, optionen):
     if art is None:
         bekannt = ", ".join(n for a in anlagenart.alle().values() for n in (a.name, *a.import_namen))
         raise Ungueltig({"": f"Anlagenart „{text(w.get('WARTUNGSANWENDUNG.NUMMER'))}“ unbekannt (möglich: {bekannt})."})
+    hinweise, stamm = [], None
+    personalnummer = text(w.get("TECHNIKER.NUMMER"))
+    if personalnummer:
+        n = con.execute("SELECT id FROM nutzer WHERE personalnummer = ? AND geloescht = 0", (personalnummer,)).fetchone()
+        if n and n["id"] in {i for i, _ in anlagen.techniker_auswahl(con)}:
+            stamm = n["id"]
+        else:
+            hinweise.append(f"Kein Techniker mit Personalnummer {personalnummer}: Stammtechniker nicht gesetzt.")
     anlagen.anlegen(con, o["id"], {"nummer": nummer, "anlagenart": art.schluessel, "verfahren": "A",
-                                   "bezeichnung": text(w.get("ANLAGE.NAME"))}, nutzer_id)
-    hinweise = ["Techniker-Nummer wird erst mit den Aufträgen übernommen."] if text(w.get("TECHNIKER.NUMMER")) else []
+                                   "bezeichnung": text(w.get("ANLAGE.NAME")), "stammtechniker_id": stamm or ""},
+                    nutzer_id)
     return "neu", beschreibung, hinweise
 
 

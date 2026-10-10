@@ -22,7 +22,7 @@ danach DB sichern und `./deploy.sh`. Reihenfolge ist ein Vorschlag, Patrick kann
 8. Anlage zu anderem Objekt verschieben; Typen zusammenführen; Kontakt an mehreren Kunden.
 9. Labels (Name, Farbe) an Kunde, Objekt, Anlage, Auftrag, mit Filter.
 10. Auftrag: Prüfumfang je Melder, Status „in Planung“ und „abgerechnet“, „extern beenden“ (Altprüfungen nachtragen). **Erledigt 10.10.2026.**
-11. Foxtag-Export um die neuen Felder erweitern (Zulassungsnummer, Standard-Techniker); Import entsprechend.
+11. Foxtag-Export um die neuen Felder erweitern (Zulassungsnummer, Standard-Techniker); Import entsprechend. **Erledigt 10.10.2026.**
 
 ## Stufe 3 – Baustein 4: App (PWA)
 12. Geräteverwaltung (höchstens 2 je Nutzer, koppeln/sperren), Offline-Speicher, Abgleich (docs/02).
