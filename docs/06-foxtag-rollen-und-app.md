@@ -30,7 +30,7 @@ Eigene Rollen anlegen bzw. anpassen ist möglich (Pro). Standardrollen:
 | Störungen (Mängel) verwalten | ✓ | ✓ | – | – |
 | Aufträge planen und verwalten | ✓ | ✓ | – | – |
 | Admin-Bereich: Artikel, Kontakte, Labels | ✓ | ✓ | – | – |
-| Nutzer einladen und verwalten | ✓ | ✓ | – | – |
+| Mitarbeiter einladen/löschen, Rollen bearbeiten, Geräte abmelden, Kundenservice-Zugang | ✓ | – | – | – |
 | Berichtslayouts, Wartungsanwendungen, Integrationen, allgemeine Einstellungen | ✓ | – | – | – |
 | Daten exportieren | ✓ | ✓ | – | – |
 | Auswertungen erstellen | ✓ | – | – | – |
@@ -40,7 +40,7 @@ Eigene Rollen anlegen bzw. anpassen ist möglich (Pro). Standardrollen:
 | App: Ansprechpartner verwalten | ✓ | – | ✓ | ✓ |
 | App: Dateien am Auftrag verwalten | ✓ | – | ✓ | ✓ |
 
-Auffällig: „Planen und Daten pflegen“ darf **nicht** in die App, darf aber Nutzer verwalten.
+Auffällig: „Planen und Daten pflegen“ darf **nicht** in die App. Nutzer verwalten darf sie laut offizieller Rechtetabelle (PDF 2021) **nicht** – das ist allein Administration (korrigiert 10.10.2026, vorher stand hier das Gegenteil). Im Administrationsbereich hat „Planen“ nur Artikel, Labels, Datenimport und Löschen von Anlagenvorlagen.
 
 ### Zusätzlich firmenweit: „App-Rechte“ (gelten für alle App-Nutzer)
 
