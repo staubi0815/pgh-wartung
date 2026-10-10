@@ -94,7 +94,8 @@ def router(web):
         a = anlage_laden(anlage_id)
         art = anlagenart.holen(a["anlagenart"])
         return formular_seite(request, n, a, None, {"auftragsart": auftraege.standard_auftragsart(art),
-                                                    "umfang": "ganze_anlage", "techniker": [], "gruppen": []})
+                                                    "umfang": "ganze_anlage", "gruppen": [],
+                                                    "techniker": [a["stammtechniker_id"]] if a["stammtechniker_id"] else []})
 
     @r.post("/anlagen/{anlage_id}/auftraege/neu")
     async def neu(request: Request, anlage_id: str):
@@ -128,7 +129,10 @@ def router(web):
         if not liste:
             return RedirectResponse("/anlagen?hinweis=keine_auswahl", status_code=303)
         art = anlagenart.holen(liste[0]["anlagenart"])
-        return mehrere_seite(request, n, liste, {"auftragsart": auftraege.standard_auftragsart(art), "techniker": []})
+        stamm = {a["stammtechniker_id"] for a in liste}
+        vorschlag = [stamm.pop()] if len(stamm) == 1 and None not in stamm else []
+        return mehrere_seite(request, n, liste, {"auftragsart": auftraege.standard_auftragsart(art),
+                                                 "techniker": vorschlag})
 
     @r.post("/auftraege/mehrere")
     async def mehrere(request: Request):

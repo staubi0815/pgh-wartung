@@ -20,7 +20,7 @@ def router(web):
         return web.seite(request, "anlage.html", n, a=anlagen.bewerten(a), art=anlagenart.holen(a["anlagenart"]),
                          kontakte=anlagen.kontakte(con, a["id"]), kunden_kontakte=kunden.kontakte(con, a["kunde_id"]),
                          rollen=anlagen.KONTAKT_ROLLEN, rollen_namen=dict(anlagen.KONTAKT_ROLLEN),
-                         felder=anlagen.felder_bearbeiten(), hinweis=hinweis, fehler=fehler or {},
+                         felder=anlagen.felder_bearbeiten(anlagen.techniker_auswahl(con, a["stammtechniker_id"])), hinweis=hinweis, fehler=fehler or {},
                          zuordnung=zuordnung or {}, gruppen=gruppen.liste(con, a["id"]),
                          komponenten=komponenten.je_gruppe(con, a["id"], anlagenart.holen(a["anlagenart"])),
                          zugang_namen=dict(gruppen.ZUGANG), auftraege=auftraege.fuer_anlage(con, a["id"]),
@@ -29,10 +29,11 @@ def router(web):
 
     @r.get("", response_class=HTMLResponse)
     def liste(request: Request, q: str = "", art: str = "", faellig: str = "", ohne_auftrag: str = "",
-              hinweis: str = ""):
+              hinweis: str = "", techniker: str = ""):
         n = web.nutzer(request, LESEN)
         return web.seite(request, "anlagen_liste.html", n,
-                         liste=anlagen.liste(con, q, art, faellig, ohne_auftrag=bool(ohne_auftrag)), q=q, art=art,
+                         liste=anlagen.liste(con, q, art, faellig, ohne_auftrag=bool(ohne_auftrag), techniker=techniker),
+                         techniker=techniker, techniker_auswahl=anlagen.techniker_auswahl(con), q=q, art=art,
                          faellig=faellig, ohne_auftrag=bool(ohne_auftrag), faellig_filter=anlagen.FAELLIG_FILTER,
                          arten=anlagen.arten_auswahl(), hinweis=hinweis)
 
@@ -46,7 +47,7 @@ def router(web):
         n = web.nutzer(request, BEARBEITEN)
         a = anlage_laden(anlage_id)
         return web.seite(request, "anlage_form.html", n, o=None, a=dict(a), fehler={},
-                         felder=anlagen.felder_bearbeiten(), art=anlagenart.alle().get(a["anlagenart"]))
+                         felder=anlagen.felder_bearbeiten(anlagen.techniker_auswahl(con, a["stammtechniker_id"])), art=anlagenart.alle().get(a["anlagenart"]))
 
     @r.post("/{anlage_id}/bearbeiten")
     async def bearbeiten(request: Request, anlage_id: str):
@@ -57,7 +58,7 @@ def router(web):
             anlagen.aendern(con, anlage_id, form, n["id"])
         except Ungueltig as e:
             return web.seite(request, "anlage_form.html", n, o=None, status=400, fehler=e.fehler,
-                             a={**dict(a), **dict(form)}, felder=anlagen.felder_bearbeiten(),
+                             a={**dict(a), **dict(form)}, felder=anlagen.felder_bearbeiten(anlagen.techniker_auswahl(con, a["stammtechniker_id"])),
                              art=anlagenart.alle().get(a["anlagenart"]))
         return RedirectResponse(f"/anlagen/{anlage_id}?hinweis=gespeichert", status_code=303)
 

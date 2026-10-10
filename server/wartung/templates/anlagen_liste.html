@@ -16,15 +16,20 @@
     <option value="">alle Fälligkeiten</option>
     {% for w, text in faellig_filter %}<option value="{{ w }}" {% if faellig == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
   </select>
+  <select name="techniker" aria-label="Stammtechniker">
+    <option value="">alle Stammtechniker</option>
+    <option value="keiner" {% if techniker == 'keiner' %}selected{% endif %}>ohne Stammtechniker</option>
+    {% for tid, name in techniker_auswahl %}<option value="{{ tid }}" {% if techniker == tid %}selected{% endif %}>{{ name }}</option>{% endfor %}
+  </select>
   <label class="haken inline"><input type="checkbox" name="ohne_auftrag" value="1" {% if ohne_auftrag %}checked{% endif %}> nur ohne offenen Auftrag</label>
   <button class="zweitrangig">Filtern</button>
-  {% if q or art or faellig or ohne_auftrag %}<a href="/anlagen">zurücksetzen</a>{% endif %}
+  {% if q or art or faellig or ohne_auftrag or techniker %}<a href="/anlagen">zurücksetzen</a>{% endif %}
 </form>
 <div class="karte">
 {% if liste %}
 <form method="get" action="/auftraege/mehrere">
 <table>
-  <tr>{% if planen %}<th><span class="nur-vorlesen">Auswahl</span></th>{% endif %}<th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Umfang</th>
+  <tr>{% if planen %}<th><span class="nur-vorlesen">Auswahl</span></th>{% endif %}<th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Stammtechniker</th><th>Umfang</th>
       <th>Nächste Prüfung</th><th>Nächster Austausch</th><th>Nächster Auftrag</th></tr>
   {% for a in liste %}
   <tr class="{{ 'inaktiv' if a.passiv }}">
@@ -33,6 +38,7 @@
     <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %}</td>
     <td><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></td>
     <td>{{ ANLAGENARTEN.get(a.anlagenart, a.anlagenart) }}{% if a.passiv %} <span class="marke-passiv">passiv</span>{% endif %}</td>
+    <td>{{ a.stammtechniker_name or '' }}</td>
     {% set art = ANLAGENART[a.anlagenart] %}
     <td class="nowrap">{{ a.wohnungen }} {{ art.gruppe if a.wohnungen == 1 else art.gruppe_mehrzahl }},
       {{ a.komponenten }} {{ art.komponente if a.komponenten == 1 else art.komponente_mehrzahl }}</td>

@@ -78,7 +78,7 @@ def router(web):
 
     # ---------- Anlage im Objekt anlegen ----------
     def anlage_formular(request, n, o, a, fehler, status=200):
-        return web.seite(request, "anlage_form.html", n, o=o, a=a, fehler=fehler, felder=anlagen.felder_neu(),
+        return web.seite(request, "anlage_form.html", n, o=o, a=a, fehler=fehler, felder=anlagen.felder_neu(anlagen.techniker_auswahl(con)),
                          vorschau=nummern.vorschau(con, "anlage"), status=status)
 
     @r.get("/objekte/{objekt_id}/anlagen/neu", response_class=HTMLResponse)

@@ -44,7 +44,7 @@ nummer, kunde_id, bezeichnung („Musterstraße 12“), strasse, plz, ort, adres
 lage (Breite/Länge, für Karte und Fahrten), zugangshinweise („Schlüssel bei Hausmeister“), notiz.
 
 ### anlage
-nummer (ANL-0001), objekt_id, anlagenart (`rauchwarnmelder`, später `tueren`), bezeichnung, hinweise_techniker,
+nummer (ANL-0001), objekt_id, anlagenart (`rauchwarnmelder`, später `tueren`), bezeichnung, stammtechniker_id (Nutzer, Vorschlag beim Planen), hinweise_techniker,
 verfahren (`A` | `B` | `C` – Art der Inspektion: vor Ort / teilweise Fern / Ferninspektion), passiv (ja/nein),
 einzelnachweis_je_wohnung (ja/nein, Standard nein – z. B. bei Eigentümergemeinschaften einschaltbar), labels, notiz.
 Melder werden nur verkauft (Patrick 08.10.2026) – kein Mietmodell, Melder gehören dem Kunden.
