@@ -7,6 +7,11 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Anlage verschieben, Melder-Typen zusammenführen:** In der Anlage gibt es den Knopf „Verschieben“: Objekt suchen,
+  bestätigen, fertig – Wohnungen, Melder und Aufträge wandern mit. Gehört das neue Objekt zu einem anderen Kunden,
+  werden die zugeordneten Ansprechpartner entfernt (Hinweis erscheint; das passiert auch, wenn ein Objekt den Kunden
+  wechselt). In der Typenverwaltung lassen sich doppelte Typen zusammenführen: alle Melder wechseln zum gewählten Typ,
+  der doppelte Typ verschwindet. Keine Datenbank-Änderung.
 - **Zulassungs-/Prüfnummer je Melder, Link an der Wohnung, Notizen mit Zeilenumbrüchen:** Zulassungsnummer steht jetzt
   an der einzelnen Komponente (bisher nur am Typ), die Wohnung hat ein Linkfeld (nur http/https; öffnet in neuem
   Tab), und der Excel-Import behält Zeilenumbrüche in Notizen. Neue Datenbank-Migration 009.

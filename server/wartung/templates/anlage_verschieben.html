@@ -1,0 +1,33 @@
+{% extends "basis.html" %}{% block titel %}Anlage verschieben{% endblock %}
+{% block inhalt %}
+<p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a> › verschieben</p>
+<h1>Anlage verschieben <span class="leise">{{ a.nummer }}{% if a.bezeichnung %} · {{ a.bezeichnung }}{% endif %}</span></h1>
+<p class="leise">Aktuell in {{ a.objekt_nummer }} {{ a.objekt_bezeichnung }} ({{ a.kunde_name }}). Wohnungen, Melder und Aufträge
+  wechseln mit. Gehört das neue Objekt zu einem anderen Kunden, werden die zugeordneten Ansprechpartner entfernt.</p>
+{% for meldung in fehler.values() %}<p class="fehler">{{ meldung }}</p>{% endfor %}
+<form method="get" action="/anlagen/{{ a.id }}/verschieben" class="filter">
+  <input type="search" name="q" value="{{ q }}" placeholder="Objekt, Kunde, Straße oder Ort suchen …" aria-label="Zielobjekt suchen">
+  <button class="zweitrangig">Suchen</button>
+</form>
+{% if ziele %}
+<table>
+  <tr><th>Objekt</th><th>Kunde</th><th>Anschrift</th><th></th></tr>
+  {% for o in ziele %}
+  <tr>
+    <td>{{ o.nummer }} {{ o.bezeichnung }}</td><td>{{ o.kunde_name }}</td>
+    <td>{{ [o.adr_strasse, ((o.adr_plz ~ ' ' ~ o.adr_ort) | trim)] | select | join(', ') }}</td>
+    <td class="zahl">
+      <form method="post" action="/anlagen/{{ a.id }}/verschieben" class="loeschen"
+            data-frage="Anlage {{ a.nummer }} nach {{ o.nummer }} {{ o.bezeichnung }} ({{ o.kunde_name }}) verschieben?">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <input type="hidden" name="objekt_id" value="{{ o.id }}"><input type="hidden" name="q" value="{{ q }}">
+        <button class="zweitrangig">hierher verschieben</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% if ziele | length >= 30 %}<p class="leise">Die ersten 30 Treffer – bitte die Suche eingrenzen.</p>{% endif %}
+{% else %}<p class="leise">Keine passenden Objekte gefunden.</p>{% endif %}
+<p><a href="/anlagen/{{ a.id }}">Abbrechen</a></p>
+{% endblock %}

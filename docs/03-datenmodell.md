@@ -49,6 +49,10 @@ verfahren (`A` | `B` | `C` – Art der Inspektion: vor Ort / teilweise Fern / Fe
 einzelnachweis_je_wohnung (ja/nein, Standard nein – z. B. bei Eigentümergemeinschaften einschaltbar), labels, notiz.
 Melder werden nur verkauft (Patrick 08.10.2026) – kein Mietmodell, Melder gehören dem Kunden.
 Verknüpfungen: anlage_kontakt (siehe oben), dateien.
+Verschieben (Schritt 8, `anlagen.verschieben`): Die Anlage wechselt mit Wohnungen, Komponenten und Aufträgen in ein anderes
+Objekt, auch eines anderen Kunden (nur `objekt_id` ändert sich; Nummer bleibt). Ansprechpartner-Zuordnungen, deren
+Kontakt nicht zum Kunden des neuen Objekts gehört, werden als gelöscht markiert (`kontakte_bereinigen`); dasselbe
+passiert, wenn ein Objekt den Kunden wechselt. Jede Änderung steht im Änderungsprotokoll.
 
 ### gruppe (= Wohnung bzw. bei Türen Geschoss/Bauteil)
 anlage_id, nummer (43), bezeichnung („1. OG links“), bewohner (Name am Klingelschild – personenbezogen!),
@@ -67,6 +71,10 @@ Bei Türen zusätzlich `eltern_id` (Sub-Komponenten: Feststellanlage, Haftmagnet
 anlagenart, hersteller, modell, bezeichnung, kategorie (`komponente` | `sub_komponente`), zulassungsnummer,
 funk (`keine` | `wmbus` | `lorawan`), batterie (`fest_10j` | `wechselbar`), austausch_jahre (Standard 10),
 datenblatt_link, aktiv.
+Zusammenführen (Schritt 8, `typen.zusammenfuehren`): Doppelte Typen derselben Anlagenart werden zu einem: alle
+Komponenten (auch ausgebaute) wechseln auf den Zieltyp, der Quelltyp wird als gelöscht markiert (sein Name ist danach
+wieder frei), Fälligkeiten werden neu berechnet, das Protokoll hält Aktion `zusammenfuehren` und jede umgestellte
+Komponente fest. Felder des Quelltyps werden nicht in den Zieltyp übernommen.
 
 ## 2. Aufträge und Arbeit vor Ort
 

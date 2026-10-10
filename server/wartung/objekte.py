@@ -74,7 +74,14 @@ def anlegen(con, kunde_id, form, nutzer_id):
 
 def aendern(con, objekt_id, form, nutzer_id):
     werte = pruefen(con, felder_bearbeiten(con), form, objekt_id)
-    return db.aendern(con, "objekt", objekt_id, werte, nutzer_id)
+    with db.transaktion(con):
+        wechsel = con.execute("SELECT kunde_id FROM objekt WHERE id = ?", (objekt_id,)).fetchone()["kunde_id"] != werte["kunde_id"]
+        anzahl = db.aendern(con, "objekt", objekt_id, werte, nutzer_id)
+        if wechsel:  # Ansprechpartner des alten Kunden passen nicht mehr
+            from . import anlagen  # spät, weil anlagen seinerseits objekte braucht
+            for z in con.execute("SELECT id FROM anlage WHERE objekt_id = ? AND geloescht = 0", (objekt_id,)).fetchall():
+                anlagen.kontakte_bereinigen(con, z["id"], nutzer_id)
+    return anzahl
 
 
 def loeschen(con, objekt_id, nutzer_id):

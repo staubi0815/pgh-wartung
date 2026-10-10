@@ -1,7 +1,7 @@
 {% extends "verwaltung.html" %}{% block titel %}Melder-Typen{% endblock %}
 {% block bereich %}
 <div class="zeile"><h1>Melder-Typen</h1><a class="knopf" href="/verwaltung/typen/neu">+ Typ anlegen</a></div>
-{% if hinweis == 'angelegt' %}<p class="ok">Typ angelegt.</p>{% elif hinweis == 'gespeichert' %}<p class="ok">Gespeichert.</p>{% endif %}
+{% if hinweis == 'angelegt' %}<p class="ok">Typ angelegt.</p>{% elif hinweis == 'gespeichert' %}<p class="ok">Gespeichert.</p>{% elif hinweis == 'zusammengefuehrt' %}<p class="ok">Typen zusammengeführt ({{ anzahl }} Komponenten umgestellt).</p>{% endif %}
 <p class="leise">Typen werden nicht gelöscht, sondern deaktiviert – so bleibt nachvollziehbar, welche Melder verbaut waren.</p>
 {% if liste %}
 <table>

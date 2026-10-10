@@ -1,7 +1,8 @@
 """Komponententypen (Katalog je Anlagenart, z. B. Melder-Modelle): Felder, Liste, Anlegen, Ändern.
 
 Typen werden nicht gelöscht, sondern deaktiviert, sobald Komponenten sie benutzen (Nachweis: welcher Melder war
-verbaut). Ändern sich die Austauschjahre, werden die Fälligkeiten aller Komponenten dieses Typs neu berechnet.
+verbaut). Ändern sich die Austauschjahre, werden die Fälligkeiten aller Komponenten dieses Typs neu berechnet. Doppelte Typen lassen sich
+zu einem zusammenführen.
 """
 from . import anlagenart, db, faelligkeit
 from .felder import Feld, Ungueltig, einlesen
@@ -90,6 +91,43 @@ def aendern(con, typ_id, form, nutzer_id):
         if werte["austausch_jahre"] != typ["austausch_jahre"]:
             faelligkeit.typ_berechnen(con, typ_id)
     return anzahl
+
+
+def ziele_zum_zusammenfuehren(con, typ_id):
+    """(id, Anzeigetext) der anderen Typen derselben Anlagenart – auch inaktive."""
+    typ = holen(con, typ_id)
+    zeilen = con.execute(
+        "SELECT id, bezeichnung, hersteller FROM komponententyp WHERE geloescht = 0 AND anlagenart = ? AND id != ? "
+        "ORDER BY hersteller COLLATE NOCASE, bezeichnung COLLATE NOCASE", (typ["anlagenart"], typ_id)).fetchall()
+    return tuple((z["id"], f"{z['bezeichnung']} ({z['hersteller']})" if z["hersteller"] else z["bezeichnung"])
+                 for z in zeilen)
+
+
+def komponenten_zaehlen(con, typ_id):
+    """Alle Komponenten mit diesem Typ, auch ausgebaute."""
+    return con.execute("SELECT COUNT(*) FROM komponente WHERE komponententyp_id = ? AND geloescht = 0",
+                       (typ_id,)).fetchone()[0]
+
+
+def zusammenfuehren(con, quelle_id, ziel_id, nutzer_id):
+    """Überträgt alle Komponenten (auch ausgebaute) vom Quelltyp auf den Zieltyp und löscht den Quelltyp.
+    Beide müssen zur selben Anlagenart gehören. Gibt die Anzahl übertragener Komponenten zurück."""
+    with db.transaktion(con):
+        quelle, ziel = holen(con, quelle_id), holen(con, ziel_id)
+        if quelle is None or ziel is None:
+            raise Ungueltig({"ziel_id": "Bitte einen Typ wählen."})
+        if quelle["id"] == ziel["id"]:
+            raise Ungueltig({"ziel_id": "Bitte einen anderen Typ wählen."})
+        if quelle["anlagenart"] != ziel["anlagenart"]:
+            raise Ungueltig({"ziel_id": "Die Typen gehören zu verschiedenen Anlagenarten."})
+        ids = [z["id"] for z in con.execute("SELECT id FROM komponente WHERE komponententyp_id = ?", (quelle_id,))]
+        for komponente_id in ids:
+            db.aendern(con, "komponente", komponente_id, {"komponententyp_id": ziel_id}, nutzer_id)
+        db.protokoll(con, nutzer_id, "komponententyp", quelle_id, "zusammenfuehren", "komponententyp_id",
+                     quelle_id, ziel_id)
+        db.aendern(con, "komponententyp", quelle_id, {"geloescht": 1, "aktiv": 0}, nutzer_id)
+        faelligkeit.typ_berechnen(con, ziel_id)
+    return len(ids)
 
 
 def finden(con, art_schluessel, name, hersteller="", modell=""):

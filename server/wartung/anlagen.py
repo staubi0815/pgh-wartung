@@ -1,12 +1,12 @@
 """Anlagen (z. B. die Rauchwarnmelder eines Objekts): Felder, Liste, Anlegen, Ändern, Löschen,
-Ansprechpartner mit Rolle zuordnen.
+Ansprechpartner mit Rolle zuordnen, in ein anderes Objekt verschieben.
 
 Die Anlagenart (rauchwarnmelder, später tueren) wird beim Anlegen festgelegt und danach nicht mehr geändert, weil
 Wohnungen, Melder, Checklisten und Mängeltypen an ihr hängen.
 """
 from datetime import date
 
-from . import anlagenart, db, faelligkeit, nummern
+from . import anlagenart, db, faelligkeit, nummern, objekte
 from .felder import Feld, Ungueltig, einlesen, fuer_bearbeiten, like_muster
 from .objekte import ADRESSE_SQL
 
@@ -192,6 +192,53 @@ def loeschen(con, anlage_id, nutzer_id):
                              (anlage_id,)).fetchall():
             db.aendern(con, "anlage_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
         db.aendern(con, "anlage", anlage_id, {"geloescht": 1}, nutzer_id)
+
+
+# ---------- Verschieben ----------
+
+def ziel_objekte(con, suche, ausser_objekt_id, grenze=30):
+    """Objekte, in die eine Anlage verschoben werden kann (Suche in Nummer, Bezeichnung, Kunde, Ort)."""
+    sql = (f"SELECT o.id, o.nummer, o.bezeichnung, k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL} "
+           "FROM objekt o JOIN kunde k ON k.id = o.kunde_id "
+           "WHERE o.geloescht = 0 AND k.geloescht = 0 AND o.id != ?")
+    parameter = [ausser_objekt_id]
+    if suche.strip():
+        felder = ("o.nummer", "o.bezeichnung", "k.nummer", "k.name",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.strasse ELSE o.strasse END",
+                  "CASE WHEN o.adresse_wie_kunde = 1 THEN k.ort ELSE o.ort END")
+        sql += " AND (" + " OR ".join(f"{f} LIKE ? ESCAPE '\\'" for f in felder) + ")"
+        parameter += [like_muster(suche.strip())] * len(felder)
+    return con.execute(sql + " ORDER BY k.name COLLATE NOCASE, o.bezeichnung COLLATE NOCASE LIMIT ?",
+                       (*parameter, grenze)).fetchall()
+
+
+def verschieben(con, anlage_id, objekt_id, nutzer_id):
+    """Hängt die Anlage samt Wohnungen, Komponenten und Aufträgen an ein anderes Objekt (auch eines anderen Kunden).
+    Zugeordnete Ansprechpartner, die nicht zum Kunden des neuen Objekts gehören, werden entfernt.
+    Gibt die Namen der entfernten Ansprechpartner zurück."""
+    with db.transaktion(con):
+        a = holen(con, anlage_id)
+        if a is None:
+            raise Ungueltig({"": "Anlage nicht gefunden."})
+        ziel = objekte.holen(con, objekt_id)
+        if ziel is None:
+            raise Ungueltig({"objekt_id": "Bitte ein Objekt wählen."})
+        if ziel["id"] == a["objekt_id"]:
+            raise Ungueltig({"objekt_id": "Die Anlage liegt schon in diesem Objekt."})
+        db.aendern(con, "anlage", anlage_id, {"objekt_id": objekt_id}, nutzer_id)
+        return kontakte_bereinigen(con, anlage_id, nutzer_id)
+
+
+def kontakte_bereinigen(con, anlage_id, nutzer_id):
+    """Entfernt Ansprechpartner-Zuordnungen, deren Kontakt nicht (mehr) zum Kunden der Anlage gehört."""
+    kunde_id = holen(con, anlage_id)["kunde_id"]
+    namen = []
+    for z in con.execute(
+            "SELECT z.id, kt.name FROM anlage_kontakt z JOIN kontakt kt ON kt.id = z.kontakt_id "
+            "WHERE z.anlage_id = ? AND z.geloescht = 0 AND kt.kunde_id IS NOT ?", (anlage_id, kunde_id)).fetchall():
+        db.aendern(con, "anlage_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
+        namen.append(z["name"])
+    return namen
 
 
 # ---------- Ansprechpartner ----------
