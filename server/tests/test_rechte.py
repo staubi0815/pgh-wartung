@@ -39,7 +39,7 @@ def test_mehrere_rollen_ergeben_vereinigung(umgebung):
     nid = nutzer_mit_passwort(con, "Mia", "mia@example.org", [rolle_id(con, "buero"), rolle_id(con, "techniker_app")])
     r = rechte.rechte_von_nutzer(con, nid)
     assert {"stammdaten.bearbeiten", "app.auftraege", "web.zugang"} <= r
-    assert "verwaltung.rollen" not in r
+    assert "verwaltung.nutzer" not in r
 
 
 def test_migration_uebernimmt_alte_einzelrolle(tmp_path):
@@ -245,6 +245,6 @@ def test_standardrollen_wie_foxtag(umgebung):
                      "techniker_app": "Techniker ohne Webzugang"}
     rechte = lambda k: {r[0] for r in con.execute(  # noqa: E731
         "SELECT recht FROM rolle_recht rr JOIN rolle r ON r.id = rr.rolle_id WHERE r.kennung = ?", (k,))}
-    assert "verwaltung.nutzer" in rechte("buero") and "auswertungen" not in rechte("buero")
+    assert "verwaltung.nutzer" not in rechte("buero") and "auswertungen" not in rechte("buero")
     assert not {r for r in rechte("buero") if r.startswith("app.")}
     assert "web.zugang" not in rechte("techniker_app") and "web.zugang" in rechte("techniker")

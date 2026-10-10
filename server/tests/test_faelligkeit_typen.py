@@ -119,8 +119,7 @@ def test_typen_recht_katalog(umgebung):
     anmelden(buero, "bea@example.org")
     anmelden(techniker, "tom@example.org")
     start = buero.get("/").text
-    assert 'href="/verwaltung"' in start  # Büro hat Katalog und Nutzer in der Verwaltung …
-    assert buero.get("/verwaltung", follow_redirects=False).headers["location"] == "/verwaltung/nutzer"
-    assert buero.get("/verwaltung/typen", follow_redirects=False).status_code == 200
-    assert "keine_berechtigung" in buero.get("/verwaltung/rollen", follow_redirects=False).headers["location"]
+    assert 'href="/verwaltung"' in start  # Büro hat nur den Katalog in der Verwaltung …
+    assert buero.get("/verwaltung", follow_redirects=False).headers["location"] == "/verwaltung/typen"
+    assert "keine_berechtigung" in buero.get("/verwaltung/nutzer", follow_redirects=False).headers["location"]
     assert "keine_berechtigung" in techniker.get("/verwaltung/typen", follow_redirects=False).headers["location"]

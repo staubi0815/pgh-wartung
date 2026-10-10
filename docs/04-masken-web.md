@@ -107,7 +107,7 @@ Seiten prüfen nur Rechte. Übersicht als Matrix unter Verwaltung → Rollen und
 | Standardrolle | darf |
 |---|---|
 | Administration | alles, auch künftige Rechte; fest, nicht änderbar |
-| Planen und Daten pflegen (Kennung buero) | Stammdaten, Aufträge, Mängel, Berichte, Rechnungsentwürfe, Katalog, Nutzer verwalten, Import, Export im Foxtag-Format; nicht in die App, keine Auswertungen |
+| Planen und Daten pflegen (Kennung buero) | Stammdaten, Aufträge, Mängel, Berichte, Rechnungsentwürfe, Katalog, Import, Export im Foxtag-Format; nicht in die App, keine Auswertungen |
 | Techniker | App (Aufträge, Melder vor Ort, Fotos); Webseite nur eigene Aufträge |
 | Techniker ohne Webzugang | wie Techniker, ohne Webseite |
 
