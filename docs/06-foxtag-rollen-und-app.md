@@ -63,7 +63,7 @@ Störungen · Fotos am Auftrag · fehlende Artikel anlegen · fehlende Komponent
 
 **Entscheidung (Patrick 08.10.2026, umgesetzt mit Migration 002):** Rechte als feste Liste im Code
 (`server/wartung/rechte.py`), Rollen als benannte Bündel in der Datenbank, mehrere Rollen je Nutzer. Standardrollen
-Administration (fest, alle Rechte), Büro, Techniker, Techniker nur App. Foxtags firmenweite App-Schalter sind bei uns
+Administration (fest, alle Rechte), Planen und Daten pflegen, Techniker, Techniker ohne Webzugang (Namen und Rechte seit Migration 007 wie bei Foxtag; Patrick kann sie in der Maske ändern). Foxtags firmenweite App-Schalter sind bei uns
 Einzelrechte je Rolle (feiner). Seiten prüfen nur noch Rechte, nie Rollennamen. Details: `docs/04` Abschnitt 9.
 
 ## 2. Die Foxtag-App

@@ -39,7 +39,7 @@ def test_mehrere_rollen_ergeben_vereinigung(umgebung):
     nid = nutzer_mit_passwort(con, "Mia", "mia@example.org", [rolle_id(con, "buero"), rolle_id(con, "techniker_app")])
     r = rechte.rechte_von_nutzer(con, nid)
     assert {"stammdaten.bearbeiten", "app.auftraege", "web.zugang"} <= r
-    assert "verwaltung.nutzer" not in r
+    assert "verwaltung.rollen" not in r
 
 
 def test_migration_uebernimmt_alte_einzelrolle(tmp_path):
@@ -86,7 +86,7 @@ def test_admin_sieht_alle_verwaltungsseiten(umgebung):
         assert c.get(pfad).status_code == 200
     assert 'href="/verwaltung"' in seite
     matrix = c.get("/verwaltung/rollen").text
-    assert "Techniker nur App" in matrix and "Funk-Ferninspektion" in matrix
+    assert "Techniker ohne Webzugang" in matrix and "Funk-Ferninspektion" in matrix
 
 
 def test_rechteaenderung_wirkt_sofort(umgebung):
@@ -236,3 +236,15 @@ def test_admin_einladen_stellt_konto_wieder_her(umgebung, monkeypatch, capsys, t
     assert "/einrichten?code=" in capsys.readouterr().out
     assert con.execute("SELECT aktiv FROM nutzer WHERE id = ?", (nid,)).fetchone()["aktiv"] == 1
     assert rolle_id(con, "admin") in rechte.rollen_von_nutzer(con, nid)
+
+
+def test_standardrollen_wie_foxtag(umgebung):
+    _, con = umgebung
+    namen = {r["kennung"]: r["name"] for r in con.execute("SELECT kennung, name FROM rolle WHERE kennung IS NOT NULL")}
+    assert namen == {"admin": "Administration", "buero": "Planen und Daten pflegen", "techniker": "Techniker",
+                     "techniker_app": "Techniker ohne Webzugang"}
+    rechte = lambda k: {r[0] for r in con.execute(  # noqa: E731
+        "SELECT recht FROM rolle_recht rr JOIN rolle r ON r.id = rr.rolle_id WHERE r.kennung = ?", (k,))}
+    assert "verwaltung.nutzer" in rechte("buero") and "auswertungen" not in rechte("buero")
+    assert not {r for r in rechte("buero") if r.startswith("app.")}
+    assert "web.zugang" not in rechte("techniker_app") and "web.zugang" in rechte("techniker")
