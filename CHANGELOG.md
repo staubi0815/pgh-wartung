@@ -7,6 +7,9 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Stammtechniker je Anlage:** In der Anlage wählbar (nur Nutzer, die Aufträge in der App durchführen dürfen), in der
+  Anlagenliste als Spalte und Filter („ohne Stammtechniker“ möglich). Beim Planen wird er vorgeschlagen; bei mehreren
+  Anlagen nur, wenn alle denselben haben. Neue Datenbank-Migration 008.
 - **Globale Suche:** Suchfeld oben in der Kopfzeile (Kunden, Kontakte, Objekte, Anlagen, Wohnungen samt Bewohner, Melder
   nach Seriennummer/Barcode/Funk-ID, Aufträge). Ab 2 Zeichen, je Gruppe die ersten 10 Treffer. Techniker finden nur
   eigene Aufträge und den Pool, keine Stammdaten.

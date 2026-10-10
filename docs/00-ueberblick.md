@@ -60,6 +60,7 @@ Aufträge hängen an der Anlage. Feldbeschreibungen: `docs/03-datenmodell.md`.
 ```mermaid
 erDiagram
     objekt ||--o{ anlage : ""
+    nutzer ||--o{ anlage : ""
     anlage ||--o{ anlage_kontakt : ""
     kontakt ||--o{ anlage_kontakt : ""
     anlage ||--o{ auftrag : ""

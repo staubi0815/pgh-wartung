@@ -19,7 +19,7 @@ def arten_auswahl():
     return tuple((a.schluessel, a.name) for a in anlagenart.alle().values())
 
 
-def _gemeinsame_felder():
+def _gemeinsame_felder(techniker=()):
     return (
         Feld("nummer", "Anlagennummer", max_laenge=nummern.MAX_LAENGE, hilfe="leer lassen = automatisch"),
         Feld("bezeichnung", "Bezeichnung", platzhalter="z. B. Rauchwarnmelder Haus A"),
@@ -27,18 +27,26 @@ def _gemeinsame_felder():
         Feld("einzelnachweis_je_wohnung", "Einzelnachweis je Wohnung", "ja_nein", breit=True,
              hilfe="eigener Bericht je Wohnung, z. B. bei Eigentümern"),
         Feld("passiv", "Passiv", "ja_nein", breit=True, hilfe="Anlage ruht, keine Fälligkeiten"),
+        Feld("stammtechniker_id", "Stammtechniker", "auswahl", auswahl=(("", "– keiner –"), *techniker),
+             hilfe="wird beim Planen vorgeschlagen"),
         Feld("hinweise_techniker", "Hinweise für den Techniker", "textarea", max_laenge=2000, breit=True),
         Feld("notiz", "Notiz", "textarea", max_laenge=4000, breit=True),
     )
 
 
-def felder_neu():
+def techniker_auswahl(con, aktuell=None):
+    """(id, Name) der wählbaren Stammtechniker; der bisherige bleibt wählbar, auch wenn er das Recht verloren hat."""
+    from . import auftraege  # spät, weil auftraege seinerseits anlagen braucht
+    return auftraege.techniker_auswahl(con, [aktuell] if aktuell else [])
+
+
+def felder_neu(techniker=()):
     return (Feld("anlagenart", "Anlagenart", "auswahl", pflicht=True, auswahl=arten_auswahl()),
-            *_gemeinsame_felder())
+            *_gemeinsame_felder(techniker))
 
 
-def felder_bearbeiten():
-    return fuer_bearbeiten(_gemeinsame_felder())
+def felder_bearbeiten(techniker=()):
+    return fuer_bearbeiten(_gemeinsame_felder(techniker))
 
 
 # ---------- Lesen ----------
@@ -48,6 +56,7 @@ _NAECHSTER_AUFTRAG = ("FROM auftrag u WHERE u.anlage_id = a.id AND u.geloescht =
                       "AND u.status IN ('geplant', 'aktiv') ORDER BY u.datum, u.uhrzeit, u.nummer LIMIT 1")
 _GRUND_SQL = (f"SELECT a.*, o.nummer AS objekt_nummer, o.bezeichnung AS objekt_bezeichnung, o.kunde_id, "
               f"k.nummer AS kunde_nummer, k.name AS kunde_name, {ADRESSE_SQL}, "
+              " (SELECT s.name FROM nutzer s WHERE s.id = a.stammtechniker_id) AS stammtechniker_name, "
               " (SELECT COUNT(*) FROM gruppe g WHERE g.anlage_id = a.id AND g.geloescht = 0) AS wohnungen, "
               " (SELECT COUNT(*) FROM komponente c WHERE c.anlage_id = a.id AND c.geloescht = 0 "
               "    AND c.status = 'verbaut') AS komponenten, "
@@ -96,7 +105,7 @@ def passt(d, faellig):
             "austausch_bald": d["austausch_ampel"] in ("rot", "gelb")}[faellig]
 
 
-def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False):
+def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False, techniker=""):
     """Alle Anlagen mit Objekt, Kunde, wirksamer Anschrift, Anzahl Wohnungen/Komponenten, Ampeln und nächstem
     offenen Auftrag; optional gefiltert nach Fälligkeit (FAELLIG_FILTER) und „ohne offenen Auftrag“."""
     sql, parameter = _GRUND_SQL, []
@@ -109,6 +118,11 @@ def liste(con, suche="", art="", faellig="", heute=None, ohne_auftrag=False):
     if art:
         sql += " AND a.anlagenart = ?"
         parameter.append(art)
+    if techniker == "keiner":
+        sql += " AND a.stammtechniker_id IS NULL"
+    elif techniker:
+        sql += " AND a.stammtechniker_id = ?"
+        parameter.append(techniker)
     if faellig and faellig not in dict(FAELLIG_FILTER):
         faellig = ""
     zeilen = con.execute(sql + " ORDER BY adr_ort COLLATE NOCASE, adr_strasse COLLATE NOCASE, a.nummer",
@@ -134,6 +148,7 @@ def liste_fuer_objekt(con, objekt_id):
 
 def _pruefen(con, felder, form, eigene_id=None):
     werte, fehler = einlesen(felder, form)
+    werte["stammtechniker_id"] = werte.get("stammtechniker_id") or None
     if werte["nummer"]:
         fehler_nr = nummern.pruefen(con, "anlage", werte["nummer"], eigene_id)
         if fehler_nr:
@@ -151,7 +166,7 @@ def vorbelegung(art_schluessel="rauchwarnmelder"):
 
 
 def anlegen(con, objekt_id, form, nutzer_id):
-    werte = _pruefen(con, felder_neu(), form)
+    werte = _pruefen(con, felder_neu(techniker_auswahl(con)), form)
     with db.transaktion(con):
         werte["nummer"] = werte["nummer"] or nummern.naechste(con, "anlage")
         return db.anlegen(con, "anlage", {**werte, "objekt_id": objekt_id}, nutzer_id)
@@ -159,7 +174,9 @@ def anlegen(con, objekt_id, form, nutzer_id):
 
 def aendern(con, anlage_id, form, nutzer_id):
     """Ändert die Anlage; die Anlagenart ist nicht änderbar (steht nicht in den Feldern)."""
-    return db.aendern(con, "anlage", anlage_id, _pruefen(con, felder_bearbeiten(), form, anlage_id), nutzer_id)
+    alt = holen(con, anlage_id)
+    felder = felder_bearbeiten(techniker_auswahl(con, alt["stammtechniker_id"] if alt else None))
+    return db.aendern(con, "anlage", anlage_id, _pruefen(con, felder, form, anlage_id), nutzer_id)
 
 
 def loeschen(con, anlage_id, nutzer_id):
