@@ -69,3 +69,8 @@
    E-Mail. Details `docs/05` Abschnitt 6. Probedaten „PT-“ bleiben im Testkonto (läuft ca. 08.11. aus).
 10. Abgleich Foxtag ↔ pgh-wartung (10.10.2026): `docs/10-abgleich-foxtag.md` – Felder, Aufträge, Rollen, Verwaltung,
     Hintergrund, Selbst-Check; Lückenliste mit Reihenfolge.
+11. Foxtag in voller Tiefe (10.10.2026, `docs/11`): jede Administrationsseite, alle sieben Reiter der Wartungsanwendungen,
+    Anlagen-/Kunden-/Objekt-/Auftragsseite, Auswertungsparameter; Differenz mit Bewertung und Reihenfolge. Wichtigste
+    neue Lücken: Stammtechniker, Prüfumfang je Melder, Konfigurationsmodell für Türen (Typ-Kategorien, Intervall je
+    Typ, mehrere Checklisten), Berichtsempfänger/Veröffentlichen. Korrektur `docs/06`: „Planen“ verwaltet keine Nutzer.
+    Nicht prüfbar im Testkonto: Auftragsreiter mit Inhalt, Rollenbearbeitung (Pro).
