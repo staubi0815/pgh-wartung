@@ -86,8 +86,10 @@ Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/exp
 - **Rundweg getestet:** Foxtag-Export → eigener Import in eine leere Datenbank ergibt dieselben Stammdaten.
   Bekannte Abweichungen: Typ-Bezeichnung wird beim Import aus dem Modell gebildet; einzeilige Felder fassen Zeilenumbrüche
   zu Leerzeichen zusammen; Notizen (Kunde, Kontakt, Auftragshinweise) behalten sie seit Migration 009/Schritt 7.
-  Die Spalte ZULASSUNGSNUMMER (nur in der Türen-Vorlage) wird beim Import gelesen, falls vorhanden; der RWM-Export
-  bleibt im Format der RWM-Vorlage.
+  Die Spalte ZULASSUNGSNUMMER (nur in der Türen-Vorlage) wird beim Import gelesen, falls vorhanden. Der RWM-Export hängt sie
+  als letzte Spalte an, wenn mindestens ein Melder der Anlage eine Zulassungsnummer hat; sonst bleibt er im Format der
+  RWM-Vorlage. **Probe-Import im Testkonto (10.10.2026):** Foxtag bietet „Zulassungsnummer“ in der Feldzuordnung an,
+  übernimmt beide Probe-Melder und zeigt den Wert am Melder als „Zul.Nr.“.
 - **Aufträge (09.10.2026):** `07_Auftraege.xlsx` mit den offenen Aufträgen (geplant/in Arbeit). AUFTRAGSTYP.NUMMER
   = Schlüssel der Auftragsart in Großbuchstaben (WARTUNG, INSTALLATION, NACHTERMIN, FERNINSPEKTION – in Foxtag so
   anlegen), TECHNIKER.NUMMER = Personalnummer (Verwaltung → Nutzer), höchstens drei; Uhrzeit steht als Datum mit

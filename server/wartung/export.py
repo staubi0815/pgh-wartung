@@ -298,8 +298,8 @@ def foxtag(con):
                  f"  ACHTUNG: bei {ohne_nummer_stamm} Anlage(n) hat der Stammtechniker keine Personalnummer – "
                  "TECHNIKER.NUMMER in 04_Anlagen.xlsx bleibt dort leer." if ohne_nummer_stamm else "",
                  "  HINWEIS: " + ", ".join(mit_zulassung) + " enthält/enthalten die zusätzliche Spalte "
-                 "ZULASSUNGSNUMMER (nicht in der RWM-Vorlage). Lehnt Foxtag die Datei deshalb ab, die Spalte "
-                 "vor dem Import löschen." if mit_zulassung else ""]
+                 "ZULASSUNGSNUMMER (nicht in der RWM-Vorlage). Foxtag nimmt die Spalte an und zeigt sie am Melder "
+                 "als „Zul.Nr.“ an." if mit_zulassung else ""]
     typen_text = "\n".join(f"    {nummer}  (bei uns: {name})" for nummer, name in sorted(typen.items())) \
         or "    (keine offenen Aufträge)"
     text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm, auftragstypen=typen_text,
