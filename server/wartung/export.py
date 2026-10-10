@@ -22,7 +22,7 @@ from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 from openpyxl.styles import Font
 
 from . import anlagenart, auftraege, db
-from .excel_import import ARTEN
+from .excel_import import ARTEN, UHRZEIT_HINWEIS
 
 DATUMSFORMAT = "DD.MM.YYYY"
 DATUM_ZEIT_FORMAT = "DD.MM.YYYY HH:MM"
@@ -190,27 +190,37 @@ def _auftraege(con):
         zu_viele += len(nummern) > 3
         nummern = (nummern + ["", "", ""])[:3]
         termin = datetime.fromisoformat(f"{u['datum']}T{u['uhrzeit']}") if u["uhrzeit"] else _datum(u["datum"])
+        # Foxtag liest aus DATUM nur den Tag – die Uhrzeit steht deshalb zusätzlich vorn in den Hinweisen
+        hinweise = "\n".join(x for x in (UHRZEIT_HINWEIS.format(u["uhrzeit"]) if u["uhrzeit"] else "",
+                                         u["hinweise"]) if x)
         zeilen.append({"AUFTRAG.NUMMER": u["nummer"], "ANLAGE.NUMMER": u["anlage_nummer"], "DATUM": termin,
                        "AUFTRAGSTYP.NUMMER": auftraege.foxtag_auftragstyp(u["auftragsart"]),
                        "TECHNIKER.NUMMER": nummern[0], "TECHNIKER.NUMMER2": nummern[1],
-                       "TECHNIKER.NUMMER3": nummern[2], "AUFTRAG.HINWEISE": u["hinweise"]})
+                       "TECHNIKER.NUMMER3": nummern[2], "AUFTRAG.HINWEISE": hinweise})
     return zeilen, pool, ohne_nummer, zu_viele, typen
 
 
 FOXTAG_LIESMICH = """Export im Foxtag-Importformat (PGH-Wartung), erstellt am {zeit}
 
-Die Dateien in der Reihenfolge ihrer Nummern über den Datenimport von Foxtag einlesen:
+Die Dateien in der Reihenfolge ihrer Nummern in Foxtag einlesen (Menü Datenimport, Punkt wie angegeben;
+nach dem Hochladen die Spalten zuordnen und den Import starten):
 {dateien}
 
 Vor dem Import in Foxtag:
 - Die Wartungsanwendung für Rauchwarnmelder muss in Foxtag die Nummer „{rwm}“ haben (Spalte
   WARTUNGSANWENDUNG.NUMMER in der Anlagen-Datei), sonst die Spalte vorher anpassen.
-- Melder je Anlage über die Anlage in Foxtag importieren (Datei 06_..._<Anlagennummer>.xlsx).
+- Komponenten-Typen (05) unbedingt vor den Komponenten (06) einlesen. Fehlt ein Typ, legt Foxtag ihn beim
+  Komponenten-Import selbst an, aber ohne Prüfintervall. Meldet Foxtag beim Typen-Import „nicht eindeutig“,
+  gibt es den Typ schon; die Zeile wird ausgelassen, das ist harmlos.
 - Aufträge (07_Auftraege.xlsx, nur offene): die verwendeten Auftragstypen brauchen in Foxtag diese Nummern:
 {auftragstypen}
   Die Techniker brauchen in Foxtag dieselbe Personalnummer wie bei uns (Verwaltung -> Nutzer).
   Foxtag verlangt je Auftrag mindestens einen Techniker.
 {auftrag_hinweise}
+Nach dem Import in Foxtag:
+- Unter Wartungsanwendung -> Typen bei den neuen Typen das Prüfintervall eintragen (die Vorlage hat dafür keine
+  Spalte).
+
 Was nicht oder anders übertragen wird:
 - Nur der gültige Bestand: als gelöscht markierte Datensätze fehlen, Melder nur, wenn sie verbaut sind.
 - Objekte: Anschrift ist die wirksame Anschrift (bei „wie Kunde“ die des Kunden).
@@ -219,7 +229,10 @@ Was nicht oder anders übertragen wird:
 - Foxtag übernimmt je Melder nur das Datum der letzten Prüfung, nicht den Prüfverlauf; der Verlauf bleibt im
   Vollexport und in den Berichten.
 - Aufträge: nur geplante und laufende; erledigte gehen nicht in Foxtag (Nachweis über Bericht und Vollexport).
-  Uhrzeit steht mit im Datum; der Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar (ganze Anlage).
+  Foxtag legt Aufträge ganztägig an und übernimmt aus dem Datum nur den Tag. Die Uhrzeit steht deshalb zusätzlich
+  in der ersten Zeile der Hinweise („Uhrzeit 08:30 Uhr“); in Foxtag bei Bedarf von Hand eintragen.
+  Der Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar (ganze Anlage).
+- Kontakte: Foxtag lehnt E-Mail-Adressen ab, die es für ungültig hält; die Zeile dann ohne E-Mail importieren.
 - Noch nicht enthalten (gibt es in PGH-Wartung noch nicht): Labels, Techniker je Anlage, Artikel.
 
 Achtung: Die Dateien enthalten Kunden- und Mieterdaten. Nur auf dem NAS ablegen, nicht per Mail versenden;
@@ -229,34 +242,38 @@ an einen anderen Dienst erst nach Abschluss eines Auftragsverarbeitungsvertrags 
 
 def foxtag(con):
     """Foxtag-Export als ZIP. Rückgabe: (ZIP-Bytes, Anzahl je Datei {Dateiname: Zeilen})."""
-    dateien, anzahl = [], {}
+    dateien, anzahl, wohin = [], {}, {}
 
-    def dazu(name, importart, zeilen, blatt):
+    def dazu(name, importart, zeilen, blatt, menue):
+        """menue: wo die Datei in Foxtag hingehört (Datenimport -> …), steht im LIESMICH neben dem Dateinamen."""
         stamm, nr = name.removesuffix(".xlsx"), 2
         while name.lower() in (n.lower() for n in anzahl):  # z. B. „ANL/1“ und „ANL_1“ ergeben denselben Namen
             name, nr = f"{stamm}_{nr}.xlsx", nr + 1
         dateien.append((name, _mappe(importart, zeilen, blatt)))
-        anzahl[name] = len(zeilen)
+        anzahl[name], wohin[name] = len(zeilen), menue
 
+    # Dateinamen wie die Punkte im Foxtag-Menü „Datenimport“
     with _lesestand(con):
-        dazu("01_Kunden.xlsx", ARTEN["kunden"][0], _kunden(con), "Kunden")
-        dazu("02_Kontakte.xlsx", ARTEN["kontakte"][0], _kontakte(con), "Kontakte")
-        dazu("03_Objekte.xlsx", ARTEN["objekte"][0], _objekte(con), "Objekte")
+        dazu("01_Kunden.xlsx", ARTEN["kunden"][0], _kunden(con), "Kunden", "Kunden")
+        dazu("02_Kontakte.xlsx", ARTEN["kontakte"][0], _kontakte(con), "Kontakte", "Kontakte")
+        dazu("03_Objekte.xlsx", ARTEN["objekte"][0], _objekte(con), "Objekte", "Objekte")
         zeilen, anlagen_liste = _anlagen(con)
-        dazu("04_Anlagen.xlsx", ARTEN["anlagen"][0], zeilen, "Anlagen")
+        dazu("04_Anlagen.xlsx", ARTEN["anlagen"][0], zeilen, "Anlagen", "Anlagen")
         for art in anlagenart.alle().values():
             zeilen = _typen(con, art.schluessel)
             if zeilen:
-                dazu(f"05_Typen_{dateiname_sicher(art.name)}.xlsx", ARTEN["typen"][0], zeilen, art.komponente_mehrzahl)
+                dazu(f"05_Komponenten-Typen_{dateiname_sicher(art.name)}.xlsx", ARTEN["typen"][0], zeilen,
+                     art.komponente_mehrzahl, f"Komponenten-Typen, dort Wartungsanwendung „{art.name}“ auswählen")
         for a in anlagen_liste:
             art = anlagenart.holen(a["anlagenart"])
             zeilen = _komponenten(con, a["id"])
             if zeilen:
-                dazu(f"06_{dateiname_sicher(art.komponente_mehrzahl)}_{dateiname_sicher(a['nummer'])}.xlsx",
-                     ARTEN["komponenten"][0], zeilen, art.name)
+                dazu(f"06_Komponenten_{dateiname_sicher(a['nummer'])}.xlsx", ARTEN["komponenten"][0], zeilen,
+                     art.name, f"Komponenten, dort Anlage „{a['nummer']}“ auswählen")
         zeilen, pool, ohne_nummer, zu_viele, typen = _auftraege(con)
-        dazu("07_Auftraege.xlsx", ARTEN["auftraege"][0], zeilen, "Aufträge")
-    liste = "\n".join(f"  {name}  ({n} {'Zeile' if n == 1 else 'Zeilen'})" for name, n in anzahl.items())
+        dazu("07_Auftraege.xlsx", ARTEN["auftraege"][0], zeilen, "Aufträge", "Aufträge")
+    liste = "\n".join(f"  {name}  ({n} {'Zeile' if n == 1 else 'Zeilen'})\n      -> Datenimport -> {wohin[name]}"
+                      for name, n in anzahl.items())
     rwm = wartungsanwendung(anlagenart.holen("rauchwarnmelder"))
     warnungen = [f"  ACHTUNG: {pool} Auftrag/Aufträge ohne Techniker (Pool) – vor dem Import einen eintragen."
                  if pool else "",

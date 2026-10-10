@@ -66,8 +66,9 @@ Sub-Komponenten (Türen). Getestet mit den Original-Vorlagen aus dem Foxtag-Test
 
 Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/export.py`), jeweils als ZIP:
 
-- **Foxtag-Format:** `01_Kunden`, `02_Kontakte`, `03_Objekte`, `04_Anlagen`, `05_Typen_<Anlagenart>` und
-  `06_Melder_<Anlagennummer>` als `.xlsx`, dazu `LIESMICH.txt` mit Reihenfolge und Hinweisen. Spalten kommen aus
+- **Foxtag-Format:** `01_Kunden`, `02_Kontakte`, `03_Objekte`, `04_Anlagen`, `05_Komponenten-Typen_<Anlagenart>`,
+  `06_Komponenten_<Anlagennummer>` und `07_Auftraege` als `.xlsx` (Namen wie die Punkte im Foxtag-Menü
+  „Datenimport“, seit 10.10.2026), dazu `LIESMICH.txt` mit Reihenfolge, Menüpunkt je Datei und Hinweisen. Spalten kommen aus
   denselben Definitionen wie der Import (`excel_import.ARTEN`), Kopfzeilen sind identisch mit den Foxtag-Vorlagen.
   Nur gültiger Bestand (nicht gelöscht, Melder nur verbaut). Formate wie in den Vorlagen: Nummern als Zahl, Datum als
   Excel-Datum, LAND als Code; PLZ als Text (führende Null bleibt). WARTUNGSANWENDUNG.NUMMER = erster `import_namen`-
@@ -88,11 +89,13 @@ Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/exp
 - **Aufträge (09.10.2026):** `07_Auftraege.xlsx` mit den offenen Aufträgen (geplant/in Arbeit). AUFTRAGSTYP.NUMMER
   = Schlüssel der Auftragsart in Großbuchstaben (WARTUNG, INSTALLATION, NACHTERMIN, FERNINSPEKTION – in Foxtag so
   anlegen), TECHNIKER.NUMMER = Personalnummer (Verwaltung → Nutzer), höchstens drei; Uhrzeit steht als Datum mit
-  Zeit in DATUM (ob Foxtag sie übernimmt, zeigt der Probe-Import). Foxtag verlangt einen Techniker: Pool-Aufträge
+  Zeit in DATUM und zusätzlich als erste Zeile „Uhrzeit HH:MM Uhr“ in AUFTRAG.HINWEISE (Foxtag übernimmt aus DATUM
+  nur den Tag, s. Probe-Import). Foxtag verlangt einen Techniker: Pool-Aufträge
   und fehlende Personalnummern meldet LIESMICH.txt. Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar.
   **Import** (Verwaltung → Excel-Import → Aufträge): gleiche Spalten; Auftragstyp als Nummer oder Name; leerer
   Techniker = Pool; Datum in der Vergangenheit erlaubt (Hinweis), damit offene Aufträge aus Foxtag übernommen
   werden können; Hilfespalte der Foxtag-Vorlage wird übergangen. Rundweg Export → Import getestet.
+  Eine Hinweiszeile „Uhrzeit HH:MM Uhr“ am Anfang wird wieder zur Uhrzeit (Zeit im DATUM hat Vorrang).
 - **Korrektur 09.10.2026:** Kontakte (`KUNDE`) und Objekte (`KUNDE.NUMMER`, `OBJEKT.NAME`) hatten Sternchen, die
   die Foxtag-Vorlage nicht hat (unser Import verlangt die Spalten, Foxtag nicht). Jetzt trennt `Importart` „Pflicht
   bei uns“ von „Pflicht laut Foxtag“; ein Test vergleicht alle Kopfzeilen mit den Vorlagen.
@@ -100,5 +103,17 @@ Verwaltung → Export (`server/wartung/export.py`, Seite `server/wartung/web/exp
   an und schreibt den Export. Im Testkonto vorher Nummern vergeben: Wartungsanwendung Rauchwarnmelder „RWM“,
   Auftragstypen Wartungstermin „WARTUNG“, Installationstermin „INSTALLATION“, eigener Nutzer Personalnummer
   „PT-TECH-1“ (Stand 09.10.: dort alle ohne Nummer).
-- **Offen:** Probe-Import des Exports ins Foxtag-Testkonto (bis ca. 08.11.2026, nur erfundene Daten); Dateien
-  (Fotos, Unterschriften, Berichte) und Aufträge/Artikel kommen mit den jeweiligen Modulen.
+- **Probe-Import im Testkonto (10.10.2026, Patrick per Hand, Nachtest per Skript):** Kunden 2/2, Objekte 2/2,
+  Anlagen 2/2, Melder 5 + 2, Aufträge 2/2 übernommen. Erkenntnisse (stehen jetzt im LIESMICH):
+  - Bezeichnungen waren unklar („05_Typen“ statt „Komponenten-Typen“) → Dateinamen wie das Foxtag-Menü, je Datei
+    der Menüpunkt im LIESMICH. Komponenten-Typen fragen nach der Wartungsanwendung, Komponenten nach der Anlage.
+  - Typen: Die Melder wurden vor den Typen eingelesen. Foxtag legte die fehlenden Typen dabei selbst an (Name aus
+    TYP.NAME, **ohne Prüfintervall**); der Typen-Import danach meldete „nicht eindeutig“ (harmlos). Also 05 vor 06
+    und nach dem Import die Prüfintervalle der neuen Typen in Foxtag eintragen.
+  - Kontakt mit `@example.org` abgelehnt („E-Mail ist keine valide E-Mail Adresse“); ohne E-Mail nachimportiert:
+    angekommen, mit Kunde verknüpft. Probe-Skript legt den Kontakt jetzt ohne E-Mail an.
+  - Aufträge: Foxtag liest DATUM als UTC-Zeit, speichert aber nur den Tag als ganztägigen Auftrag (planned_at
+    00:00, `all_day`). Der Tag stimmt. Nachtest PT-A-3: Hinweis „Uhrzeit 08:30 Uhr“ kommt mit Zeilenumbruch an.
+  - Abgebrochene oder liegengebliebene Uploads bleiben in der Importliste als „in Vorbereitung“ stehen (harmlos).
+  - Probedaten (Präfix PT-) bleiben im Testkonto; es läuft ca. 08.11.2026 aus.
+- **Offen:** Dateien (Fotos, Unterschriften, Berichte) und Artikel kommen mit den jeweiligen Modulen.

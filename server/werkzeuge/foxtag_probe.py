@@ -30,9 +30,9 @@ def anlegen(con):
                               "ort": "Dresden", "land": "DE", "notiz_intern": "Probe-Import, erfundene Daten"}, None)
     k2 = kunden.anlegen(con, {"nummer": "PT-K2", "art": "privat", "name": "Erika Probe", "strasse": "Beispielweg 7",
                               "plz": "90402", "ort": "Nürnberg", "land": "DE"}, None)
+    # ohne E-Mail: Foxtag lehnt Adressen mit der Beispiel-Domain example.org ab (Probe-Import 10.10.2026)
     kunden.kontakt_anlegen(con, k1, {"name": "Max Probe", "funktion": "Hausmeister", "telefon": "0351 123456",
-                                     "mobil": "0170 1234567", "email": "hausmeister@example.org",
-                                     "notiz": "Schlüssel im Büro"}, None)
+                                     "mobil": "0170 1234567", "notiz": "Schlüssel im Büro"}, None)
     o1 = objekte.anlegen(con, k1, {"nummer": "PT-O1", "bezeichnung": "Wohnanlage Probe Süd", "strasse": "Teststraße 12",
                                    "plz": "01069", "ort": "Dresden", "land": "DE"}, None)
     o2 = objekte.anlegen(con, k2, {"nummer": "PT-O2", "bezeichnung": "Einfamilienhaus Probe",

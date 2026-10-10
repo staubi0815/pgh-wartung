@@ -7,6 +7,7 @@ genau das, was beim Übernehmen passiert. Vorhandene Datensätze (gleiche Nummer
 überschrieben, sondern übersprungen.
 """
 import io
+import re
 import zipfile
 from dataclasses import dataclass, field
 from datetime import date, datetime
@@ -84,6 +85,18 @@ def uhrzeit(wert):
     if isinstance(wert, datetime) and (wert.hour, wert.minute) != (0, 0):
         return wert.strftime("%H:%M")
     return ""
+
+
+# Foxtag übernimmt aus DATUM nur den Tag (Probe-Import 10.10.2026). Der Export schreibt die Uhrzeit deshalb zusätzlich
+# als erste Zeile in AUFTRAG.HINWEISE; der Import nimmt sie dort wieder heraus.
+UHRZEIT_HINWEIS = "Uhrzeit {} Uhr"
+_UHRZEIT_HINWEIS_RE = re.compile(r"^Uhrzeit ([01]?\d|2[0-3]):([0-5]\d) Uhr\s*")
+
+
+def uhrzeit_aus_hinweisen(hinweise):
+    """(Uhrzeit HH:MM oder '', Hinweise ohne die Uhrzeitzeile)."""
+    m = _UHRZEIT_HINWEIS_RE.match(hinweise)
+    return (f"{int(m.group(1)):02d}:{m.group(2)}", hinweise[m.end():]) if m else ("", hinweise)
 
 
 def land(wert):
@@ -336,8 +349,9 @@ def _auftrag(con, w, nutzer_id, optionen):
         raise Ungueltig({"": "Datum fehlt."})
     if tag < date.today().isoformat():
         hinweise.append("Datum liegt in der Vergangenheit.")
+    zeit_hinweis, hinweis_text = uhrzeit_aus_hinweisen(text(w.get("AUFTRAG.HINWEISE")))
     form = auftraege.FormularWerte({"nummer": nummer, "auftragsart": auftragsart, "datum": tag,
-                                    "uhrzeit": uhrzeit(w.get("DATUM")), "hinweise": text(w.get("AUFTRAG.HINWEISE")),
+                                    "uhrzeit": uhrzeit(w.get("DATUM")) or zeit_hinweis, "hinweise": hinweis_text,
                                     "umfang": "ganze_anlage"}, techniker_ids)
     aid = auftraege.anlegen(con, anlage, form, nutzer_id, vergangenheit_erlaubt=True)
     return "neu", f"{auftraege.holen(con, aid)['nummer']} für Anlage {anlage['nummer']}", hinweise

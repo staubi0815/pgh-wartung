@@ -70,21 +70,27 @@ def test_foxtag_dateien_und_kopf(bestand):
     inhalt, anzahl = export.foxtag(bestand)
     dateien = entpacken(inhalt)
     assert list(dateien) == ["LIESMICH.txt", "01_Kunden.xlsx", "02_Kontakte.xlsx", "03_Objekte.xlsx",
-                             "04_Anlagen.xlsx", "05_Typen_Rauchwarnmelder.xlsx", "06_Melder_ANL_1.xlsx",
-                             "07_Auftraege.xlsx"]
+                             "04_Anlagen.xlsx", "05_Komponenten-Typen_Rauchwarnmelder.xlsx",
+                             "06_Komponenten_ANL_1.xlsx", "07_Auftraege.xlsx"]
     assert anzahl == {"01_Kunden.xlsx": 1, "02_Kontakte.xlsx": 1, "03_Objekte.xlsx": 2, "04_Anlagen.xlsx": 1,
-                      "05_Typen_Rauchwarnmelder.xlsx": 1, "06_Melder_ANL_1.xlsx": 2, "07_Auftraege.xlsx": 0}
+                      "05_Komponenten-Typen_Rauchwarnmelder.xlsx": 1, "06_Komponenten_ANL_1.xlsx": 2,
+                      "07_Auftraege.xlsx": 0}
     # Kopfzeilen genau wie die Foxtag-Vorlagen (Pflichtspalten mit *)
     assert blatt(dateien["01_Kunden.xlsx"])[0] == ["KUNDEN.NUMMER*", "KUNDE.NAME*", "ADRESSZEILE 1", "ADRESSZEILE 2",
                                                    "PLZ", "ORT", "LAND", "NOTIZ"]
     assert blatt(dateien["04_Anlagen.xlsx"])[0] == ["OBJEKT.NUMMER*", "WARTUNGSANWENDUNG.NUMMER*", "ANLAGE.NUMMER*",
                                                     "ANLAGE.NAME", "TECHNIKER.NUMMER"]
-    assert blatt(dateien["06_Melder_ANL_1.xlsx"])[0] == [
+    assert blatt(dateien["06_Komponenten_ANL_1.xlsx"])[0] == [
         "GRUPPE.NUMMER", "GRUPPE.NAME", "NUMMER*", "SUB-NUMMER", "TYP.NAME*", "TYP.HERSTELLER", "TYP.MODELL",
         "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LABEL", "LABEL2", "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"]
     liesmich = dateien["LIESMICH.txt"].decode("utf-8")
-    assert "„RWM“" in liesmich and "06_Melder_ANL_1.xlsx  (2 Zeilen)" in liesmich and "Mieterdaten" in liesmich
+    assert "„RWM“" in liesmich and "06_Komponenten_ANL_1.xlsx  (2 Zeilen)" in liesmich and "Mieterdaten" in liesmich
     assert "01_Kunden.xlsx  (1 Zeile)" in liesmich
+    # je Datei der passende Punkt im Foxtag-Menü „Datenimport“
+    assert "05_Komponenten-Typen_Rauchwarnmelder.xlsx  (1 Zeile)\n      -> Datenimport -> Komponenten-Typen, dort " \
+           "Wartungsanwendung „Rauchwarnmelder“ auswählen" in liesmich
+    assert "06_Komponenten_ANL_1.xlsx  (2 Zeilen)\n      -> Datenimport -> Komponenten, dort Anlage „ANL/1“ " \
+           "auswählen" in liesmich
 
 
 # Kopfzeilen der Foxtag-Importvorlagen (Stand Testkonto 10/2026, ohne Hinweis-/Hilfespalten)
@@ -96,10 +102,11 @@ FOXTAG_KOEPFE = {
                         "LAND"],
     "04_Anlagen.xlsx": ["OBJEKT.NUMMER*", "WARTUNGSANWENDUNG.NUMMER*", "ANLAGE.NUMMER*", "ANLAGE.NAME",
                         "TECHNIKER.NUMMER"],
-    "05_Typen_Rauchwarnmelder.xlsx": ["TYP.NAME*", "TYP.HERSTELLER", "TYP.MODELL", "TYP.KATEGORIE*", "TYP.LINK"],
-    "06_Melder_ANL_1.xlsx": ["GRUPPE.NUMMER", "GRUPPE.NAME", "NUMMER*", "SUB-NUMMER", "TYP.NAME*", "TYP.HERSTELLER",
-                             "TYP.MODELL", "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR", "LABEL", "LABEL2",
-                             "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"],
+    "05_Komponenten-Typen_Rauchwarnmelder.xlsx": ["TYP.NAME*", "TYP.HERSTELLER", "TYP.MODELL", "TYP.KATEGORIE*",
+                                                  "TYP.LINK"],
+    "06_Komponenten_ANL_1.xlsx": ["GRUPPE.NUMMER", "GRUPPE.NAME", "NUMMER*", "SUB-NUMMER", "TYP.NAME*",
+                                  "TYP.HERSTELLER", "TYP.MODELL", "STANDORT", "SERIENNUMMER", "QR-CODE", "BAUJAHR",
+                                  "LABEL", "LABEL2", "LETZTE PRÜFUNG", "INBETRIEBNAHME AM"],
     "07_Auftraege.xlsx": ["AUFTRAG.NUMMER", "ANLAGE.NUMMER*", "DATUM*", "AUFTRAGSTYP.NUMMER*", "TECHNIKER.NUMMER*",
                           "TECHNIKER.NUMMER2", "TECHNIKER.NUMMER3", "AUFTRAG.HINWEISE"],
 }
@@ -128,16 +135,16 @@ def test_foxtag_werte(bestand):
         ["K-7", "Wohnanlage Süd", "O-1", "Hauptstr. 5", None, "01067", "Dresden", "DE"],
         ["K-7", "Haus Nord", "O-2", "Nordweg 1", None, "90402", "Nürnberg", "DE"]]
     assert blatt(dateien["04_Anlagen.xlsx"])[1] == [["O-1", "RWM", "ANL/1", "Haus A", None]]
-    assert blatt(dateien["05_Typen_Rauchwarnmelder.xlsx"])[1] == [
+    assert blatt(dateien["05_Komponenten-Typen_Rauchwarnmelder.xlsx"])[1] == [
         ["Ei650", "Ei Electronics", "Ei650", "Komponente", "https://example.org/ei650"]]
-    _, melder = blatt(dateien["06_Melder_ANL_1.xlsx"])
+    _, melder = blatt(dateien["06_Komponenten_ANL_1.xlsx"])
     # ausgebauter Melder (Wohnung 43) fehlt; Zahlen als Zahl, Datum als Excel-Datum
     assert melder == [
         [36, "Friedrich, 1.OG Mitte", 1, 0, "Ei650", "Ei Electronics", "Ei650", "Flur", "90024-1", "QR-36-1", 2020,
          None, None, datetime(2025, 11, 17), datetime(2020, 3, 1)],
         [36, "Friedrich, 1.OG Mitte", 2, 0, "Ei650", "Ei Electronics", "Ei650", "Kinderzimmer", None, None, 2020,
          None, None, None, None]]
-    datumszelle = openpyxl.load_workbook(io.BytesIO(dateien["06_Melder_ANL_1.xlsx"])).active["N2"]
+    datumszelle = openpyxl.load_workbook(io.BytesIO(dateien["06_Komponenten_ANL_1.xlsx"])).active["N2"]
     assert datumszelle.number_format == export.DATUMSFORMAT
 
 
@@ -160,9 +167,9 @@ def test_gleiche_dateinamen_und_steuerzeichen(bestand):
     con.execute("UPDATE kunde SET name = 'Muster\x07 GmbH' WHERE nummer = 'K-7'")
     inhalt, anzahl = export.foxtag(con)
     dateien = entpacken(inhalt)
-    assert "06_Melder_ANL_1.xlsx" in dateien and "06_Melder_ANL_1_2.xlsx" in dateien
+    assert "06_Komponenten_ANL_1.xlsx" in dateien and "06_Komponenten_ANL_1_2.xlsx" in dateien
     # nach Anlagennummer sortiert: „ANL/1“ (2 Melder) vor „ANL_1“ (1 Melder)
-    assert anzahl["06_Melder_ANL_1.xlsx"] == 2 and anzahl["06_Melder_ANL_1_2.xlsx"] == 1
+    assert anzahl["06_Komponenten_ANL_1.xlsx"] == 2 and anzahl["06_Komponenten_ANL_1_2.xlsx"] == 1
     assert blatt(dateien["01_Kunden.xlsx"])[1][0][1] == "Muster GmbH"
     with zipfile.ZipFile(io.BytesIO(inhalt)) as z:
         assert len(z.namelist()) == len(set(z.namelist()))
@@ -183,10 +190,10 @@ def test_rundweg_export_dann_import(bestand, tmp_path):
                       ("04_Anlagen.xlsx", "anlagen")):
         e = imp.uebernehmen(ziel, art, dateien[name], None)
         assert e.gespeichert and e.anzahl("neu") == len(e.zeilen), (name, [z.meldungen for z in e.zeilen])
-    assert imp.uebernehmen(ziel, "typen", dateien["05_Typen_Rauchwarnmelder.xlsx"], None,
+    assert imp.uebernehmen(ziel, "typen", dateien["05_Komponenten-Typen_Rauchwarnmelder.xlsx"], None,
                            {"anlagenart": "rauchwarnmelder"}).gespeichert
     anlage = anlagen.holen(ziel, ziel.execute("SELECT id FROM anlage WHERE nummer = 'ANL/1'").fetchone()["id"])
-    e = imp.uebernehmen(ziel, "komponenten", dateien["06_Melder_ANL_1.xlsx"], None, {"anlage": anlage})
+    e = imp.uebernehmen(ziel, "komponenten", dateien["06_Komponenten_ANL_1.xlsx"], None, {"anlage": anlage})
     assert e.gespeichert and e.anzahl("neu") == 2
 
     def stand(con):

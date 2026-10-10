@@ -13,7 +13,12 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
   ein grüner oder roter Haken am Commit und am Pull Request.
 - **Arbeitsweise:** Änderungen kommen als Pull Request mit Zusammenfassung in Alltagssprache (Vorlage
   `.github/pull_request_template.md`); dazu dieses CHANGELOG und die Entscheidungsliste `docs/09-entscheidungen.md`.
-- Am Programm selbst ändert sich nichts.
+- **Foxtag-Export nach dem Probe-Import verbessert:** Die Dateien heißen jetzt wie die Punkte im Foxtag-Menü
+  „Datenimport“ (z. B. `05_Komponenten-Typen_Rauchwarnmelder.xlsx`, `06_Komponenten_<Anlage>.xlsx`), und im
+  LIESMICH steht bei jeder Datei, wo sie in Foxtag hingehört. Neue Hinweise: Typen vor den Komponenten einlesen,
+  danach in Foxtag die Prüfintervalle der neuen Typen eintragen.
+- **Uhrzeit von Aufträgen:** Foxtag übernimmt nur den Tag. Die Uhrzeit steht deshalb zusätzlich in der ersten Zeile
+  der Hinweise („Uhrzeit 08:30 Uhr“). Beim Einlesen in PGH-Wartung wird daraus wieder die Uhrzeit.
 
 ## 0.3.0 – Aufträge (09.10.2026)
 
