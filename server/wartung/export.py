@@ -14,6 +14,7 @@ import io
 import json
 import re
 import zipfile
+from dataclasses import replace
 from contextlib import contextmanager
 from datetime import date, datetime
 
@@ -137,14 +138,18 @@ def wartungsanwendung(art):
 
 
 def _anlagen(con):
-    sql = ("SELECT a.*, o.nummer AS objekt_nummer FROM anlage a JOIN objekt o ON o.id = a.objekt_id "
+    sql = ("SELECT a.*, o.nummer AS objekt_nummer, "
+           " (SELECT s.personalnummer FROM nutzer s WHERE s.id = a.stammtechniker_id) AS stamm_nummer, "
+           " (SELECT s.name FROM nutzer s WHERE s.id = a.stammtechniker_id) AS stamm_name "
+           "FROM anlage a JOIN objekt o ON o.id = a.objekt_id "
            "JOIN kunde k ON k.id = o.kunde_id WHERE a.geloescht = 0 AND o.geloescht = 0 AND k.geloescht = 0 "
            "ORDER BY a.nummer COLLATE NOCASE")
     zeilen, liste = [], []
     for a in con.execute(sql).fetchall():
         zeilen.append({"OBJEKT.NUMMER": a["objekt_nummer"],
                        "WARTUNGSANWENDUNG.NUMMER": wartungsanwendung(anlagenart.holen(a["anlagenart"])),
-                       "ANLAGE.NUMMER": a["nummer"], "ANLAGE.NAME": a["bezeichnung"], "TECHNIKER.NUMMER": ""})
+                       "ANLAGE.NUMMER": a["nummer"], "ANLAGE.NAME": a["bezeichnung"],
+                       "TECHNIKER.NUMMER": a["stamm_nummer"] or ""})
         liste.append(a)
     return zeilen, liste
 
@@ -173,7 +178,7 @@ def _komponenten(con, anlage_id):
              "TYP.HERSTELLER": k["hersteller"], "TYP.MODELL": k["modell"], "STANDORT": k["raum"],
              "SERIENNUMMER": k["seriennummer"], "QR-CODE": k["barcode"] or "", "BAUJAHR": k["baujahr"],
              "LABEL": None, "LABEL2": None, "LETZTE PRÜFUNG": _datum(k["letzte_pruefung_am"]),
-             "INBETRIEBNAHME AM": _datum(k["inbetriebnahme_am"])}
+             "INBETRIEBNAHME AM": _datum(k["inbetriebnahme_am"]), "ZULASSUNGSNUMMER": k["zulassungsnummer"]}
             for k in con.execute(sql, (anlage_id,))]
 
 
@@ -235,7 +240,8 @@ Was nicht oder anders übertragen wird:
   in der ersten Zeile der Hinweise („Uhrzeit 08:30 Uhr“); in Foxtag bei Bedarf von Hand eintragen.
   Der Umfang „ausgewählte Wohnungen“ ist in Foxtag nicht abbildbar (ganze Anlage).
 - Kontakte: Foxtag lehnt E-Mail-Adressen ab, die es für ungültig hält; die Zeile dann ohne E-Mail importieren.
-- Noch nicht enthalten (gibt es in PGH-Wartung noch nicht): Labels, Techniker je Anlage, Artikel.
+- Anlagen: TECHNIKER.NUMMER ist die Personalnummer des Stammtechnikers (Verwaltung -> Nutzer; in Foxtag gleich anlegen).
+- Noch nicht enthalten (gibt es in PGH-Wartung noch nicht): Labels, Artikel.
 
 Achtung: Die Dateien enthalten Kunden- und Mieterdaten. Nur auf dem NAS ablegen, nicht per Mail versenden;
 an einen anderen Dienst erst nach Abschluss eines Auftragsverarbeitungsvertrags übergeben.
@@ -244,7 +250,7 @@ an einen anderen Dienst erst nach Abschluss eines Auftragsverarbeitungsvertrags 
 
 def foxtag(con):
     """Foxtag-Export als ZIP. Rückgabe: (ZIP-Bytes, Anzahl je Datei {Dateiname: Zeilen})."""
-    dateien, anzahl, wohin = [], {}, {}
+    dateien, anzahl, wohin, mit_zulassung = [], {}, {}, []
 
     def dazu(name, importart, zeilen, blatt, menue):
         """menue: wo die Datei in Foxtag hingehört (Datenimport -> …), steht im LIESMICH neben dem Dateinamen."""
@@ -260,6 +266,7 @@ def foxtag(con):
         dazu("02_Kontakte.xlsx", ARTEN["kontakte"][0], _kontakte(con), "Kontakte", "Kontakte")
         dazu("03_Objekte.xlsx", ARTEN["objekte"][0], _objekte(con), "Objekte", "Objekte")
         zeilen, anlagen_liste = _anlagen(con)
+        ohne_nummer_stamm = sum(1 for a in anlagen_liste if a["stamm_name"] and not a["stamm_nummer"])
         dazu("04_Anlagen.xlsx", ARTEN["anlagen"][0], zeilen, "Anlagen", "Anlagen")
         for art in anlagenart.alle().values():
             zeilen = _typen(con, art.schluessel)
@@ -270,7 +277,12 @@ def foxtag(con):
             art = anlagenart.holen(a["anlagenart"])
             zeilen = _komponenten(con, a["id"])
             if zeilen:
-                dazu(f"06_Komponenten_{dateiname_sicher(a['nummer'])}.xlsx", ARTEN["komponenten"][0], zeilen,
+                importart = ARTEN["komponenten"][0]
+                if any(z["ZULASSUNGSNUMMER"] for z in zeilen):
+                    # Die RWM-Vorlage kennt die Spalte nicht (nur die Türen-Vorlage); sie kommt nur dazu, wenn Werte da sind
+                    importart = replace(importart, spalten=(*importart.spalten, "ZULASSUNGSNUMMER"))
+                    mit_zulassung.append(f"06_Komponenten_{dateiname_sicher(a['nummer'])}.xlsx")
+                dazu(f"06_Komponenten_{dateiname_sicher(a['nummer'])}.xlsx", importart, zeilen,
                      art.name, f"Komponenten, dort Anlage „{a['nummer']}“ auswählen")
         zeilen, pool, ohne_nummer, zu_viele, typen = _auftraege(con)
         dazu("07_Auftraege.xlsx", ARTEN["auftraege"][0], zeilen, "Aufträge", "Aufträge")
@@ -282,7 +294,12 @@ def foxtag(con):
                  f"  ACHTUNG: bei {ohne_nummer} Auftrag/Aufträgen fehlt einem Techniker die Personalnummer."
                  if ohne_nummer else "",
                  f"  ACHTUNG: {zu_viele} Auftrag/Aufträge mit mehr als drei Technikern – "
-                 "nur die ersten drei stehen drin." if zu_viele else ""]
+                 "nur die ersten drei stehen drin." if zu_viele else "",
+                 f"  ACHTUNG: bei {ohne_nummer_stamm} Anlage(n) hat der Stammtechniker keine Personalnummer – "
+                 "TECHNIKER.NUMMER in 04_Anlagen.xlsx bleibt dort leer." if ohne_nummer_stamm else "",
+                 "  HINWEIS: " + ", ".join(mit_zulassung) + " enthält/enthalten die zusätzliche Spalte "
+                 "ZULASSUNGSNUMMER (nicht in der RWM-Vorlage). Lehnt Foxtag die Datei deshalb ab, die Spalte "
+                 "vor dem Import löschen." if mit_zulassung else ""]
     typen_text = "\n".join(f"    {nummer}  (bei uns: {name})" for nummer, name in sorted(typen.items())) \
         or "    (keine offenen Aufträge)"
     text = FOXTAG_LIESMICH.format(zeit=db.jetzt(), dateien=liste, rwm=rwm, auftragstypen=typen_text,
