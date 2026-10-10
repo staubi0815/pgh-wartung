@@ -66,6 +66,14 @@ def text(wert):
     return " ".join(str(wert).split())
 
 
+def text_mehrzeilig(wert):
+    """Wie text(), erhält aber Zeilenumbrüche (für Notizen); Leerzeichen je Zeile werden zusammengefasst."""
+    if not isinstance(wert, str):
+        return text(wert)
+    zeilen = [" ".join(z.split()) for z in wert.replace("\r\n", "\n").replace("\r", "\n").split("\n")]
+    return "\n".join(zeilen).strip("\n")
+
+
 def datum(wert):
     """Zelle als JJJJ-MM-TT; erlaubt Excel-Datum, 17.11.2016, 17.11.16, 2016-11-17. Leer = ''."""
     if wert is None or wert == "":
@@ -161,7 +169,7 @@ class Importart:
     titel: str
     spalten: tuple          # alle Spalten in der Reihenfolge der Foxtag-Vorlage
     pflicht: tuple          # davon Pflicht (müssen in der Datei vorhanden sein)
-    ignoriert: tuple = ()   # bekannte Foxtag-Spalten, die (noch) nicht übernommen werden
+    ignoriert: tuple = ()   # nur in anderen Foxtag-Vorlagen (z. B. Türen) vorhandene Spalten: nicht erwartet, aber gelesen, falls da
     braucht_anlage: bool = False
     foxtag_pflicht: tuple = ()  # in Foxtag Pflicht, bei uns nicht (z. B. Techniker beim Auftrag)
     foxtag_optional: tuple = ()  # bei uns Pflicht, in Foxtag nicht (z. B. Kunde beim Kontakt)
@@ -192,7 +200,7 @@ def _kunde(con, w, nutzer_id, optionen):
     kunden.anlegen(con, {"nummer": nummer, "art": optionen.get("kundenart", "hausverwaltung"),
                          "name": text(w.get("KUNDE.NAME")), "strasse": text(w.get("ADRESSZEILE 1")),
                          "zusatz": text(w.get("ADRESSZEILE 2")), "plz": plz(w.get("PLZ"), lc), "ort": text(w.get("ORT")),
-                         "land": lc, "notiz_intern": text(w.get("NOTIZ"))}, nutzer_id)
+                         "land": lc, "notiz_intern": text_mehrzeilig(w.get("NOTIZ"))}, nutzer_id)
     return "neu", beschreibung, []
 
 
@@ -205,7 +213,7 @@ def _kontakt(con, w, nutzer_id, optionen):
         return "vorhanden", beschreibung, []
     kunden.kontakt_anlegen(con, k["id"], {"name": name, "firma": text(w.get("FIRMA")), "email": text(w.get("EMAIL")),
                                           "telefon": text(w.get("TELEFON")), "mobil": text(w.get("MOBIL")),
-                                          "fax": text(w.get("FAX")), "notiz": text(w.get("NOTIZ"))}, nutzer_id)
+                                          "fax": text(w.get("FAX")), "notiz": text_mehrzeilig(w.get("NOTIZ"))}, nutzer_id)
     return "neu", beschreibung, []
 
 
@@ -311,7 +319,8 @@ def _komponente(con, w, nutzer_id, optionen):
         hinweise.append("Labels werden noch nicht übernommen.")
     komponenten.anlegen(con, art, g, {
         "nummer": str(nummer), "komponententyp_id": typ_id, "raum": text(w.get("STANDORT")),
-        "seriennummer": text(w.get("SERIENNUMMER")), "barcode": text(w.get("QR-CODE")),
+        "seriennummer": text(w.get("SERIENNUMMER")), "zulassungsnummer": text(w.get("ZULASSUNGSNUMMER")),
+        "barcode": text(w.get("QR-CODE")),
         "baujahr": text(w.get("BAUJAHR")), "letzte_pruefung_am": datum(w.get("LETZTE PRÜFUNG")),
         "inbetriebnahme_am": datum(w.get("INBETRIEBNAHME AM"))}, nutzer_id)
     return "neu", beschreibung, hinweise
@@ -349,7 +358,7 @@ def _auftrag(con, w, nutzer_id, optionen):
         raise Ungueltig({"": "Datum fehlt."})
     if tag < date.today().isoformat():
         hinweise.append("Datum liegt in der Vergangenheit.")
-    zeit_hinweis, hinweis_text = uhrzeit_aus_hinweisen(text(w.get("AUFTRAG.HINWEISE")))
+    zeit_hinweis, hinweis_text = uhrzeit_aus_hinweisen(text_mehrzeilig(w.get("AUFTRAG.HINWEISE")))
     form = auftraege.FormularWerte({"nummer": nummer, "auftragsart": auftragsart, "datum": tag,
                                     "uhrzeit": uhrzeit(w.get("DATUM")) or zeit_hinweis, "hinweise": hinweis_text,
                                     "umfang": "ganze_anlage"}, techniker_ids)

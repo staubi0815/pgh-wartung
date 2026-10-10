@@ -217,7 +217,7 @@ def test_rundweg_export_dann_import(bestand, tmp_path):
         assert [tuple(z) for z in vorher[teil]] == [tuple(z) for z in nachher[teil]], teil
     # bekannte Abweichungen: die Funktion des Kontakts steht in Foxtag in der Notiz, und der Import fasst
     # Zeilenumbrüche zu Leerzeichen zusammen
-    assert ziel.execute("SELECT notiz FROM kontakt").fetchone()[0] == "Funktion: Hausmeister Schlüssel im Büro"
+    assert ziel.execute("SELECT notiz FROM kontakt").fetchone()[0] == "Funktion: Hausmeister\nSchlüssel im Büro"
 
 
 # ---------- Vollexport ----------

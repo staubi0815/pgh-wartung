@@ -20,7 +20,7 @@
   </select>
   {% else %}
   <input id="{{ id }}" name="{{ f.name }}"
-         type="{{ {'email': 'email', 'tel': 'tel', 'zahl': 'number', 'datum': 'date', 'uhrzeit': 'time'}.get(f.art, 'text') }}"
+         type="{{ {'email': 'email', 'tel': 'tel', 'link': 'url', 'zahl': 'number', 'datum': 'date', 'uhrzeit': 'time'}.get(f.art, 'text') }}"
          value="{{ wert if wert is not none else '' }}"
          {% if f.art == 'zahl' and f.minimum is not none %}min="{{ f.minimum }}"{% endif %}
          {% if f.art == 'zahl' and f.maximum is not none %}max="{{ f.maximum }}"{% endif %}
