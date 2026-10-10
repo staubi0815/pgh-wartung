@@ -36,19 +36,13 @@ danach DB sichern und `./deploy.sh`. Reihenfolge ist ein Vorschlag, Patrick kann
     Versandhistorie, Terminankündigung per E-Mail (Absender/Vorlagen unter Verwaltung).
 18. Auswertungen: Material und Leistungen, Austauschliste (Excel), Jahresübersicht, Störungsliste je Anlage/global.
 
-## Stufe 5 – Karte mit Routen (Wunsch Patrick; Foxtag hat nur Karte ohne Routen)
-Foxtag zeigt Anlagen als Markierungen mit Filtern (Anwendung, Kunde, Prüf-/Austauschfälligkeit, Techniker); Routen
-habe ich dort nicht gefunden. Wir können mehr: **Tagesroute je Techniker** aus den Terminen des Tages, Reihenfolge nach
-Uhrzeit, Fahrzeit/Strecke je Etappe, Knopf „Navigation starten“ (Link an die Karten-App des Tablets).
-Datenschutz-Entscheidung nötig (Kundenadressen sind Kundendaten):
-- **Variante A (empfohlen, nur eigene Daten nach außen):** Koordinaten einmal je Objekt ermitteln und speichern; Karte
-  mit Kacheln eines Kartendienstes (der Browser verrät nur den Kartenausschnitt, keine Adressen); Route über einen
-  selbst betriebenen Routenserver (OSRM/Valhalla mit Bayern-/Sachsen-Kartendaten) im Container 192 oder eigenem
-  Container; Koordinaten ermitteln per Adressdienst – hier gehen Adressen nach außen, daher einmalig und nur
-  Straße/PLZ/Ort, oder von Hand per Kartenklick.
-- **Variante B (einfach):** nur Markierungen und je Termin ein Link „Route in Karten-App öffnen“; keine eigenen Routen.
-Entscheidung Patrick; Foxtag-Mapbox übernehmen wir nicht (fremder Dienst, Lizenz).
-Schritte: 19 Koordinaten je Objekt (auto/eigen), 20 Kartenseite mit Filtern, 21 Tagesroute je Techniker.
+## Stufe 5 – Karte mit Koordinaten (Entscheidung Patrick 10.10.2026: kein Routenplaner)
+Foxtag zeigt Anlagen als Markierungen mit Filtern (Anwendung, Kunde, Prüf-/Austauschfälligkeit, Techniker). Wir ebenso,
+dazu: Tipp auf eine Markierung → Objekt/Anlage und Knopf „Navigieren“, der die Karten-App des Geräts mit den
+Koordinaten öffnet (Standard-Kartenlink des Geräts, kein Google nötig; Google nur als wählbare Alternative).
+Datenschutz: Koordinaten werden einmal je Objekt gespeichert (von Hand per Kartenklick oder einmalig aus der Adresse);
+Kartenkacheln kommen von außen (verraten nur den Ausschnitt, keine Adressen); Foxtags Mapbox übernehmen wir nicht.
+Schritte: 19 Koordinaten je Objekt (auto/eigen), 20 Kartenseite mit Filtern und Navigieren-Knopf.
 
 ## Stufe 6 – Türen
 22. Konfigurationsmodell erweitern: Typ-Kategorien (Komponente/Sub-Komponente/Zentrale), Intervall je Typ, mehrere
