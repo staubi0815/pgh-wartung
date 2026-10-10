@@ -12,7 +12,7 @@ Reihenfolge beim Import in Foxtag: Kunden → Kontakte → Objekte → Anlagen �
 | Foxtag-Datei | Spalten | Quelle bei uns |
 |---|---|---|
 | Kunden | KUNDEN.NUMMER*, KUNDE.NAME*, ADRESSZEILE 1, ADRESSZEILE 2, PLZ, ORT, LAND, NOTIZ | kunde.nummer, name, strasse, zusatz, plz, ort, land, notiz_intern |
-| Kontakte | NAME*, FIRMA, EMAIL, TELEFON, MOBIL, FAX, NOTIZ, KUNDE (Kundennummer) | kontakt.* |
+| Kontakte | NAME*, FIRMA, EMAIL, TELEFON, MOBIL, FAX, NOTIZ, KUNDE (Kundennummer) | kontakt.*; gehört ein Kontakt zu mehreren Kunden, steht er je Kunde in einer eigenen Zeile (die Vorlage kennt nur einen Kunden je Zeile; im Foxtag entstehen dadurch Einträge je Kunde). Der Import verknüpft einen Kontakt mit identischen Angaben (Name, Firma, E-Mail, Telefon, Mobil, Fax) mit dem Kunden, statt ihn zu verdoppeln |
 | Objekte | KUNDE.NUMMER, OBJEKT.NAME, OBJEKT.NUMMER, ADRESSZEILE 1, ADRESSZEILE 2, PLZ, ORT, LAND | objekt.* |
 | Anlagen | OBJEKT.NUMMER*, WARTUNGSANWENDUNG.NUMMER*, ANLAGE.NUMMER*, ANLAGE.NAME, TECHNIKER.NUMMER | anlage.*, Anlagenart → Nummer der Foxtag-Wartungsanwendung (vorher dort vergeben), nutzer.personalnummer |
 | Komponenten Rauchwarnmelder | GRUPPE.NUMMER, GRUPPE.NAME, NUMMER*, SUB-NUMMER, TYP.NAME*, TYP.HERSTELLER, TYP.MODELL, STANDORT, SERIENNUMMER, QR-CODE, BAUJAHR, LABEL, LABEL2, LETZTE PRÜFUNG, INBETRIEBNAHME AM | gruppe.nummer, gruppe.bezeichnung (+ Bewohner), komponente.nummer, 0, komponententyp.*, raum, seriennummer, barcode, baujahr, Labels, letzte Prüfung, inbetriebnahme_am |

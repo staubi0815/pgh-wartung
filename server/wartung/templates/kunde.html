@@ -8,6 +8,7 @@
 </div>
 {% set meldungen = {'angelegt': 'Kunde angelegt.', 'gespeichert': 'Gespeichert.', 'kontakt_angelegt': 'Kontakt angelegt.',
                     'kontakt_gespeichert': 'Kontakt gespeichert.', 'kontakt_geloescht': 'Kontakt gelöscht.',
+                    'kontakt_hinzugefuegt': 'Kontakt hinzugefügt.', 'kontakt_geloest': 'Kontakt von diesem Kunden gelöst.',
                     'objekt_geloescht': 'Objekt gelöscht.'} %}
 {% if hinweis in meldungen %}<p class="ok">{{ meldungen[hinweis] }}</p>{% endif %}
 {% if hinweis == 'hat_objekte' %}<p class="fehler">Der Kunde hat noch Objekte und kann daher nicht gelöscht werden.</p>{% endif %}
@@ -20,15 +21,16 @@
 <section class="karte" id="kontakte">
   <div class="zeile">
     <h2>Kontakte</h2>
-    {% if darf %}<a class="knopf zweitrangig" href="/kunden/{{ k.id }}/kontakte/neu">+ Kontakt anlegen</a>{% endif %}
+    {% if darf %}<span><a class="knopf zweitrangig" href="/kunden/{{ k.id }}/kontakte/neu">+ Kontakt anlegen</a>
+      <a class="knopf zweitrangig" href="/kunden/{{ k.id }}/kontakte/hinzufuegen">Vorhandenen hinzufügen</a></span>{% endif %}
   </div>
   {% if kontakte %}
   <table>
-    <tr><th>Name</th><th>Funktion</th><th>Telefon</th><th>Mobil</th><th>E-Mail</th></tr>
+    <tr><th>Name</th><th>Funktion</th><th>Telefon</th><th>Mobil</th><th>E-Mail</th><th>Auch bei</th></tr>
     {% for kt in kontakte %}
     <tr>
-      <td>{% if darf %}<a href="/kontakte/{{ kt.id }}">{{ kt.name }}</a>{% else %}{{ kt.name }}{% endif %}</td>
-      <td>{{ kt.funktion }}</td><td>{{ kt.telefon }}</td><td>{{ kt.mobil }}</td><td>{{ kt.email }}</td>
+      <td>{% if darf %}<a href="/kontakte/{{ kt.id }}?kunde={{ k.id }}">{{ kt.name }}</a>{% else %}{{ kt.name }}{% endif %}</td>
+      <td>{{ kt.funktion }}</td><td>{{ kt.telefon }}</td><td>{{ kt.mobil }}</td><td>{{ kt.email }}</td><td class="leise">{{ kt.auch_bei or '' }}</td>
     </tr>
     {% endfor %}
   </table>

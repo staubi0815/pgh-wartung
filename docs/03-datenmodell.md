@@ -36,8 +36,20 @@ zusatz, strasse, plz, ort, land (DE), telefon, email, rechnungs_email, lieferant
 notiz_intern, labels.
 
 ### kontakt
-kunde_id (optional), name, firma, funktion („Hausmeister“, „Verwalter“), telefon, mobil, email, notiz.
+name, firma, funktion („Hausmeister“, „Verwalter“), telefon, mobil, email, notiz.
 Rollen über Verknüpfung `anlage_kontakt`: `vor_ort` | `berichtsempfaenger` | `terminankuendigung`.
+Ein Kontakt kann zu mehreren Kunden gehören (z. B. ein Hausmeisterdienst): Verknüpfungstabelle `kunde_kontakt`
+(kunde_id, kontakt_id; je Paar nur eine aktive Zeile). Die Spalte `kontakt.kunde_id` gibt es seit Migration 010 nicht
+mehr. Regeln (Schritt 8b, `kunden.py`):
+- Ein Kontakt gehört immer zu mindestens einem Kunden. „Lösen“ (`kontakt_loesen`) entfernt die Verknüpfung zu einem
+  Kunden samt dessen `anlage_kontakt`-Zuordnungen; beim letzten Kunden geht nur „Löschen“.
+- „Löschen“ markiert den Kontakt bei allen Kunden als gelöscht. Wird ein Kunde gelöscht, werden seine Kontakte gelöst,
+  sofern sie auch anderswo geführt werden, sonst gelöscht.
+- Änderungen an den Kontaktangaben gelten für alle Kunden. Zuordnung zur Anlage nur, wenn der Kontakt zum Kunden des
+  Objekts gehört.
+- Migration 010 baut `kontakt` neu auf (SQLite kann die Spalte nicht entfernen). Dafür gibt es im Migrationslauf die
+  Marke `-- fremdschluessel: aus` in der ersten Zeile: Fremdschlüsselprüfung während der Datei aus, vor dem Festschreiben
+  `PRAGMA foreign_key_check`, danach wieder an. Vor dem Einspielen DB sichern.
 
 ### objekt (Gebäude)
 nummer, kunde_id, bezeichnung („Musterstraße 12“), strasse, plz, ort, adresse_wie_kunde (ja/nein),

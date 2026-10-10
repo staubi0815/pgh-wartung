@@ -224,7 +224,7 @@ def test_rundweg_export_dann_import(bestand, tmp_path):
 
 ERWARTETE_TABELLEN = {"abgleich_zaehler", "aenderungsprotokoll", "anlage", "anlage_kontakt", "auftrag",
                       "auftrag_gruppe", "auftrag_techniker", "auftrag_verlauf", "firma", "gruppe",
-                      "komponente", "komponententyp", "kontakt", "kunde", "massnahme", "nummernkreis", "nutzer",
+                      "komponente", "komponententyp", "kontakt", "kunde", "kunde_kontakt", "massnahme", "nummernkreis", "nutzer",
                       "nutzer_rolle", "objekt", "rolle", "rolle_recht", "schema_version"}
 
 

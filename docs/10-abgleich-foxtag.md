@@ -12,7 +12,7 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 | Bereich | Foxtag | Wir | Bew. |
 |---|---|---|---|
 | Kunde | Nummer, Name, Adresse (2 Zeilen), PLZ/Ort/Land, Link, Koordinaten (auto/eigen), interne Notiz, Labels | zusätzlich Art, Zusatz, Telefon, E-Mail, Rechnungs-E-Mail, Lieferantennummer; kein Link, keine Koordinaten, keine Labels | = / W (Labels) |
-| Kontakt | eigenes Adressbuch, über Kunde **und** Anlage verknüpfbar (n:m); Name, Firma, E-Mail, Telefon, Mobil, Fax, Notiz | Kontakt gehört genau einem Kunden, Verknüpfung zur Anlage mit Rolle (`anlage_kontakt`) | W: Kontakt über mehrere Kunden (z. B. Hausmeisterdienst) |
+| Kontakt | eigenes Adressbuch, über Kunde **und** Anlage verknüpfbar (n:m); Name, Firma, E-Mail, Telefon, Mobil, Fax, Notiz | Kontakt gehört genau einem Kunden, Verknüpfung zur Anlage mit Rolle (`anlage_kontakt`) | erledigt (Schritt 8b, Migration 010): Kontakt über mehrere Kunden über `kunde_kontakt` |
 | Objekt | Nummer, Name, **Zeitzone**, Adresse „wie Kunde“ oder eigen | Nummer, Bezeichnung, Adresse wie Kunde/eigen, Koordinaten, Zugangshinweise | = (Zeitzone S, wir arbeiten nur in einer) |
 | Anlage | Nummer, Name, **Standard-Techniker**, Hinweise, Ansprechpartner, passiv schalten, verschieben, Labels, Berichtsempfänger | Hinweise für Techniker, Verfahren A/B/C, passiv, Einzelnachweis je Wohnung; **kein Standard-Techniker, kein Verschieben der Anlage zu anderem Objekt, keine Berichtsempfänger** | K: Berichtsempfänger (Baustein 5), W: Standard-Techniker, Anlage verschieben |
 | Wohnung/Gruppe | nur Nummer, Name, Link | zusätzlich Bewohner, Telefon, Zugang, Notiz | + |

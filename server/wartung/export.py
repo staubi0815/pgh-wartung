@@ -107,12 +107,14 @@ def _kunden(con):
 
 def _kontakte(con):
     zeilen = []
-    for k in con.execute("SELECT c.*, k.nummer AS kunde_nummer FROM kontakt c LEFT JOIN kunde k ON k.id = c.kunde_id "
-                         "WHERE c.geloescht = 0 AND (c.kunde_id IS NULL OR k.geloescht = 0) "
+    # je Kunde eine Zeile: ein Kontakt bei mehreren Kunden erscheint mehrfach (die Vorlage kennt nur einen Kunden je Zeile)
+    for k in con.execute("SELECT c.*, k.nummer AS kunde_nummer FROM kontakt c "
+                         "JOIN kunde_kontakt z ON z.kontakt_id = c.id AND z.geloescht = 0 "
+                         "JOIN kunde k ON k.id = z.kunde_id AND k.geloescht = 0 WHERE c.geloescht = 0 "
                          "ORDER BY k.nummer COLLATE NOCASE, c.name COLLATE NOCASE"):
         notiz = "\n".join(x for x in (f"Funktion: {k['funktion']}" if k["funktion"] else "", k["notiz"]) if x)
         zeilen.append({"NAME": k["name"], "FIRMA": k["firma"], "EMAIL": k["email"], "TELEFON": k["telefon"],
-                       "MOBIL": k["mobil"], "FAX": k["fax"], "NOTIZ": notiz, "KUNDE": k["kunde_nummer"] or ""})
+                       "MOBIL": k["mobil"], "FAX": k["fax"], "NOTIZ": notiz, "KUNDE": k["kunde_nummer"]})
     return zeilen
 
 

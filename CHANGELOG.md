@@ -7,6 +7,11 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Kontakt bei mehreren Kunden:** Ein Kontakt (z. B. ein Hausmeisterdienst) kann bei mehreren Kunden geführt werden.
+  Am Kunden: „Vorhandenen hinzufügen“ (mit Suche) und Spalte „Auch bei“. Im Kontakt: Abschnitt „Gehört zu“, „von diesem
+  Kunden lösen“ oder „Kontakt löschen (bei allen Kunden)“. Änderungen an den Angaben gelten für alle Kunden. Der
+  Excel-Export schreibt den Kontakt je Kunde in eine Zeile, der Import verknüpft identische Kontakte statt sie zu
+  verdoppeln. **Neue Datenbank-Migration 010 baut die Kontakttabelle um – vor dem Einspielen die Datenbank sichern.**
 - **Anlage verschieben, Melder-Typen zusammenführen:** In der Anlage gibt es den Knopf „Verschieben“: Objekt suchen,
   bestätigen, fertig – Wohnungen, Melder und Aufträge wandern mit. Gehört das neue Objekt zu einem anderen Kunden,
   werden die zugeordneten Ansprechpartner entfernt (Hinweis erscheint; das passiert auch, wenn ein Objekt den Kunden
