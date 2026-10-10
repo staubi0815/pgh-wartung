@@ -95,16 +95,33 @@ def loeschen(con, kunde_id, nutzer_id):
         if con.execute("SELECT 1 FROM objekt WHERE kunde_id = ? AND geloescht = 0", (kunde_id,)).fetchone():
             raise Ungueltig({"": "Der Kunde hat noch Objekte. Bitte zuerst diese löschen oder einem anderen "
                                  "Kunden zuordnen."})
-        for k in con.execute("SELECT id FROM kontakt WHERE kunde_id = ? AND geloescht = 0", (kunde_id,)).fetchall():
-            kontakt_loeschen(con, k["id"], nutzer_id)
+        for k in kontakte(con, kunde_id):  # Kontakte anderer Kunden bleiben erhalten
+            if any(x["id"] != kunde_id for x in kunden_von_kontakt(con, k["id"])):
+                kontakt_loesen(con, kunde_id, k["id"], nutzer_id)
+            else:
+                kontakt_loeschen(con, k["id"], nutzer_id)
         db.aendern(con, "kunde", kunde_id, {"geloescht": 1}, nutzer_id)
 
 
 # ---------- Kontakte ----------
 
 def kontakte(con, kunde_id):
-    return con.execute("SELECT * FROM kontakt WHERE kunde_id = ? AND geloescht = 0 ORDER BY name COLLATE NOCASE",
-                       (kunde_id,)).fetchall()
+    """Kontakte des Kunden; „auch_bei“ nennt die übrigen Kunden, bei denen derselbe Kontakt geführt wird."""
+    return con.execute(
+        "SELECT c.*, (SELECT group_concat(k2.name, ', ') FROM kunde_kontakt z2 JOIN kunde k2 ON k2.id = z2.kunde_id "
+        "             WHERE z2.kontakt_id = c.id AND z2.kunde_id != z.kunde_id AND z2.geloescht = 0 "
+        "               AND k2.geloescht = 0) AS auch_bei "
+        "FROM kunde_kontakt z JOIN kontakt c ON c.id = z.kontakt_id "
+        "WHERE z.kunde_id = ? AND z.geloescht = 0 AND c.geloescht = 0 ORDER BY c.name COLLATE NOCASE",
+        (kunde_id,)).fetchall()
+
+
+def kunden_von_kontakt(con, kontakt_id):
+    """Die Kunden, bei denen der Kontakt geführt wird."""
+    return con.execute(
+        "SELECT k.* FROM kunde_kontakt z JOIN kunde k ON k.id = z.kunde_id "
+        "WHERE z.kontakt_id = ? AND z.geloescht = 0 AND k.geloescht = 0 ORDER BY k.name COLLATE NOCASE",
+        (kontakt_id,)).fetchall()
 
 
 def kontakt_holen(con, kontakt_id):
@@ -118,9 +135,47 @@ def kontakt_pruefen(form):
     return werte
 
 
+def _verknuepfung(con, kunde_id, kontakt_id):
+    return con.execute("SELECT id FROM kunde_kontakt WHERE kunde_id = ? AND kontakt_id = ? AND geloescht = 0",
+                       (kunde_id, kontakt_id)).fetchone()
+
+
 def kontakt_anlegen(con, kunde_id, form, nutzer_id):
+    """Legt einen neuen Kontakt an und führt ihn beim Kunden."""
     werte = kontakt_pruefen(form)
-    return db.anlegen(con, "kontakt", {**werte, "kunde_id": kunde_id}, nutzer_id)
+    with db.transaktion(con):
+        kontakt_id = db.anlegen(con, "kontakt", werte, nutzer_id)
+        db.anlegen(con, "kunde_kontakt", {"kunde_id": kunde_id, "kontakt_id": kontakt_id}, nutzer_id)
+    return kontakt_id
+
+
+def kontakt_verknuepfen(con, kunde_id, kontakt_id, nutzer_id):
+    """Führt einen vorhandenen Kontakt zusätzlich bei diesem Kunden."""
+    with db.transaktion(con):
+        if holen(con, kunde_id) is None:
+            raise Ungueltig({"": "Kunde nicht gefunden."})
+        if kontakt_holen(con, kontakt_id) is None:
+            raise Ungueltig({"": "Kontakt nicht gefunden."})
+        if _verknuepfung(con, kunde_id, kontakt_id):
+            raise Ungueltig({"": "Der Kontakt gehört schon zu diesem Kunden."})
+        return db.anlegen(con, "kunde_kontakt", {"kunde_id": kunde_id, "kontakt_id": kontakt_id}, nutzer_id)
+
+
+def kontakt_loesen(con, kunde_id, kontakt_id, nutzer_id):
+    """Nimmt den Kontakt von diesem Kunden weg (er bleibt bei den übrigen Kunden). Seine Zuordnungen zu Anlagen dieses
+    Kunden entfallen. Der letzte Kunde kann nicht gelöst werden – dann wird der Kontakt gelöscht."""
+    with db.transaktion(con):
+        z = _verknuepfung(con, kunde_id, kontakt_id)
+        if z is None:
+            raise Ungueltig({"": "Der Kontakt gehört nicht zu diesem Kunden."})
+        if not any(k["id"] != kunde_id for k in kunden_von_kontakt(con, kontakt_id)):
+            raise Ungueltig({"": "Der Kontakt gehört nur zu diesem Kunden und kann daher nur gelöscht werden."})
+        for a in con.execute(
+                "SELECT ak.id FROM anlage_kontakt ak JOIN anlage a ON a.id = ak.anlage_id "
+                "JOIN objekt o ON o.id = a.objekt_id WHERE ak.kontakt_id = ? AND o.kunde_id = ? AND ak.geloescht = 0",
+                (kontakt_id, kunde_id)).fetchall():
+            db.aendern(con, "anlage_kontakt", a["id"], {"geloescht": 1}, nutzer_id)
+        db.aendern(con, "kunde_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
 
 
 def kontakt_aendern(con, kontakt_id, form, nutzer_id):
@@ -128,9 +183,24 @@ def kontakt_aendern(con, kontakt_id, form, nutzer_id):
 
 
 def kontakt_loeschen(con, kontakt_id, nutzer_id):
-    """Markiert den Kontakt und seine Zuordnungen zu Anlagen als gelöscht."""
+    """Markiert den Kontakt samt Verknüpfungen zu Kunden und Zuordnungen zu Anlagen als gelöscht (bei allen Kunden)."""
     with db.transaktion(con):
-        for z in con.execute("SELECT id FROM anlage_kontakt WHERE kontakt_id = ? AND geloescht = 0",
-                             (kontakt_id,)).fetchall():
-            db.aendern(con, "anlage_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
+        for tabelle, spalte in (("anlage_kontakt", "kontakt_id"), ("kunde_kontakt", "kontakt_id")):
+            for z in con.execute(f"SELECT id FROM {tabelle} WHERE {spalte} = ? AND geloescht = 0",
+                                 (kontakt_id,)).fetchall():
+                db.aendern(con, tabelle, z["id"], {"geloescht": 1}, nutzer_id)
         db.aendern(con, "kontakt", kontakt_id, {"geloescht": 1}, nutzer_id)
+
+
+def kontakte_suchen(con, suche, ausser_kunde_id, grenze=30):
+    """Kontakte, die noch nicht zu diesem Kunden gehören (Suche in Name, Firma, E-Mail, Telefon, Mobil)."""
+    sql = ("SELECT c.*, (SELECT group_concat(k2.name, ', ') FROM kunde_kontakt z2 JOIN kunde k2 ON k2.id = z2.kunde_id "
+           "             WHERE z2.kontakt_id = c.id AND z2.geloescht = 0 AND k2.geloescht = 0) AS bei_kunden "
+           "FROM kontakt c WHERE c.geloescht = 0 AND NOT EXISTS ("
+           "  SELECT 1 FROM kunde_kontakt z WHERE z.kontakt_id = c.id AND z.kunde_id = ? AND z.geloescht = 0)")
+    parameter = [ausser_kunde_id]
+    if suche.strip():
+        felder = ("c.name", "c.firma", "c.email", "c.telefon", "c.mobil")
+        sql += " AND (" + " OR ".join(f"{f} LIKE ? ESCAPE '\\'" for f in felder) + ")"
+        parameter += [like_muster(suche.strip())] * len(felder)
+    return con.execute(sql + " ORDER BY c.name COLLATE NOCASE LIMIT ?", (*parameter, grenze)).fetchall()

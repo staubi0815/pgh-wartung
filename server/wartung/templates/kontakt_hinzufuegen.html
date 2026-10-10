@@ -1,0 +1,30 @@
+{% extends "basis.html" %}{% block titel %}Vorhandenen Kontakt hinzufügen{% endblock %}
+{% block inhalt %}
+<p class="pfad"><a href="/kunden">Kunden</a> › <a href="/kunden/{{ k.id }}">{{ k.nummer }} {{ k.name }}</a> › Kontakt hinzufügen</p>
+<h1>Vorhandenen Kontakt hinzufügen <span class="leise">{{ k.name }}</span></h1>
+<p class="leise">Ein Kontakt kann bei mehreren Kunden geführt werden (z. B. ein Hausmeisterdienst). Die Angaben des Kontakts
+  gelten dann für alle seine Kunden.</p>
+<form method="get" action="/kunden/{{ k.id }}/kontakte/hinzufuegen" class="filter">
+  <input type="search" name="q" value="{{ q }}" placeholder="Name, Firma, E-Mail oder Telefon suchen …" aria-label="Kontakt suchen">
+  <button class="zweitrangig">Suchen</button>
+</form>
+{% if treffer %}
+<table>
+  <tr><th>Name</th><th>Firma</th><th>Telefon</th><th>E-Mail</th><th>Bisher bei</th><th></th></tr>
+  {% for c in treffer %}
+  <tr>
+    <td>{{ c.name }}{% if c.funktion %} <span class="leise">({{ c.funktion }})</span>{% endif %}</td>
+    <td>{{ c.firma }}</td><td>{{ c.telefon or c.mobil }}</td><td>{{ c.email }}</td><td>{{ c.bei_kunden or '' }}</td>
+    <td class="zahl">
+      <form method="post" action="/kunden/{{ k.id }}/kontakte/{{ c.id }}/hinzufuegen">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button class="zweitrangig">hinzufügen</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% if treffer | length >= 30 %}<p class="leise">Die ersten 30 Treffer – bitte die Suche eingrenzen.</p>{% endif %}
+{% else %}<p class="leise">{% if q %}Kein passender Kontakt gefunden.{% else %}Es gibt keine weiteren Kontakte.{% endif %}</p>{% endif %}
+<p><a href="/kunden/{{ k.id }}#kontakte">Zurück zum Kunden</a></p>
+{% endblock %}

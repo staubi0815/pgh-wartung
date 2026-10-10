@@ -230,12 +230,14 @@ def verschieben(con, anlage_id, objekt_id, nutzer_id):
 
 
 def kontakte_bereinigen(con, anlage_id, nutzer_id):
-    """Entfernt Ansprechpartner-Zuordnungen, deren Kontakt nicht (mehr) zum Kunden der Anlage gehört."""
+    """Entfernt Ansprechpartner-Zuordnungen, deren Kontakt nicht (mehr) bei dem Kunden der Anlage geführt wird."""
     kunde_id = holen(con, anlage_id)["kunde_id"]
     namen = []
     for z in con.execute(
             "SELECT z.id, kt.name FROM anlage_kontakt z JOIN kontakt kt ON kt.id = z.kontakt_id "
-            "WHERE z.anlage_id = ? AND z.geloescht = 0 AND kt.kunde_id IS NOT ?", (anlage_id, kunde_id)).fetchall():
+            "WHERE z.anlage_id = ? AND z.geloescht = 0 AND NOT EXISTS ("
+            "  SELECT 1 FROM kunde_kontakt kk WHERE kk.kontakt_id = z.kontakt_id AND kk.kunde_id = ? "
+            "  AND kk.geloescht = 0)", (anlage_id, kunde_id)).fetchall():
         db.aendern(con, "anlage_kontakt", z["id"], {"geloescht": 1}, nutzer_id)
         namen.append(z["name"])
     return namen
@@ -258,7 +260,8 @@ def kontakt_zuordnen(con, anlage_id, kontakt_id, rolle, nutzer_id):
         raise Ungueltig({"rolle": "Bitte eine Rolle wählen."})
     with db.transaktion(con):
         passend = con.execute(
-            "SELECT 1 FROM kontakt kt JOIN objekt o ON o.kunde_id = kt.kunde_id JOIN anlage a ON a.objekt_id = o.id "
+            "SELECT 1 FROM kontakt kt JOIN kunde_kontakt kk ON kk.kontakt_id = kt.id AND kk.geloescht = 0 "
+            "JOIN objekt o ON o.kunde_id = kk.kunde_id JOIN anlage a ON a.objekt_id = o.id "
             "WHERE kt.id = ? AND a.id = ? AND kt.geloescht = 0", (kontakt_id, anlage_id)).fetchone()
         if not passend:
             raise Ungueltig({"kontakt_id": "Bitte einen Kontakt dieses Kunden wählen."})

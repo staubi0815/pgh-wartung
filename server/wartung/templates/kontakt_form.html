@@ -2,10 +2,11 @@
 {% block inhalt %}
 {% set neu = not kt.get('id') %}
 {% set zurueck = '/kunden/' ~ k.id ~ '#kontakte' if k else '/kunden' %}
+{% set mehrere = kunden_des_kontakts is defined and kunden_des_kontakts | length > 1 %}
 <p class="pfad"><a href="/kunden">Kunden</a>{% if k %} › <a href="/kunden/{{ k.id }}">{{ k.nummer }} {{ k.name }}</a>{% endif %} › Kontakt</p>
 <h1>{% if neu %}Kontakt anlegen{% else %}Kontakt bearbeiten{% endif %}</h1>
 {% if fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
-<form method="post" action="{{ '/kunden/' ~ k.id ~ '/kontakte/neu' if neu else '/kontakte/' ~ kt.id }}" class="karte raster">
+<form method="post" action="{{ '/kunden/' ~ k.id ~ '/kontakte/neu' if neu else '/kontakte/' ~ kt.id ~ ('?kunde=' ~ k.id if k else '') }}" class="karte raster">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
   {{ form.felder(felder, kt, fehler) }}
   <div class="breit knopfzeile">
@@ -14,8 +15,23 @@
   </div>
 </form>
 {% if not neu %}
+<section class="karte" id="kunden-des-kontakts">
+  <h2>Gehört zu</h2>
+  <table>
+    {% for x in kunden_des_kontakts %}
+    <tr>
+      <td><a href="/kunden/{{ x.id }}#kontakte">{{ x.nummer }} {{ x.name }}</a></td>
+      <td class="zahl">{% if mehrere %}
+        {{ form.loeschen('/kunden/' ~ x.id ~ '/kontakte/' ~ kt.id ~ '/loesen', csrf, kt.name ~ ' von ' ~ x.name ~ ' lösen? Der Kontakt bleibt bei den übrigen Kunden; seine Zuordnungen zu Anlagen von ' ~ x.name ~ ' entfallen.', 'von diesem Kunden lösen') }}{% endif %}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if mehrere %}<p class="leise">Änderungen an den Angaben des Kontakts gelten für alle diese Kunden.</p>{% endif %}
+</section>
 <div class="nebenbei">
-  {{ form.loeschen('/kontakte/' ~ kt.id ~ '/loeschen', csrf, 'Kontakt ' ~ kt.name ~ ' wirklich löschen?', 'Kontakt löschen') }}
+  {{ form.loeschen('/kontakte/' ~ kt.id ~ '/loeschen' ~ ('?kunde=' ~ k.id if k else ''), csrf,
+                   'Kontakt ' ~ kt.name ~ (' bei allen ' ~ kunden_des_kontakts | length ~ ' Kunden' if mehrere else '') ~ ' wirklich löschen?',
+                   'Kontakt löschen' ~ (' (bei allen Kunden)' if mehrere else '')) }}
 </div>
 {% endif %}
 {% endblock %}

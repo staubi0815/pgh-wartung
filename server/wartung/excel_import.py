@@ -208,12 +208,23 @@ def _kontakt(con, w, nutzer_id, optionen):
     name = text(w.get("NAME"))
     k = _kunde_nach_nummer(con, text(w.get("KUNDE")))
     beschreibung = f"{name} ({k['nummer']})"
-    if name and con.execute("SELECT 1 FROM kontakt WHERE kunde_id = ? AND name = ? COLLATE NOCASE AND geloescht = 0",
-                            (k["id"], name)).fetchone():
+    if name and con.execute(
+            "SELECT 1 FROM kontakt c JOIN kunde_kontakt z ON z.kontakt_id = c.id AND z.geloescht = 0 "
+            "WHERE z.kunde_id = ? AND c.name = ? COLLATE NOCASE AND c.geloescht = 0", (k["id"], name)).fetchone():
         return "vorhanden", beschreibung, []
-    kunden.kontakt_anlegen(con, k["id"], {"name": name, "firma": text(w.get("FIRMA")), "email": text(w.get("EMAIL")),
-                                          "telefon": text(w.get("TELEFON")), "mobil": text(w.get("MOBIL")),
-                                          "fax": text(w.get("FAX")), "notiz": text_mehrzeilig(w.get("NOTIZ"))}, nutzer_id)
+    daten = {"name": name, "firma": text(w.get("FIRMA")), "email": text(w.get("EMAIL")),
+             "telefon": text(w.get("TELEFON")), "mobil": text(w.get("MOBIL")), "fax": text(w.get("FAX")),
+             "notiz": text_mehrzeilig(w.get("NOTIZ"))}
+    # derselbe Kontakt (alle Angaben gleich) bei einem anderen Kunden: verknüpfen statt doppelt anlegen,
+    # so bleibt ein Kontakt bei mehreren Kunden nach Export und Import einer
+    gleich = con.execute(
+        "SELECT id FROM kontakt WHERE geloescht = 0 AND name = ? COLLATE NOCASE AND firma = ? AND email = ? "
+        "AND telefon = ? AND mobil = ? AND fax = ? ORDER BY erstellt_am LIMIT 1",
+        (name, daten["firma"], daten["email"], daten["telefon"], daten["mobil"], daten["fax"])).fetchone()
+    if gleich and name:
+        kunden.kontakt_verknuepfen(con, k["id"], gleich["id"], nutzer_id)
+        return "neu", f"{beschreibung} – vorhandener Kontakt zusätzlich bei diesem Kunden", []
+    kunden.kontakt_anlegen(con, k["id"], daten, nutzer_id)
     return "neu", beschreibung, []
 
 

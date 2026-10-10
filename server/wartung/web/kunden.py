@@ -102,32 +102,73 @@ def router(web):
                              felder=kunden.KONTAKT_FELDER, status=400)
         return RedirectResponse(f"/kunden/{kunde_id}?hinweis=kontakt_angelegt#kontakte", status_code=303)
 
+    def kontext(kontakt_id, kunde_id):
+        """Kunde, von dem aus der Kontakt geöffnet wurde (sonst der erste), und alle Kunden des Kontakts."""
+        alle = kunden.kunden_von_kontakt(con, kontakt_id)
+        k = next((x for x in alle if x["id"] == kunde_id), alle[0] if alle else None)
+        return k, alle
+
+    def kontakt_seite(request, n, kt, k, alle, fehler, status=200):
+        return web.seite(request, "kontakt_form.html", n, k=k, kt=kt, fehler=fehler, felder=kunden.KONTAKT_FELDER,
+                         kunden_des_kontakts=alle, status=status)
+
     @r.get("/kontakte/{kontakt_id}", response_class=HTMLResponse)
-    def kontakt_form(request: Request, kontakt_id: str):
+    def kontakt_form(request: Request, kontakt_id: str, kunde: str = ""):
         n = web.nutzer(request, BEARBEITEN)
         kt = kontakt_oder_liste(kontakt_id)
-        return web.seite(request, "kontakt_form.html", n, k=kunden.holen(con, kt["kunde_id"]), kt=dict(kt),
-                         fehler={}, felder=kunden.KONTAKT_FELDER)
+        k, alle = kontext(kontakt_id, kunde)
+        return kontakt_seite(request, n, dict(kt), k, alle, {})
 
     @r.post("/kontakte/{kontakt_id}")
-    async def kontakt_speichern(request: Request, kontakt_id: str):
+    async def kontakt_speichern(request: Request, kontakt_id: str, kunde: str = ""):
         n = web.nutzer(request, BEARBEITEN)
-        kt = kontakt_oder_liste(kontakt_id)
+        kontakt_oder_liste(kontakt_id)
         form = await web.formular(request)
+        k, alle = kontext(kontakt_id, kunde)
         try:
             kunden.kontakt_aendern(con, kontakt_id, form, n["id"])
         except Ungueltig as e:
-            return web.seite(request, "kontakt_form.html", n, k=kunden.holen(con, kt["kunde_id"]),
-                             kt={**dict(form), "id": kontakt_id}, fehler=e.fehler, felder=kunden.KONTAKT_FELDER,
-                             status=400)
-        return RedirectResponse(f"/kunden/{kt['kunde_id']}?hinweis=kontakt_gespeichert#kontakte", status_code=303)
+            return kontakt_seite(request, n, {**dict(form), "id": kontakt_id}, k, alle, e.fehler, status=400)
+        return RedirectResponse(f"/kunden/{k['id']}?hinweis=kontakt_gespeichert#kontakte" if k else "/kunden",
+                                status_code=303)
 
     @r.post("/kontakte/{kontakt_id}/loeschen")
-    async def kontakt_loeschen(request: Request, kontakt_id: str):
+    async def kontakt_loeschen(request: Request, kontakt_id: str, kunde: str = ""):
         n = web.nutzer(request, BEARBEITEN)
-        kt = kontakt_oder_liste(kontakt_id)
+        kontakt_oder_liste(kontakt_id)
         await web.formular(request)
+        k, _ = kontext(kontakt_id, kunde)
         kunden.kontakt_loeschen(con, kontakt_id, n["id"])
-        return RedirectResponse(f"/kunden/{kt['kunde_id']}?hinweis=kontakt_geloescht#kontakte", status_code=303)
+        return RedirectResponse(f"/kunden/{k['id']}?hinweis=kontakt_geloescht#kontakte" if k else "/kunden",
+                                status_code=303)
+
+    @r.post("/kunden/{kunde_id}/kontakte/{kontakt_id}/loesen")
+    async def kontakt_loesen(request: Request, kunde_id: str, kontakt_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        kunde_oder_liste(kunde_id)
+        kontakt_oder_liste(kontakt_id)
+        await web.formular(request)
+        try:
+            kunden.kontakt_loesen(con, kunde_id, kontakt_id, n["id"])
+        except Ungueltig:
+            return RedirectResponse(f"/kontakte/{kontakt_id}?kunde={kunde_id}", status_code=303)
+        return RedirectResponse(f"/kunden/{kunde_id}?hinweis=kontakt_geloest#kontakte", status_code=303)
+
+    @r.get("/kunden/{kunde_id}/kontakte/hinzufuegen", response_class=HTMLResponse)
+    def kontakt_hinzufuegen_form(request: Request, kunde_id: str, q: str = ""):
+        n = web.nutzer(request, BEARBEITEN)
+        return web.seite(request, "kontakt_hinzufuegen.html", n, k=kunde_oder_liste(kunde_id), q=q,
+                         treffer=kunden.kontakte_suchen(con, q, kunde_id))
+
+    @r.post("/kunden/{kunde_id}/kontakte/{kontakt_id}/hinzufuegen")
+    async def kontakt_hinzufuegen(request: Request, kunde_id: str, kontakt_id: str):
+        n = web.nutzer(request, BEARBEITEN)
+        kunde_oder_liste(kunde_id)
+        await web.formular(request)
+        try:
+            kunden.kontakt_verknuepfen(con, kunde_id, kontakt_id, n["id"])
+        except Ungueltig:
+            return RedirectResponse(f"/kunden/{kunde_id}/kontakte/hinzufuegen", status_code=303)
+        return RedirectResponse(f"/kunden/{kunde_id}?hinweis=kontakt_hinzugefuegt#kontakte", status_code=303)
 
     return r

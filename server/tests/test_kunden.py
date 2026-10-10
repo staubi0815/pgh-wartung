@@ -103,7 +103,8 @@ def test_kontakt_anlegen_aendern_loeschen(umgebung):
                                                      "mobil": "0170 1234567", "csrf_token": t}, follow_redirects=False)
     assert r.status_code == 303
     kt = con.execute("SELECT * FROM kontakt").fetchone()
-    assert kt["kunde_id"] == kid and "Hans Hausmeister" in c.get(f"/kunden/{kid}").text
+    assert [k["id"] for k in kunden.kunden_von_kontakt(con, kt["id"])] == [kid]
+    assert "Hans Hausmeister" in c.get(f"/kunden/{kid}").text
     r = c.post(f"/kontakte/{kt['id']}", data={"name": "Hans Hausmeister", "mobil": "falsch!", "csrf_token": t})
     assert r.status_code == 400 and "nur Ziffern" in r.text
     c.post(f"/kontakte/{kt['id']}/loeschen", data={"csrf_token": t})

@@ -91,15 +91,25 @@ def migrieren(con):
     for datei in sorted(MIGRATIONEN.glob("[0-9][0-9][0-9]_*.sql")):
         if datei.name in vorhanden:
             continue
+        text = datei.read_text(encoding="utf-8")
+        # Migrationen, die eine Tabelle neu aufbauen, tragen in der ersten Zeile diese Marke (Vorgehen laut SQLite-Doku)
+        ohne_fremdschluessel = text.startswith("-- fremdschluessel: aus")
+        if ohne_fremdschluessel:
+            con.execute("PRAGMA foreign_keys = OFF")
         con.execute("BEGIN")
         try:
-            for befehl in _befehle(datei.read_text(encoding="utf-8")):
+            for befehl in _befehle(text):
                 con.execute(befehl)
+            if ohne_fremdschluessel and con.execute("PRAGMA foreign_key_check").fetchone():
+                raise sqlite3.IntegrityError(f"Migration {datei.name}: Fremdschlüssel verletzt")
             con.execute("INSERT INTO schema_version VALUES (?, ?)", (datei.name, jetzt()))
             con.execute("COMMIT")
         except Exception:
             con.execute("ROLLBACK")
             raise
+        finally:
+            if ohne_fremdschluessel:
+                con.execute("PRAGMA foreign_keys = ON")
         neu.append(datei.name)
     return neu
 

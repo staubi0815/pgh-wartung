@@ -34,8 +34,10 @@ def suchen(con, begriff, rechte_menge, nutzer_id):
                  "ORDER BY name COLLATE NOCASE",
             ("nummer", "name", "zusatz", "ort", "strasse", "plz", "telefon", "email"), muster))
         merken("kontakte", _abfrage(
-            con, "SELECT c.id, c.name, c.firma, c.funktion, c.telefon, c.mobil, k.name AS kunde_name "
-                 "FROM kontakt c LEFT JOIN kunde k ON k.id = c.kunde_id WHERE c.geloescht = 0 AND ({BEDINGUNG}) "
+            con, "SELECT c.id, c.name, c.firma, c.funktion, c.telefon, c.mobil, "
+                 "(SELECT group_concat(k.name, ', ') FROM kunde_kontakt z JOIN kunde k ON k.id = z.kunde_id "
+                 " WHERE z.kontakt_id = c.id AND z.geloescht = 0 AND k.geloescht = 0) AS kunde_name "
+                 "FROM kontakt c WHERE c.geloescht = 0 AND ({BEDINGUNG}) "
                  "ORDER BY c.name COLLATE NOCASE",
             ("c.name", "c.firma", "c.telefon", "c.mobil", "c.email"), muster))
         merken("objekte", _abfrage(
