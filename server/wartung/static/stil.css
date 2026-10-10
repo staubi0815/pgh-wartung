@@ -93,12 +93,14 @@ h2.abschnitt{margin-top:32px}
 .zwei-spalten{display:grid;grid-template-columns:minmax(0,2fr) minmax(260px,1fr);gap:16px;align-items:start}
 @media (max-width:900px){.zwei-spalten{grid-template-columns:1fr}}
 .status-marke{display:inline-block;font-size:.8rem;font-weight:600;padding:2px 10px;border-radius:12px;border:1px solid var(--line);background:var(--bg-soft);color:var(--navy);vertical-align:middle}
+.status-in_planung{border-style:dashed;color:var(--muted)}
 .status-aktiv{background:#fff8e1;border-color:#f9a825;color:#8d6e00}
 .status-abgeschlossen,.status-abgerechnet,.status-kostenlos{background:#e8f5e9;border-color:#a5d6a7;color:#1b5e20}
 .status-storniert{color:var(--muted);text-decoration:line-through}
 .statusaktionen{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .statusaktionen form{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin:0}
 .statusaktionen input{min-width:220px}
+#extern{margin-top:16px}
 label.inline{display:inline-flex;flex-direction:row;gap:6px;align-items:center;margin:0}
 .woche{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px}
 @media (max-width:1000px){.woche{grid-template-columns:1fr}}
@@ -107,6 +109,7 @@ label.inline{display:inline-flex;flex-direction:row;gap:6px;align-items:center;m
 .woche .tag h3{margin:0 0 6px;font-size:.85rem;color:var(--navy)}
 .woche .termin{display:block;font-size:.85rem;padding:6px;margin-bottom:6px;border-radius:6px;border:1px solid var(--line);border-left:4px solid var(--navy);background:var(--bg-soft);color:inherit;text-decoration:none}
 .woche .termin:hover{background:#fff}
+.woche .status-rand-in_planung{border-left-color:var(--muted);border-left-style:dashed}
 .woche .status-rand-aktiv{border-left-color:#f9a825}
 .woche .status-rand-abgeschlossen,.woche .status-rand-abgerechnet,.woche .status-rand-kostenlos{border-left-color:#2e7d32}
 .woche .status-rand-storniert{border-left-color:var(--muted);opacity:.6;text-decoration:line-through}
@@ -124,3 +127,4 @@ ul.termine li a{display:block}
 .f-gruen{background:#e8f5e9;color:#1b5e20;border-color:#b7dcb9}.f-blau{background:#e3f2fd;color:#0d47a1;border-color:#b3d4f5}
 .f-violett{background:#f3e5f5;color:#6a1b9a;border-color:#dcb8e4}
 form.label-wahl{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center}
+.melderwahl{margin-top:8px}.melderwahl summary{cursor:pointer}.melderwahl p{margin:8px 0 2px}

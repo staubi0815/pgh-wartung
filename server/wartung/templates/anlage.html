@@ -84,7 +84,7 @@
 <section class="karte" id="auftraege">
   <div class="zeile">
     <h2>Aufträge</h2>
-    {% if 'auftraege.planen' in rechte and not a.passiv %}<a class="knopf" href="/anlagen/{{ a.id }}/auftraege/neu">Auftrag planen</a>{% endif %}
+    {% if 'auftraege.planen' in rechte and not a.passiv %}<a class="knopf" href="/anlagen/{{ a.id }}/auftraege/neu">Auftrag planen</a> <a class="knopf zweitrangig" href="/anlagen/{{ a.id }}/altpruefung">Altprüfung nachtragen</a>{% endif %}
   </div>
   {% if auftraege %}
   <table>

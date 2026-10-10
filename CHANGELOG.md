@@ -7,6 +7,13 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Aufträge: Status „In Planung“, Prüfumfang je Melder, extern beenden:** Ein Auftrag kann zunächst „in Planung“ sein
+  (unfertig; Techniker sehen ihn nicht) und wird mit „Planung abschließen“ zu „geplant“. Als Umfang lassen sich einzelne
+  Melder wählen (z. B. Nachtermin). Offene Aufträge lassen sich „extern beenden“: Datum der Prüfung eintragen, die Melder
+  im Umfang bekommen es als letzte Prüfung (Neueres bleibt unberührt, Fälligkeiten werden neu gerechnet); so werden auch
+  Prüfungen aus der Zeit vor dem System nachgetragen (Knopf „Altprüfung nachtragen“ an der Anlage). Ein extern beendeter
+  Auftrag lässt sich nicht wieder öffnen. Im Foxtag-Export erscheinen auch Aufträge „in Planung“.
+  **Neue Datenbank-Migration 012 baut die Auftragstabelle um – vor dem Einspielen die Datenbank sichern.**
 - **Labels:** Frei benennbare, farbige Etiketten (Verwaltung › Labels: anlegen, umbenennen, Farbe aus fester Palette,
   löschen; die Liste zeigt, wo jedes Label verwendet wird). Angehakt wird in der Karte „Labels“ bei Kunde, Objekt,
   Anlage und Auftrag; in den Listen Kunden, Anlagen und Aufträge (auch Wochenansicht) gibt es einen Filter und die

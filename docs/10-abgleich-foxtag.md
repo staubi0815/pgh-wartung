@@ -25,7 +25,7 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 
 | Punkt | Foxtag | Wir | Bew. |
 |---|---|---|---|
-| Status | in Planung, geplant, läuft, erledigt, abgerechnet; API zusätzlich storniert, verschoben, kostenfrei | geplant → läuft → abgeschlossen (+ storniert, Verschieben mit Grund, Verlauf) | W: „abgerechnet/kostenfrei“ (Rechnungsnummer-Feld vorhanden) |
+| Status | in Planung, geplant, läuft, erledigt, abgerechnet; API zusätzlich storniert, verschoben, kostenfrei | geplant → läuft → abgeschlossen (+ storniert, Verschieben mit Grund, Verlauf) | W: „abgerechnet/kostenfrei“ (Rechnungsnummer-Feld vorhanden); „in Planung“ und „extern beenden“ seit 10.10.2026 vorhanden |
 | Techniker | mehrere, **Status je Techniker** | mehrere (`auftrag_techniker`), ein gemeinsamer Status; Pool ohne Techniker | S |
 | Zeit | Datum+Uhrzeit, Enddatum, ganztägig | Datum, Uhrzeit, Dauer | = |
 | Terminankündigung | Kontakte, Vorlaufzeit, Hinweistext, E-Mail | Feld `angekuendigt_am`, kein Versand | W (Baustein 5) |

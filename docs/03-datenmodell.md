@@ -98,17 +98,25 @@ Komponente fest. Felder des Quelltyps werden nicht in den Zieltyp übernommen.
 
 ## 2. Aufträge und Arbeit vor Ort
 
-### auftrag (umgesetzt 09.10.2026, Migration 006, Logik `server/wartung/auftraege.py`)
+### auftrag (umgesetzt 09.10.2026, Migration 006, erweitert 10.10.2026 mit Migration 012, Logik `server/wartung/auftraege.py`)
 nummer (A-1001), anlage_id, auftragsart (Schlüssel aus der Anlagenart-Konfiguration: `wartung` | `installation` |
-`nachtermin` | `ferninspektion`), status (`geplant` | `aktiv` | `abgeschlossen` | `abgerechnet` | `kostenlos` |
-`storniert`), datum, uhrzeit (leer = ganztägig), dauer_minuten, umfang (`ganze_anlage` | `auswahl`), hinweise (für
+`nachtermin` | `ferninspektion`), status (`in_planung` | `geplant` | `aktiv` | `abgeschlossen` | `abgerechnet` | `kostenlos` |
+`storniert`), datum, uhrzeit (leer = ganztägig), dauer_minuten, umfang (`ganze_anlage` | `auswahl` | `melder`), extern (0/1: extern beendet), hinweise (für
 den Techniker), notiz_intern, angekuendigt_am, abgeschlossen_am, rechnung_nummer.
 Techniker in `auftrag_techniker` (mehrere; keiner = **Pool**, jeder Techniker darf übernehmen), Wohnungen bei
-Umfang „auswahl“ in `auftrag_gruppe` (beide nur als gelöscht markieren). Verlauf in `auftrag_verlauf` ⊕ (angelegt,
+Umfang „auswahl“ in `auftrag_gruppe`, Umfang „melder“ in `auftrag_komponente` (alle nur als gelöscht markieren; nur
+verbaute Melder der Anlage wählbar). Verlauf in `auftrag_verlauf` ⊕ (angelegt,
 status alt → neu, verschoben Termin alt → neu, Grund, wer, wann). „Verschoben“ ist kein Status.
-Übergänge: geplant → aktiv | abgeschlossen | storniert; aktiv → abgeschlossen | geplant; abgeschlossen →
+Übergänge: in_planung → geplant | storniert; geplant → aktiv | abgeschlossen | storniert | in_planung; aktiv → abgeschlossen | geplant; abgeschlossen →
 abgerechnet | kostenlos | aktiv; abgerechnet/kostenlos → abgeschlossen; storniert → geplant. Stornieren und jeder
-Schritt zurück brauchen einen Grund. Termin/Techniker/Hinweise änderbar solange geplant/aktiv, Umfang nur geplant.
+Schritt zurück brauchen einen Grund. Termin/Techniker/Hinweise änderbar solange offen (in Planung/geplant/aktiv), Umfang nur vor dem Start (nicht bei aktiv).
+„In Planung“ ist für Techniker unsichtbar (unfertige Planung), zählt aber als offen (Löschsperre, Listen, Foxtag-Export).
+**Extern beenden** (`extern_beenden`): offener Auftrag → abgeschlossen mit `extern = 1`; Datum (nicht Zukunft) wird bei den
+Meldern im Umfang als letzte Prüfung gesetzt, wenn dort nichts Neueres steht und die Inbetriebnahme nicht danach liegt
+(sonst „übersprungen“); Fälligkeiten werden neu gerechnet. Ein extern beendeter Auftrag lässt sich nicht wieder öffnen.
+**Altprüfung nachtragen** legt dazu einen Auftrag zum Prüfdatum an und beendet ihn gleich extern. Migration 012 baut
+`auftrag` neu auf (Daten bleiben erhalten) und legt `auftrag_komponente` an. Keine Löschsperre für einen Melder im Umfang
+eines offenen Auftrags (Melder werden ohnehin nur als gelöscht markiert; er verschwindet aus der Anzeige).
 Aufträge werden nie gelöscht; eine Anlage mit (nicht stornierten) Aufträgen ist nicht löschbar, eine Wohnung im
 Umfang eines offenen Auftrags auch nicht. Später: einzuplanende_maengel (mit den Mängeln, Baustein 4).
 

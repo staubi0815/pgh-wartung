@@ -66,6 +66,8 @@ erDiagram
     anlage ||--o{ auftrag : ""
     auftrag ||--o{ auftrag_gruppe : ""
     gruppe ||--o{ auftrag_gruppe : ""
+    auftrag ||--o{ auftrag_komponente : ""
+    komponente ||--o{ auftrag_komponente : ""
     auftrag ||--o{ auftrag_techniker : ""
     nutzer ||--o{ auftrag_techniker : ""
     auftrag ||--o{ auftrag_verlauf : ""
@@ -97,16 +99,20 @@ Ohne Verknüpfung (Verwaltung und Technik): `abgleich_zaehler`, `aenderungsproto
 ```mermaid
 stateDiagram-v2
     direction LR
+    state "In Planung" as in_planung
     state "Geplant" as geplant
     state "In Arbeit" as aktiv
     state "Abgeschlossen" as abgeschlossen
     state "Abgerechnet" as abgerechnet
     state "Abgeschlossen ohne Rechnung" as kostenlos
     state "Storniert" as storniert
-    [*] --> geplant
+    [*] --> in_planung
+    in_planung --> geplant
+    in_planung --> storniert : mit Grund
     geplant --> aktiv
     geplant --> abgeschlossen
     geplant --> storniert : mit Grund
+    geplant --> in_planung : mit Grund
     aktiv --> abgeschlossen
     aktiv --> geplant : mit Grund
     abgeschlossen --> abgerechnet

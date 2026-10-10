@@ -1,22 +1,33 @@
 {% extends "basis.html" %}{% import "_formular.html" as form %}{% from "_ampel.html" import ampel %}
-{% block titel %}{{ 'Auftrag planen' if not u else 'Auftrag ' ~ u.nummer }}{% endblock %}
+{% block titel %}{{ 'Altprüfung nachtragen' if altpruefung else 'Auftrag planen' if not u else 'Auftrag ' ~ u.nummer }}{% endblock %}
 {% block inhalt %}
 <p class="pfad"><a href="/anlagen">Anlagen</a> › <a href="/anlagen/{{ a.id }}">{{ a.nummer }} {{ a.adr_strasse }}</a> ›
-  {% if u %}<a href="/auftraege/{{ u.id }}">{{ u.nummer }}</a> › bearbeiten{% else %}Auftrag planen{% endif %}</p>
-<h1>{% if u %}Auftrag {{ u.nummer }} bearbeiten{% else %}Auftrag planen{% endif %}
+  {% if u %}<a href="/auftraege/{{ u.id }}">{{ u.nummer }}</a> › bearbeiten{% elif altpruefung %}Altprüfung nachtragen{% else %}Auftrag planen{% endif %}</p>
+<h1>{% if u %}Auftrag {{ u.nummer }} bearbeiten{% elif altpruefung %}Altprüfung nachtragen{% else %}Auftrag planen{% endif %}
   <span class="leise">{{ art.name }} · {{ a.adr_strasse }}, {{ a.adr_ort }}</span></h1>
 {% if fehler.get('') %}<p class="fehler">{{ fehler[''] }}</p>{% elif fehler %}<p class="fehler">Bitte die markierten Felder prüfen.</p>{% endif %}
 
 <div class="zwei-spalten">
-<form method="post" action="{{ '/auftraege/' ~ u.id ~ '/bearbeiten' if u else '/anlagen/' ~ a.id ~ '/auftraege/neu' }}" class="karte raster">
+<form method="post" action="{{ '/auftraege/' ~ u.id ~ '/bearbeiten' if u else '/anlagen/' ~ a.id ~ ('/altpruefung' if altpruefung else '/auftraege/neu') }}" class="karte raster">
   <input type="hidden" name="csrf_token" value="{{ csrf }}">
-  {{ form.felder(felder, werte, fehler, {'nummer': vorschau}) }}
+  {% if altpruefung %}
+  <p class="breit leise">Eine frühere Prüfung (z. B. aus einem anderen System) wird als bereits <strong>extern beendeter Auftrag</strong>
+    eingetragen. „Datum“ ist der Tag der Prüfung (nicht in der Zukunft): Alle {{ art.komponente_mehrzahl }} im Umfang bekommen ihn als
+    letzte Prüfung, sofern dort nicht schon eine neuere steht, und die Fälligkeiten werden neu gerechnet.</p>
+  {% endif %}
+  {{ form.felder(felder | rejectattr('name', 'in', ['uhrzeit', 'dauer_minuten', 'hinweise']) | list if altpruefung else felder, werte, fehler, {'nummer': vorschau}) }}
+  {% if altpruefung %}
+  <label class="breit">Bemerkung <span class="leise">(steht im Verlauf, z. B. „Prüfbericht 2024 der Firma …“)</span>
+    <input name="bemerkung" maxlength="500" value="{{ werte.get('bemerkung', '') }}">
+  </label>
+  {% endif %}
   {% if u %}
   <label class="breit">Grund, falls sich der Termin ändert <span class="leise">(steht im Verlauf)</span>
     <input name="grund" maxlength="500" value="{{ werte.get('grund', '') }}" placeholder="z. B. Mieter krank, Schlüssel fehlt">
   </label>
   {% endif %}
 
+  {% if not altpruefung %}
   <fieldset class="breit auswahl{{ ' mit-fehler' if fehler.get('techniker') }}">
     <legend>Techniker</legend>
     {% if techniker_auswahl %}
@@ -29,13 +40,14 @@
     <span class="leise">Niemand gewählt = Pool: jeder Techniker kann den Auftrag übernehmen.</span>
     {% if fehler.get('techniker') %}<span class="feldfehler">{{ fehler['techniker'] }}</span>{% endif %}
   </fieldset>
+  {% endif %}
 
   <fieldset class="breit auswahl{{ ' mit-fehler' if fehler.get('umfang') }}">
     <legend>Umfang</legend>
-    {% set gesperrt = u and u.status != 'geplant' %}
+    {% set gesperrt = u and u.status == 'aktiv' %}
     {% for w, text in umfang %}
       <label class="haken"><input type="radio" name="umfang" value="{{ w }}" {% if werte.get('umfang', 'ganze_anlage') == w %}checked{% endif %}
-        {% if gesperrt %}disabled{% endif %}> {{ text }}{% if w == 'ganze_anlage' %} <span class="leise">({{ a.wohnungen }} {{ art.gruppe_mehrzahl }}, {{ a.komponenten }} {{ art.komponente_mehrzahl }})</span>{% endif %}</label>
+        {% if gesperrt %}disabled{% endif %}> {% if w == 'melder' %}Ausgewählte {{ art.komponente_mehrzahl }}{% else %}{{ text }}{% endif %}{% if w == 'ganze_anlage' %} <span class="leise">({{ a.wohnungen }} {{ art.gruppe_mehrzahl }}, {{ a.komponenten }} {{ art.komponente_mehrzahl }})</span>{% endif %}</label>
     {% endfor %}
     {% if gruppen %}
     <div class="raumwahl">
@@ -46,17 +58,35 @@
     </div>
     <span class="leise">Die {{ art.gruppe_mehrzahl }} zählen nur bei „{{ umfang[1][1] }}“.</span>
     {% endif %}
+    {% if komponenten %}
+    <details class="melderwahl"{% if werte.get('umfang') == 'melder' %} open{% endif %}>
+      <summary>{{ art.komponente_mehrzahl }} einzeln wählen <span class="leise">(zählen nur bei „Ausgewählte {{ art.komponente_mehrzahl }}“)</span></summary>
+      {% for g in gruppen %}{% if komponenten.get(g.id) %}
+      <p class="leise">{{ art.gruppe }} {{ g.nummer }}{% if g.bezeichnung %} · {{ g.bezeichnung }}{% endif %}</p>
+      <div class="raumwahl">
+      {% for c in komponenten[g.id] %}
+        <label class="haken"><input type="checkbox" name="komponenten" value="{{ c.id }}" {% if c.id in werte.get('komponenten', []) %}checked{% endif %}
+          {% if gesperrt %}disabled{% endif %}> {{ c.anzeige_nummer }}{% if c.raum %} · {{ c.raum }}{% endif %} <span class="leise">{{ c.typ_bezeichnung }}</span></label>
+      {% endfor %}
+      </div>
+      {% endif %}{% endfor %}
+    </details>
+    {% endif %}
     {% if gesperrt %}
       {# deaktivierte Felder werden nicht gesendet – den bisherigen Umfang unverändert mitschicken #}
       <input type="hidden" name="umfang" value="{{ werte.get('umfang') }}">
       {% for gid in werte.get('gruppen', []) %}<input type="hidden" name="gruppen" value="{{ gid }}">{% endfor %}
-      <span class="leise">Der Umfang ist nur änderbar, solange der Auftrag geplant ist.</span>
+      {% for cid in werte.get('komponenten', []) %}<input type="hidden" name="komponenten" value="{{ cid }}">{% endfor %}
+      <span class="leise">Der Umfang ist nur änderbar, solange der Auftrag in Planung oder geplant ist.</span>
     {% endif %}
     {% if fehler.get('umfang') %}<span class="feldfehler">{{ fehler['umfang'] }}</span>{% endif %}
   </fieldset>
 
   <div class="breit knopfzeile">
-    <button>{{ 'Speichern' if u else 'Auftrag planen' }}</button>
+    {% if not u and not altpruefung %}
+    <label class="haken"><input type="checkbox" name="in_planung" value="1" {% if werte.get('in_planung') %}checked{% endif %}> Noch in Planung <span class="leise">(Techniker sehen den Auftrag erst nach „Planung abschließen“)</span></label>
+    {% endif %}
+    <button>{{ 'Speichern' if u else 'Altprüfung eintragen' if altpruefung else 'Auftrag planen' }}</button>
     <a href="{{ '/auftraege/' ~ u.id if u else '/anlagen/' ~ a.id }}">Abbrechen</a>
   </div>
 </form>
