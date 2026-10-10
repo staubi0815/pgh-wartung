@@ -7,6 +7,9 @@ Server läuft, steht dort in `/opt/pgh-wartung/app/STAND`.
 
 ## Noch ohne Version
 
+- **Zulassungs-/Prüfnummer je Melder, Link an der Wohnung, Notizen mit Zeilenumbrüchen:** Zulassungsnummer steht jetzt
+  an der einzelnen Komponente (bisher nur am Typ), die Wohnung hat ein Linkfeld (nur http/https; öffnet in neuem
+  Tab), und der Excel-Import behält Zeilenumbrüche in Notizen. Neue Datenbank-Migration 009.
 - **Stammtechniker je Anlage:** In der Anlage wählbar (nur Nutzer, die Aufträge in der App durchführen dürfen), in der
   Anlagenliste als Spalte und Filter („ohne Stammtechniker“ möglich). Beim Planen wird er vorgeschlagen; bei mehreren
   Anlagen nur, wenn alle denselben haben. Neue Datenbank-Migration 008.

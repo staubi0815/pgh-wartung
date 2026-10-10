@@ -18,6 +18,7 @@ def felder(art):
         Feld("bewohner", "Bewohner", hilfe="nur Name am Klingelschild"),
         Feld("bewohner_telefon", "Telefon Bewohner", "tel"),
         Feld("zugang", "Zugang", "auswahl", pflicht=True, auswahl=ZUGANG),
+        Feld("link", "Link", "link", max_laenge=500, hilfe="z. B. Mieterportal oder Grundriss (https://…)"),
         Feld("notiz", "Notiz", "textarea", max_laenge=2000, breit=True),
     )
 

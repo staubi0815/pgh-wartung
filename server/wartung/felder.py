@@ -6,8 +6,9 @@ import re
 from dataclasses import dataclass, replace
 from datetime import date
 
-ARTEN = ("text", "textarea", "email", "tel", "auswahl", "zahl", "ja_nein", "datum", "uhrzeit")
+ARTEN = ("text", "textarea", "email", "tel", "link", "auswahl", "zahl", "ja_nein", "datum", "uhrzeit")
 _EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+_LINK = re.compile(r"^https?://[^\s<>\"']+$", re.IGNORECASE)
 _TEL = re.compile(r"^[0-9+()/\-. ]{3,30}$")
 _DATUM = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _UHRZEIT = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
@@ -78,6 +79,8 @@ def einlesen(felder, form):
             fehler[f.name] = f"{f.titel}: bitte eine gültige E-Mail-Adresse angeben."
         elif f.art == "tel" and not _TEL.match(text):
             fehler[f.name] = f"{f.titel}: nur Ziffern und + ( ) / - . erlaubt."
+        elif f.art == "link" and not _LINK.match(text):
+            fehler[f.name] = f"{f.titel}: bitte eine Adresse mit http:// oder https:// angeben."
         elif f.art == "auswahl" and text not in {w for w, _ in f.auswahl}:
             fehler[f.name] = f"{f.titel}: ungültige Auswahl."
         elif f.art == "datum" and not gueltiges_datum(text):

@@ -58,7 +58,7 @@ bewohner_telefon (optional), zugang (`frei` | `nur_termin` | `schluessel`), noti
 anlage_id, gruppe_id, nummer (laufend in der Gruppe → angezeigt „43/1“), sub_nummer (0 = Hauptkomponente,
 bei Türen 1, 2 … für Teile), komponententyp_id, raum („Flur“,
 Auswahlliste je Anlagenart + frei), raumart (`schlafraum` | `kinderzimmer` | `flur_rettungsweg` | `sonstiger`),
-seriennummer, funk_id (wM-Bus-Adresse, für Ferninspektion), barcode (eigener Aufkleber), baujahr (Jahr bzw.
+seriennummer, zulassungsnummer (je Komponente, Vorbild Foxtag), funk_id (wM-Bus-Adresse, für Ferninspektion), barcode (eigener Aufkleber), baujahr (Jahr bzw.
 Herstellungsdatum), inbetriebnahme_am, austausch_faellig_am (berechnet, änderbar), naechste_pruefung_am (berechnet),
 status (`aktiv` | `ausgebaut` | `ersetzt`), ersetzt_durch_id, labels, notiz.
 Bei Türen zusätzlich `eltern_id` (Sub-Komponenten: Feststellanlage, Haftmagnet, Rauchschalter …).

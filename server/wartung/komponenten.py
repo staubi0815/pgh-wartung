@@ -30,6 +30,7 @@ def felder(con, art, typ_bisher=None):
         Feld("raumart", "Raumart", "auswahl", auswahl=RAUMARTEN, hilfe="leer = aus dem Raum ableiten"),
         Feld("seriennummer", "Seriennummer", max_laenge=80),
         Feld("funk_id", "Funk-ID", max_laenge=40, hilfe="nur bei Funkmeldern (Ferninspektion)"),
+        Feld("zulassungsnummer", "Zulassungs-/Prüfnummer", max_laenge=80),
         Feld("barcode", "Barcode / QR-Aufkleber", max_laenge=80),
         _baujahr_feld(),
         Feld("inbetriebnahme_am", "In Betrieb seit", "datum"),

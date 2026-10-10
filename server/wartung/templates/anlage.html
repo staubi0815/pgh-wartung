@@ -111,6 +111,7 @@
       <strong>{{ art.gruppe }} {{ g.nummer }}</strong>
       {% if g.bezeichnung %}<span>{{ g.bezeichnung }}</span>{% endif %}
       {% if g.bewohner %}<span class="leise">{{ g.bewohner }}</span>{% endif %}
+      {% if g.link %}<a href="{{ g.link }}" target="_blank" rel="noopener noreferrer">Link</a>{% endif %}
       {% if g.zugang != 'frei' %}<span class="marke-passiv">{{ zugang_namen[g.zugang] }}</span>{% endif %}
       <span class="leise">{{ g.komponenten }} {{ art.komponente if g.komponenten == 1 else art.komponente_mehrzahl }}</span>
       {% if darf %}<span class="rechts">
