@@ -21,10 +21,25 @@ Start mit Rauchwarnmeldern (DIN 14676-1), später Brandschutztüren/Feststellanl
 8. **Wechsel muss möglich bleiben:** jedes Modul bringt seinen Export mit (CSV/JSON + Foxtag-Format).
 9. Änderungen an Proxmox/Containern: homelab-infra-Skill nutzen, `infra/*.md` aktualisieren und pushen.
 
+## Arbeitsweise (seit 10.10.2026, `docs/09` Nr. 10)
+
+1. **Nie direkt auf `main`.** Je Arbeitspaket ein Zweig, hochladen, Pull Request mit der Vorlage
+   (`.github/pull_request_template.md`), in Alltagssprache für Patrick. Ohne `gh` im Container: Zweig pushen und Patrick
+   den Link `https://github.com/staubi0815/pgh-wartung/compare/main...<zweig>?expand=1` mit dem fertigen PR-Text geben.
+   Patrick gibt per Merge frei; erst danach `deploy.sh` vom aktualisierten `main`.
+2. **Tests laufen auf GitHub** (`.github/workflows/tests.yml`) – vor der Fertigmeldung den Haken abwarten bzw. lokal grün.
+3. **Schema oder Auftragsstatus geändert →** `../.venv-test/bin/python werkzeuge/diagramme.py` (aus `server/`), sonst
+   schlägt `test_diagramme.py` fehl. Systembild und Bausteintabelle in `docs/00` von Hand nachführen.
+4. **`CHANGELOG.md`** unter „Noch ohne Version“ ergänzen; bei fertigem Baustein Version vergeben und Tag `vX.Y.Z` setzen.
+5. **Grundsatzentscheidungen** als neuen Eintrag unten in `docs/09-entscheidungen.md` (alte nie umschreiben).
+
 ## Dokumente
 
 | Datei | Inhalt |
 |---|---|
+| `docs/00-ueberblick.md` | **Einstieg:** Systembild, Stand der Bausteine, Datenmodell und Auftragsstatus (automatisch), Codeaufbau |
+| `docs/09-entscheidungen.md` | Entscheidungsliste: was, warum, Folgen |
+| `CHANGELOG.md` | Änderungen je Version in Alltagssprache |
 | `docs/01-grobstruktur.md` | Analyse Foxtag, Datenmodell grob, Webseite/App/Bericht, Umfang Eigenbau |
 | `docs/02-sync-und-zugang.md` | Mehrbenutzer, Offline-Abgleich, Verbindungswege (Entscheidung: WireGuard FritzBox), Sicherheit |
 | `docs/03-datenmodell.md` | Tabellen und Felder, Anlagenart-Konfiguration, Fälligkeiten, Abgleich |
