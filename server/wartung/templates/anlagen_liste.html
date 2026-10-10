@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% from "_ampel.html" import ampel %}{% block titel %}Anlagen{% endblock %}
+{% extends "basis.html" %}{% from "_ampel.html" import ampel %}{% import "_labels.html" as lab %}{% block titel %}Anlagen{% endblock %}
 {% block inhalt %}
 {% set planen = 'auftraege.planen' in rechte %}
 <div class="zeile"><h1>Anlagen</h1></div>
@@ -22,8 +22,9 @@
     {% for tid, name in techniker_auswahl %}<option value="{{ tid }}" {% if techniker == tid %}selected{% endif %}>{{ name }}</option>{% endfor %}
   </select>
   <label class="haken inline"><input type="checkbox" name="ohne_auftrag" value="1" {% if ohne_auftrag %}checked{% endif %}> nur ohne offenen Auftrag</label>
+  {{ lab.filter(labels_alle(), label) }}
   <button class="zweitrangig">Filtern</button>
-  {% if q or art or faellig or ohne_auftrag or techniker %}<a href="/anlagen">zurücksetzen</a>{% endif %}
+  {% if q or art or faellig or ohne_auftrag or techniker or label %}<a href="/anlagen">zurücksetzen</a>{% endif %}
 </form>
 <div class="karte">
 {% if liste %}
@@ -31,11 +32,12 @@
 <table>
   <tr>{% if planen %}<th><span class="nur-vorlesen">Auswahl</span></th>{% endif %}<th>Nummer</th><th>Anschrift</th><th>Kunde</th><th>Art</th><th>Stammtechniker</th><th>Umfang</th>
       <th>Nächste Prüfung</th><th>Nächster Austausch</th><th>Nächster Auftrag</th></tr>
+  {% set lj = labels_je('anlage', liste | map(attribute='id')) %}
   {% for a in liste %}
   <tr class="{{ 'inaktiv' if a.passiv }}">
     {% if planen %}<td>{% if not a.passiv %}<input type="checkbox" name="anlage" value="{{ a.id }}" aria-label="{{ a.nummer }} auswählen">{% endif %}</td>{% endif %}
     <td class="nowrap"><a href="/anlagen/{{ a.id }}">{{ a.nummer }}</a></td>
-    <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %}</td>
+    <td>{{ a.adr_strasse }}, {{ a.adr_plz }} {{ a.adr_ort }}{% if a.bezeichnung %} <span class="leise">{{ a.bezeichnung }}</span>{% endif %} {{ lab.chips(lj.get(a.id, [])) }}</td>
     <td><a href="/kunden/{{ a.kunde_id }}">{{ a.kunde_name }}</a></td>
     <td>{{ ANLAGENARTEN.get(a.anlagenart, a.anlagenart) }}{% if a.passiv %} <span class="marke-passiv">passiv</span>{% endif %}</td>
     <td>{{ a.stammtechniker_name or '' }}</td>
@@ -51,7 +53,7 @@
 <p class="leise">{{ liste | length }} Anlage{{ 'n' if liste | length != 1 }}</p>
 {% if planen %}<div class="knopfzeile"><button class="zweitrangig">Aufträge für ausgewählte Anlagen planen</button></div>{% endif %}
 </form>
-{% elif q or art or faellig or ohne_auftrag %}<p>Keine Anlagen gefunden.</p>
+{% elif q or art or faellig or ohne_auftrag or label %}<p>Keine Anlagen gefunden.</p>
 {% else %}<p>Noch keine Anlagen angelegt.</p>{% endif %}
 </div>
 {% endblock %}

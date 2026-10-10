@@ -29,11 +29,12 @@ def router(web):
 
     @r.get("", response_class=HTMLResponse)
     def liste(request: Request, q: str = "", art: str = "", faellig: str = "", ohne_auftrag: str = "",
-              hinweis: str = "", techniker: str = ""):
+              hinweis: str = "", techniker: str = "", label: str = ""):
         n = web.nutzer(request, LESEN)
         return web.seite(request, "anlagen_liste.html", n,
-                         liste=anlagen.liste(con, q, art, faellig, ohne_auftrag=bool(ohne_auftrag), techniker=techniker),
-                         techniker=techniker, techniker_auswahl=anlagen.techniker_auswahl(con), q=q, art=art,
+                         liste=anlagen.liste(con, q, art, faellig, ohne_auftrag=bool(ohne_auftrag), techniker=techniker,
+                                         label=label),
+                         techniker=techniker, label=label, techniker_auswahl=anlagen.techniker_auswahl(con), q=q, art=art,
                          faellig=faellig, ohne_auftrag=bool(ohne_auftrag), faellig_filter=anlagen.FAELLIG_FILTER,
                          arten=anlagen.arten_auswahl(), hinweis=hinweis)
 

@@ -3,7 +3,7 @@
 Kontakte sind Ansprechpartner (Verwalter, Hausmeister); sie gehören optional zu einem Kunden und werden später den
 Anlagen in Rollen zugeordnet (vor Ort, Berichtsempfänger, Terminankündigung).
 """
-from . import db, nummern
+from . import db, labels, nummern
 from .felder import Feld, Ungueltig, adresse_pruefen, einlesen, fuer_bearbeiten, like_muster
 
 KUNDENARTEN = (("hausverwaltung", "Hausverwaltung"), ("eigentuemer", "Eigentümer"),
@@ -42,7 +42,7 @@ KONTAKT_FELDER = (
 
 # ---------- Kunden ----------
 
-def liste(con, suche="", art=""):
+def liste(con, suche="", art="", label=""):
     """Kunden mit Anzahl Objekte/Anlagen, sortiert nach Name. Suche in Nummer, Name, Zusatz, Ort."""
     sql = ("SELECT k.*, "
            " (SELECT COUNT(*) FROM objekt o WHERE o.kunde_id = k.id AND o.geloescht = 0) AS objekte, "
@@ -57,6 +57,9 @@ def liste(con, suche="", art=""):
     if art:
         sql += " AND k.art = ?"
         parameter.append(art)
+    if label:
+        sql += labels.filter_sql("kunde", "k.id")
+        parameter.append(label)
     return con.execute(sql + " ORDER BY k.name COLLATE NOCASE, k.nummer", parameter).fetchall()
 
 

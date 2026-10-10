@@ -13,8 +13,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
 
-from . import anlagen as anlagen_logik, anlagenart, auftraege as auftraege_logik, db, faelligkeit, felder, rechte
-from .web import (anlagen, anmeldung, auftraege, export, gruppen, importe, komponenten, kunden, objekte, typen,
+from . import anlagen as anlagen_logik, anlagenart, auftraege as auftraege_logik, db, faelligkeit, felder, labels as labels_logik, rechte
+from .web import (anlagen, anmeldung, auftraege, export, gruppen, importe, komponenten, kunden, labels, objekte, typen,
                   suche, verwaltung)
 from .web.basis import Web, Weiterleitung
 
@@ -49,7 +49,10 @@ def erzeuge_app(daten_ordner=None, https=False):
     vorlagen.env.globals.update(BEREICHE=rechte.BEREICHE, VERWALTUNG=verwaltung.MENUE, anzeige=felder.anzeige,
                                 ANLAGENARTEN=dict(anlagen_logik.arten_auswahl()), ANLAGENART=anlagenart.alle(),
                                 AMPEL_TEXT=faelligkeit.AMPEL_TEXT,
-                                AUFTRAG_STATUS=auftraege_logik.STATUS_TEXT)
+                                AUFTRAG_STATUS=auftraege_logik.STATUS_TEXT,
+                                labels_alle=lambda: labels_logik.auswahl(con),
+                                labels_von=lambda art, i: labels_logik.von(con, art, i),
+                                labels_je=lambda art, ids: labels_logik.fuer(con, art, ids))
 
     @app.middleware("http")
     async def sicherheitskoepfe(request, call_next):
@@ -67,7 +70,7 @@ def erzeuge_app(daten_ordner=None, https=False):
         return RedirectResponse(exc.ziel, status_code=303)
 
     web = Web(con, vorlagen, daten)
-    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, auftraege, typen, importe, export,
+    for bereich in (anmeldung, kunden, objekte, anlagen, gruppen, komponenten, auftraege, labels, typen, importe, export,
                     verwaltung, suche):
         app.include_router(bereich.router(web))
     return app

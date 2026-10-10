@@ -59,7 +59,7 @@ Verwaltung → Excel-Import liest dieselben Vorlagen (`server/wartung/excel_impo
 Anlagen (WARTUNGSANWENDUNG.NUMMER = Importname der Anlagenart, z. B. „RWM“), Melder-Typen, Melder je Anlage.
 Regeln: Vorschau = Probelauf mit vollständigem Zurückrollen; Übernehmen nur, wenn keine Zeile fehlerhaft ist;
 vorhandene Nummern/Plätze werden übersprungen (nie überschrieben); GRUPPE.NAME „Bewohner, Lage“ wird getrennt;
-Typen werden über Hersteller + Modell gefunden oder einmal angelegt. Noch nicht übernommen: Labels, Techniker-Nummer,
+Typen werden über Hersteller + Modell gefunden oder einmal angelegt. Noch nicht übernommen: Labels (die Foxtag-Vorlagen haben nur an Komponenten Label-Spalten, und die Komponenten-Labels gibt es bei uns noch nicht), Techniker-Nummer,
 Sub-Komponenten (Türen). Getestet mit den Original-Vorlagen aus dem Foxtag-Testkonto (nur lokal, nicht im Repo).
 
 ## 6. Export (umgesetzt 09.10.2026)

@@ -24,9 +24,9 @@ def router(web):
 
     # ---------- Kunden ----------
     @r.get("/kunden", response_class=HTMLResponse)
-    def liste(request: Request, q: str = "", art: str = "", hinweis: str = ""):
+    def liste(request: Request, q: str = "", art: str = "", hinweis: str = "", label: str = ""):
         n = web.nutzer(request, LESEN)
-        return web.seite(request, "kunden_liste.html", n, liste=kunden.liste(con, q, art), q=q, art=art,
+        return web.seite(request, "kunden_liste.html", n, liste=kunden.liste(con, q, art, label), q=q, art=art, label=label,
                          arten=kunden.KUNDENARTEN, arten_namen=dict(kunden.KUNDENARTEN), hinweis=hinweis)
 
     @r.get("/kunden/neu", response_class=HTMLResponse)

@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% import "_formular.html" as form %}{% block titel %}{{ k.name }}{% endblock %}
+{% extends "basis.html" %}{% import "_formular.html" as form %}{% import "_labels.html" as lab %}{% block titel %}{{ k.name }}{% endblock %}
 {% block inhalt %}
 {% set darf = 'stammdaten.bearbeiten' in rechte %}
 <p class="pfad"><a href="/kunden">Kunden</a> › {{ k.nummer }}</p>
@@ -17,6 +17,8 @@
   <h2>Daten</h2>
   {{ form.daten(felder, k, weglassen=('nummer', 'name')) }}
 </section>
+
+{{ lab.karte('/kunden/' ~ k.id ~ '/labels', labels_alle(), labels_von('kunde', k.id), csrf, darf) }}
 
 <section class="karte" id="kontakte">
   <div class="zeile">

@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% block titel %}Auftrag {{ u.nummer }}{% endblock %}
+{% extends "basis.html" %}{% import "_labels.html" as lab %}{% block titel %}Auftrag {{ u.nummer }}{% endblock %}
 {% block inhalt %}
 {% set darf = 'auftraege.planen' in rechte %}
 {% set stamm = 'stammdaten.lesen' in rechte %}
@@ -38,6 +38,8 @@
   </dl>
 </aside>
 </div>
+
+{{ lab.karte('/auftraege/' ~ u.id ~ '/labels', labels_alle(), labels_von('auftrag', u.id), csrf, 'auftraege.planen' in rechte) }}
 
 {% if darf and aktionen %}
 <section class="karte" id="status">

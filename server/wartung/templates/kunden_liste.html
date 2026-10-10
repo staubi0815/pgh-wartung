@@ -1,4 +1,4 @@
-{% extends "basis.html" %}{% block titel %}Kunden{% endblock %}
+{% extends "basis.html" %}{% import "_labels.html" as lab %}{% block titel %}Kunden{% endblock %}
 {% block inhalt %}
 <div class="zeile">
   <h1>Kunden</h1>
@@ -12,17 +12,19 @@
     <option value="">alle Arten</option>
     {% for w, text in arten %}<option value="{{ w }}" {% if art == w %}selected{% endif %}>{{ text }}</option>{% endfor %}
   </select>
+  {{ lab.filter(labels_alle(), label) }}
   <button class="zweitrangig">Filtern</button>
-  {% if q or art %}<a href="/kunden">zurücksetzen</a>{% endif %}
+  {% if q or art or label %}<a href="/kunden">zurücksetzen</a>{% endif %}
 </form>
 <div class="karte">
 {% if liste %}
 <table>
   <tr><th>Nummer</th><th>Name</th><th>Art</th><th>Ort</th><th class="zahl">Objekte</th><th class="zahl">Anlagen</th></tr>
+  {% set lj = labels_je('kunde', liste | map(attribute='id')) %}
   {% for k in liste %}
   <tr>
     <td><a href="/kunden/{{ k.id }}">{{ k.nummer }}</a></td>
-    <td><a href="/kunden/{{ k.id }}">{{ k.name }}</a>{% if k.zusatz %} <span class="leise">{{ k.zusatz }}</span>{% endif %}</td>
+    <td><a href="/kunden/{{ k.id }}">{{ k.name }}</a>{% if k.zusatz %} <span class="leise">{{ k.zusatz }}</span>{% endif %} {{ lab.chips(lj.get(k.id, [])) }}</td>
     <td>{{ arten_namen[k.art] }}</td>
     <td>{{ k.plz }} {{ k.ort }}</td>
     <td class="zahl">{{ k.objekte }}</td><td class="zahl">{{ k.anlagen }}</td>
@@ -30,7 +32,7 @@
   {% endfor %}
 </table>
 <p class="leise">{{ liste | length }} Kunde{{ 'n' if liste | length != 1 }}</p>
-{% elif q or art %}
+{% elif q or art or label %}
 <p>Keine Kunden gefunden.</p>
 {% else %}
 <p>Noch keine Kunden angelegt.</p>

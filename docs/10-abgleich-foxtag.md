@@ -11,7 +11,7 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 
 | Bereich | Foxtag | Wir | Bew. |
 |---|---|---|---|
-| Kunde | Nummer, Name, Adresse (2 Zeilen), PLZ/Ort/Land, Link, Koordinaten (auto/eigen), interne Notiz, Labels | zusätzlich Art, Zusatz, Telefon, E-Mail, Rechnungs-E-Mail, Lieferantennummer; kein Link, keine Koordinaten, keine Labels | = / W (Labels) |
+| Kunde | Nummer, Name, Adresse (2 Zeilen), PLZ/Ort/Land, Link, Koordinaten (auto/eigen), interne Notiz, Labels | zusätzlich Art, Zusatz, Telefon, E-Mail, Rechnungs-E-Mail, Lieferantennummer; kein Link, keine Koordinaten; Labels seit Schritt 9 (nicht im Foxtag-Export) | = |
 | Kontakt | eigenes Adressbuch, über Kunde **und** Anlage verknüpfbar (n:m); Name, Firma, E-Mail, Telefon, Mobil, Fax, Notiz | Kontakt gehört genau einem Kunden, Verknüpfung zur Anlage mit Rolle (`anlage_kontakt`) | erledigt (Schritt 8b, Migration 010): Kontakt über mehrere Kunden über `kunde_kontakt` |
 | Objekt | Nummer, Name, **Zeitzone**, Adresse „wie Kunde“ oder eigen | Nummer, Bezeichnung, Adresse wie Kunde/eigen, Koordinaten, Zugangshinweise | = (Zeitzone S, wir arbeiten nur in einer) |
 | Anlage | Nummer, Name, **Standard-Techniker**, Hinweise, Ansprechpartner, passiv schalten, verschieben, Labels, Berichtsempfänger | Hinweise für Techniker, Verfahren A/B/C, passiv, Einzelnachweis je Wohnung; **kein Standard-Techniker, kein Verschieben der Anlage zu anderem Objekt, keine Berichtsempfänger** | K: Berichtsempfänger (Baustein 5), W: Standard-Techniker, Anlage verschieben |
@@ -19,7 +19,7 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 | Komponente (Melder) | Etiketten, Typ, Seriennummer, Baujahr, Zulassungsnummer, QR-Code, Standort, letzte Prüfung, Inbetriebnahme | zusätzlich Raumart, Funk-ID, Status, Ersatzkette, Austausch-/Prüffälligkeit; **keine Zulassungsnummer je Komponente** (nur am Typ) | W (Zulassungsnr. bei Türen/Brandschutz) |
 | Typ | Hersteller, Modell, Kategorie | zusätzlich Funk, Batterie, Austauschjahre, Datenblatt | + |
 | Dateien/Fotos/Notizen | an Kunde, Anlage, Auftrag, Störung | **keine Tabellen** (nur interne Notiz-Felder) | K (Fotos mit Baustein 4) |
-| Labels | frei benennbar, Farbe, in App/Portal sichtbar, an fast allem | fehlen | W |
+| Labels | frei benennbar, Farbe, in App/Portal sichtbar, an fast allem | erledigt (Schritt 9, 10.10.2026): Name + Farbe aus fester Palette, an Kunde, Objekt, Anlage, Auftrag, Filter in den Listen; noch nicht an Komponenten, nicht in App/Portal, nicht im Foxtag-Export | = |
 
 ## 2 Aufträge
 
@@ -103,6 +103,6 @@ Bewertung: **K** = Kern, vor Echtbetrieb nötig · **W** = wichtig, bald · **S*
 1. **K, ohne Foxtag-Bezug:** HTTPS, Sicherung aufs NAS.
 2. **K, Baustein 4 (App):** Geräteverwaltung, Fotos/Dateien, Prüfung, Mängel, Unterschrift.
 3. **K, Baustein 5:** Artikel/Material, Berichte, Berichtsempfänger, Terminankündigung per E-Mail.
-4. **W, kleine Stammdaten-Erweiterungen:** Labels, Standard-Techniker je Anlage, Zulassungsnummer je Komponente,
+4. **W, kleine Stammdaten-Erweiterungen:** Labels (erledigt), Standard-Techniker je Anlage, Zulassungsnummer je Komponente,
    Kontakt an mehreren Kunden, Anlage verschieben, Doku/Schema Link-Feld.
 5. **S:** Status je Techniker, iCal, Zeitzone, Integrationen.
