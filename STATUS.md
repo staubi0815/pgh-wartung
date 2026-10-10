@@ -58,3 +58,8 @@
 6. App-Analyse Foxtag 2 durch Bedienen (09.10.2026, `docs/08`): Navigation, Auftragsseite, Schrittfolge, Prüfliste,
    Ergebnis OK/Rückgängig, Tauschen, Nacharbeiten, Material, Unterschriften, Berichtsvorschau erfasst. Offen: Scan,
    Fotos, Auftrag beenden, **Offline-Test** (Methode steht in `docs/08`, Termin mit Patrick), zwei Geräte.
+8. Übersicht und Arbeitsweise (10.10.2026, Wunsch Patrick): `docs/00-ueberblick.md` mit Diagrammen (Datenmodell und
+   Auftragsstatus automatisch aus dem Code, Test wacht), automatische Tests auf GitHub, `CHANGELOG.md` mit Versionen
+   0.1–0.3 (Tags), Entscheidungsliste `docs/09`, PR-Vorlage. Ab jetzt Änderungen nur noch per Pull Request
+   (CLAUDE.md „Arbeitsweise“). Offen: unabhängige Prüfung von außen vor dem Echtbetrieb; optional Schutz von `main`
+   in den GitHub-Einstellungen (Merge nur mit grünen Tests).
